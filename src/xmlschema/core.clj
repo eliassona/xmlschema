@@ -39,18 +39,17 @@
     (throw (IllegalArgumentException.)))
   (let [env (gensym)
         value (gensym)
-        base (gensym)
         logic-expr (-> conditions first meta :type)]
   `(fn [~env ~value]
-     (if-let [~base (((:simpleTypes ~env) (~arg-map :base)) ~env ~value)]
-      (if (:result ~base)
+     (if-let [base# (((:simpleTypes ~env) (~arg-map :base)) ~env ~value)]
+      (if (:result base#)
         {:result 
          ~(condp = logic-expr
-            :or `(or ~@(map (fn [c] `(:result (~c ~env (:value ~base)))) conditions))
-            :and `(and ~@(map (fn [c] `(:result (~c ~env (:value ~base)))) conditions))
+            :or `(or ~@(map (fn [c] `(:result (~c ~env ~value))) conditions))
+            :and `(and ~@(map (fn [c] `(:result (~c ~env ~value))) conditions))
             ),
-         :value (:value ~base)} 
-        ~base)
+         :value (:value base#)} 
+        base#)
       (throw (IllegalArgumentException. "Unknown base"))))))
 
 
