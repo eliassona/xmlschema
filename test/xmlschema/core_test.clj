@@ -36,22 +36,22 @@
                                      [:enumeration {:value "Audi"}]
                                      [:enumeration {:value "BMW"}]]) 
                             :start :simpleType-restriction)))]
-    (is (= {:result true, :value "BMW"} (restriction env "BMW")))
-    (is (= {:result false, :value "BMw"} (restriction env "BMw")))
-    (is (= {:result true, :value "Audi"} (restriction env "Audi")))
+    (is (= true (restriction env "BMW")))
+    (is (= false (restriction env "BMw")))
+    (is (= true (restriction env "Audi")))
     ))
 
 (deftest ast-test-min-max
-  #_(let [restriction (eval 
-                       (ast->clj 
-                           (parser 
-                             (pr-str [:restriction {:base "integer"} 
-                                      [:maxInclusive {:value "10"}]
-                                      [:minInclusive {:value "0"}]]) 
-                             :start :simpleType-restriction)))]
-     (is (= {:result true, :value 5} (restriction env "5")))
-     (is (= {:result true, :value 10} (restriction env "10")))
-     (is (= {:result false, :value 11} (restriction env "11")))
-     (is (= {:result true, :value "0"} (restriction env "0")))
-     (is (= {:result false, :value -1} (restriction env "-1")))
-     ))
+  (let [restriction (eval 
+                      (ast->clj 
+                          (parser 
+                            (pr-str [:restriction {:base "integer"} 
+                                     [:maxInclusive {:value "10"}]
+                                     [:minInclusive {:value "0"}]]) 
+                            :start :simpleType-restriction)))]
+    (is (= true (restriction env 5)))
+    (is (= true (restriction env 10)))
+    (is (= false (restriction env 11)))
+    (is (= true (restriction env 0)))
+    (is (= false (restriction env -1)))
+    ))
