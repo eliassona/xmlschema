@@ -41,7 +41,7 @@
         value (gensym)
         logic-expr (-> conditions first meta :type)]
   `(fn [~env ~value]
-     (if-let [base# (((:simpleTypes ~env) (~arg-map "base")) ~env ~value)]
+     (if-let [base# (((:simpleTypes ~env) (~arg-map :base)) ~env ~value)]
       (if (:result base#)
         {:result 
          ~(condp = logic-expr
@@ -54,17 +54,17 @@
 
 (defn enumeration [arg-map]
   (with-meta `(fn [env# value#]
-               (when-let [exp-value# (~arg-map "value")]
+               (when-let [exp-value# (~arg-map :value)]
                  {:result (= value# exp-value#), :value value#})) {:type :or}))
 
 (defn max-inclusive [arg-map]
   (with-meta `(fn [env# value#]
-               (when-let [exp-value# (~arg-map "value")]
+               (when-let [exp-value# (~arg-map :value)]
                  {:result (<= value# exp-value#), :value value#})) {:type :and}))
 
 (def ast->clj-map  
   {
-   :ident (fn[& chars] (apply str (rest chars))) 
+   :ident (fn[& chars] (read-string (apply str chars))) 
    :string-literal (fn[& chars] (apply str (-> chars rest butlast)))
    :attrs (fn [& args] (apply hash-map args))
    :enumeration enumeration

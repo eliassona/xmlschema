@@ -1,3 +1,8 @@
+(*
+  A pretty complete BNF definitation of xml-schema according to 
+  https://www.w3schools.com/xml/schema_elements_ref.asp
+*)
+
 schema = eb 'schema' attrs-with-sp 
 		 ((include|import|redefine|annotation)*,(((simpleType|complexType|
 		 group|attributeGroup)|element|attribute|notation),annotation*)*)
