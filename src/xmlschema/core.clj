@@ -25,11 +25,8 @@
 
 (def env 
   {:simpleTypes 
-   {"string" (fn [_ value] {:result true, :value value}),
-    "integer" (fn [_ value] 
-                (let [v (read-string value)]
-                  {:result (number? v), 
-                   :value (dbg v)}))}})
+   {"string" (fn [_ value] true),
+    "integer" (fn [_ value] true)}})
 
 (defn same-elements? [c]
   (= (count (set c))) 1)
@@ -42,21 +39,18 @@
         logic-expr (-> conditions first meta :type)]
   `(fn [~env ~value]
      (if-let [base# (((:simpleTypes ~env) (~arg-map :base)) ~env ~value)]
-      (if (:result base#)
-        {:result 
+      (and base#
          ~(condp = logic-expr
-            :or `(or ~@(map (fn [c] `(:result (~c ~env ~value))) conditions))
-            :and `(and ~@(map (fn [c] `(:result (~c ~env ~value))) conditions))
-            ),
-         :value (:value base#)} 
-        base#)
+            :or `(or ~@(map (fn [c] `(~c ~env ~value)) conditions))
+            :and `(and ~@(map (fn [c] `(~c ~env ~value)) conditions))
+            )) 
       (throw (IllegalArgumentException. "Unknown base"))))))
 
 
 (defn enumeration [arg-map]
   (with-meta `(fn [env# value#]
                (when-let [exp-value# (:value ~arg-map)]
-                 {:result (= value# exp-value#), :value value#})) {:type :or}))
+                 (= value# exp-value#))) {:type :or}))
 
 
 
