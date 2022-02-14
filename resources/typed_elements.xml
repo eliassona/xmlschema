@@ -1,0 +1,5 @@
+<xs:schema>
+<xs:element name="employee" type="personinfo"/>
+<xs:element name="student" type="personinfo"/>
+<xs:element name="member" type="personinfo"/>
+</xs:schema>

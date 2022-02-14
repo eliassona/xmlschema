@@ -1,0 +1,26 @@
+<xs:schema>
+<xs:element name="password">
+  <xs:simpleType>
+    <xs:restriction base="xs:string">
+      <xs:minLength value="5"/>
+      <xs:maxLength value="8"/>
+    </xs:restriction>
+  </xs:simpleType>
+</xs:element>
+<xs:element name="password">
+  <xs:simpleType>
+    <xs:restriction base="xs:string">
+      <xs:length value="8"/>
+    </xs:restriction>
+  </xs:simpleType>
+</xs:element>
+<xs:element name="car">
+  <xs:simpleType>
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="Audi"/>
+      <xs:enumeration value="Golf"/>
+      <xs:enumeration value="BMW"/>
+    </xs:restriction>
+  </xs:simpleType>
+</xs:element>
+</xs:schema>

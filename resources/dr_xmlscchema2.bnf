@@ -1,0 +1,60 @@
+
+(* ===================================== MZ =========================================== *)
+
+(*
+The correct xml schema implementation is defined in file xmlschema.bnf
+This file defines what MZ does not support
+*)
+
+(* This is the bnf defining the limitations of MZ implementation.
+   The unsupported elements are commented out. A comment block is:
+   OPEN-BRACKET STAR .... STAR CLOSE-BRACKET
+*)    
+schema = eb 'schema' attrs-with-sp 
+		 ((include (*| import*) (*| redefine*) | annotation)*,(((simpleType | complexType 
+		 (* | group*) | attributeGroup) | element (*| attribute*) (*| notation*)), annotation*)*)
+		 ee
+
+annotation = eb 'annotation' attrs-with-sp (*(app-info | documentation)**) ee
+
+element = eb 'element' attrs-with-sp annotation?,(simpleType|complexType)?, (*(unique|key|keyref)**) ee 
+
+complexType = eb 'complexType' attrs-with-sp 
+			  (annotation?,(simpleContent (* | complexContent*)|(((*group*) | all|
+	    	  choice|sequence)?,((attribute|attributeGroup)* (*anyAttribute?*)))))
+	    	  ee
+
+complexContent = eb 'complexContent' attrs-with-sp (annotation?,((*complexContent-restriction*) | extension)) ee
+simpleType = eb 'simpleType' attrs-with-sp (annotation? (simpleType-restriction (*| list*) | union)) ee
+
+simpleContent = eb 'simpleContent' attrs-with-sp (annotation?,(extension (*| simpleType-restriction*))) ee
+
+simpleType-restriction = eb 'restriction' attrs-with-sp 
+                         (annotation?,((*simpleType?*),(minExclusive|minInclusive|
+						  maxExclusive|maxInclusive (*| totalDigits*) (*| fractionDigits*)|
+						  length|minLength|maxLength|enumeration (*| whiteSpace *) | pattern)*)) 
+						  ee
+choice = eb 'choice' attrs-with-sp (annotation?,(element (*|group*) (*|choice*) (*|sequence*) (* |any*) )*) ee
+sequence = eb 'sequence' attrs-with-sp annotation?,(element (*|group*) (*|choice*) (*|sequence*) (*|any*))* ee
+
+
+(* 
+unsupported data types
+------------------------
+decimal
+int
+unsignedLong
+unsignedInt
+*)
+
+(*
+unsupported attributes in elements
+------------------------------------
+id, default, fixed, form, mixed, abstract, block, final, source, xml:lang,
+substitutionGroup, xpath, namespace, refer, itemType, public, attributeFormDefault,
+elementFormDefault, blockDefault, finalDefault, xmlns
+
+
+
+*)
+	    	  

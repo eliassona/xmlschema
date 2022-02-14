@@ -1,0 +1,10 @@
+<schema>
+<element name="person">
+  <complexType>
+    <choice>
+      <element name="employee" type="employee"/>
+      <element name="member" type="member"/>
+    </choice>
+  </complexType>
+</element>
+</schema>
