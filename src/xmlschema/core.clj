@@ -39,28 +39,44 @@
     (throw (IllegalArgumentException.)))
   (let [env (gensym)
         value (gensym)
+        base (gensym)
         logic-expr (-> conditions first meta :type)]
   `(fn [~env ~value]
-     (if-let [base# (((:simpleTypes ~env) (~arg-map :base)) ~env ~value)]
-      (if (:result base#)
+     (if-let [~base (((:simpleTypes ~env) (~arg-map :base)) ~env ~value)]
+      (if (:result ~base)
         {:result 
          ~(condp = logic-expr
-            :or `(or ~@(map (fn [c] `(:result (~c ~env ~value))) conditions))
-            :and `(and ~@(map (fn [c] `(:result (~c ~env ~value))) conditions))
+            :or `(or ~@(map (fn [c] `(:result (~c ~env (:value ~base)))) conditions))
+            :and `(and ~@(map (fn [c] `(:result (~c ~env (:value ~base)))) conditions))
             ),
-         :value (:value base#)} 
-        base#)
+         :value (:value ~base)} 
+        ~base)
       (throw (IllegalArgumentException. "Unknown base"))))))
+
 
 (defn enumeration [arg-map]
   (with-meta `(fn [env# value#]
-               (when-let [exp-value# (~arg-map :value)]
+               (when-let [exp-value# (:value ~arg-map)]
                  {:result (= value# exp-value#), :value value#})) {:type :or}))
+
+
 
 (defn max-inclusive [arg-map]
   (with-meta `(fn [env# value#]
                (when-let [exp-value# (~arg-map :value)]
                  {:result (<= value# exp-value#), :value value#})) {:type :and}))
+(defn min-inclusive [arg-map]
+  (with-meta `(fn [env# value#]
+               (when-let [exp-value# (~arg-map :value)]
+                 {:result (>= value# exp-value#), :value value#})) {:type :and}))
+(defn max-exclusive [arg-map]
+  (with-meta `(fn [env# value#]
+               (when-let [exp-value# (~arg-map :value)]
+                 {:result (< value# exp-value#), :value value#})) {:type :and}))
+(defn min-exclusive [arg-map]
+  (with-meta `(fn [env# value#]
+               (when-let [exp-value# (~arg-map :value)]
+                 {:result (>= value# exp-value#), :value value#})) {:type :and}))
 
 (def ast->clj-map  
   {
@@ -70,6 +86,9 @@
    :enumeration enumeration
    :simpleType-restriction simple-type-restriction
    :maxInclusive max-inclusive
+   :minInclusive min-inclusive
+   :maxExclusive max-exclusive
+   :minExclusive min-exclusive
    })
 
 (defn ast->clj [ast]
