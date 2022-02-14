@@ -1,170 +1,82 @@
-schema = os '<' xs 'schema' any-attributes '>' 
+schema = eb 'schema' attrs-with-sp 
 		 ((include|import|redefine|annotation)*,(((simpleType|complexType|
 		 group|attributeGroup)|element|attribute|notation),annotation*)*)
-		 '</' xs 'schema>' os
-include = os '<' xs 'include' 
-		 any-attributes  
-		 (end | ('>' annotation? '</' xs 'import>')) os 
-import = os '<' xs 'import'
-		 any-attributes  
-		 (end | ('>' annotation? '</' xs 'import>')) os 
-redefine = os '<' xs 'redefine' space 'schemaLocation=' strLit any-attributes 
-		   (end | ('>' (annotation?|(simpleType|complexType|group|attributeGroup))* 
-		   '</' xs 'redefine>')) os 	   
-notation = os '<' xs 'notation' space name-attr space 'public=' strLit any-attributes 
-		   (end | ('>' annotation? '</' xs 'notation>')) os 	   
-app-info = os '<' xs 'appinfo>' string '</' xs 'appinfo>' os 
-documentation = os '<' xs 'documentation xml:lang=' strLit '>' os string os '</' xs 'documentation>' os  
-annotation = os '<' xs 'annotation' any-attributes '>' os (app-info | documentation)* '</' xs 'annotation>' os
-choice = os '<' xs 'choice' any-attributes '>' 
-		 (annotation?,(element|group|choice|sequence|any)*) 
-		 '</' xs 'choice>' os
-element = typed-element | embedded-element
-typed-element = os '<' xs 'element' space name-attr space 'type=' strLit any-attributes 
-				(('>' '</' xs 'element>') | end) os
-embedded-element = os '<' xs 'element' space name-attr any-attributes  
-	 			   (end | ('>' annotation?,(simpleType|complexType)?,(unique|key|keyref)* 
-	 			   '</' xs 'element>')) os 
-unique = os '<' xs 'unique' space name-attr any-attributes
-	 	 (end | ('>' (annotation?,(selector,field+)) '</' xs 'unique>')) os 
-
-key = os '<' xs 'key' name-attr any-attributes '>'
-      (annotation?,(selector,field+)) 
-	  '</' xs 'key>' os
-selector = os '<' xs 'selector' space 'xpath=' strLit any-attributes '>'
-      annotation? 
-	 (end | ('>' annotation? '</' xs 'selector>')) os 
-field = os '<' xs 'field' space 'xpath=' strLit any-attributes '>'
-      annotation? 
-	 (end | ('>' annotation? '</' xs 'field>')) os 
-	  
-keyref = os '<' xs 'keyref' name-attr any-attributes '>'
-      (annotation?,(selector,field+)) 
-	  '</' xs 'keyref>' os
-
-named-simpleType = os '<' xs 'simpleType ' name-attr any-attributes '>' 
-				   simpleType-content '</' xs 'simpleType>' os 
-simpleType = os '<' xs 'simpleType' any-attributes '>' 
-			 simpleType-content  '</' xs 'simpleType>' os
-simpleType-content = (annotation? (simpleType-restriction| list| union))
-named-complexType = os '<' xs 'complexType' space name-attr (space mixed-attr)? any-attributes '>' 
-                    complex-type-content 
-                    '</' xs 'complexType>' os
-complexType = os '<' xs 'complexType' (space mixed-attr)? any-attributes '>' 
-			  complex-type-content 
-		      '</' xs 'complexType>' os
-complex-type-content = (annotation?,(simpleContent|complexContent|((group|all|
-					    choice|sequence)?,((attribute|attributeGroup)*,anyAttribute?))))
-named-group = os '<' xs 'group' space name-attr (space min-occurs-attr)? 
-			  (space max-occurs-attr)? any-attributes '>' 
-			  (annotation?,(all|choice|sequence)?) 
-			  '</' xs 'group>' os 
-ref-group = os '<' xs 'group ref=' strLit any-attributes end os
-group = named-group | ref-group
-any = os '<' xs 'any' any-attributes
-		 (end | ('>' annotation? '</' xs 'any>')) os 
- 
-anyAttribute = os '<' xs 'anyAttribute' any-attributes 
-		 	   (end | ('>' annotation? '</' xs 'anyAttribute>')) os 
-attributeGroup = named-attribute-group | ref-attribute-group
-named-attribute-group = os '<' xs 'attributeGroup' space name-attr any-attributes 
-						(end | ('>' annotation? (attribute|attributeGroup)* anyAttribute? 
-						'</' xs 'attributeGroup>')) os 
-ref-attribute-group = os '<' xs 'attributeGroup' space 'ref=' strLit any-attributes 
-					  (end | ('>' annotation? '</' xs 'attributeGroup>')) os 
-any-attributes = (space string '=' strLit)*
-complexContent = os '<' xs 'complexContent' any-attributes '>' 
-				 (annotation?,(complexContent-restriction|extension)) 
-				 '</' xs 'complexContent>' os
-simpleContent = os '<' xs 'simpleContent' any-attributes '>' 
-				(annotation?,(extension | simpleType-restriction)) 
-				'</' xs 'simpleContent>' os
-extension = os '<' xs 'extension base=' strLit any-attributes '>' 
-					(annotation?,((group|all|choice|sequence)?,
-					((attribute|attributeGroup)*,anyAttribute?))) 
-					'</' xs 'extension>' os
-all = os '<' xs 'all' any-attributes '>' annotation? element* '</' xs 'all>' os
-sequence = os '<' xs 'sequence' any-attributes '>' 
-		   annotation?,(element|group|choice|sequence|any)* 
-		   '</' xs 'sequence>' os
-union = os '<' xs 'union memberTypes=' strLit any-attributes
-		(end | ('>' (annotation?,(simpleType*)) '</' xs 'union>')) os 	   
-
-typed-list = os '<' xs 'list itemType=' strLit any-attributes 
-	         end os
-embedded-list = os '<' xs 'list' any-attributes  
-		 (end | ('>' (annotation?,(simpleType?)) '</' xs 'list>')) os 	   
-list = embedded-list | typed-list	    
-simpleType-restriction = os '<' xs 'restriction base=' strLit any-attributes '>' 
+		 ee
+include = eb 'include' attrs-with-sp annotation? ee  
+import = eb 'import' attrs-with-sp annotation? ee 
+redefine = eb 'redefine' attrs-with-sp (annotation?|(simpleType|complexType|group|attributeGroup))* ee 	   
+notation = eb 'notation' attrs-with-sp annotation? ee 	   
+choice = eb 'choice' attrs-with-sp (annotation?,(element|group|choice|sequence|any)*) ee
+element = eb 'element' attrs-with-sp annotation?,(simpleType|complexType)?,(unique|key|keyref)* ee 
+unique = eb 'unique' attrs-with-sp (annotation?,(selector,field+)) ee 
+key = eb 'key' attrs-with-sp (annotation?,(selector,field+)) ee
+selector = eb 'selector' attrs-with-sp annotation? ee
+field = eb 'field' attrs-with-sp annotation? ee
+keyref = eb 'keyref' attrs-with-sp (annotation?,(selector,field+)) ee 
+complexType = eb 'complexType' attrs-with-sp 
+	(annotation?,(simpleContent|complexContent|((group|all|
+	 choice|sequence)?,((attribute|attributeGroup)*,anyAttribute?))))
+	 ee
+group = eb 'group' attrs-with-sp (annotation?,(all|choice|sequence)?) ee
+any = eb 'any' attrs-with-sp annotation? ee 
+simpleType = eb 'simpleType' attrs-with-sp (annotation? (simpleType-restriction| list| union)) ee
+anyAttribute = eb 'anyAttribute' attrs-with-sp annotation? ee 
+attributeGroup = eb 'attributeGroup' attrs-with-sp annotation? (attribute|attributeGroup)* anyAttribute? ee
+complexContent = eb 'complexContent' attrs-with-sp (annotation?,(complexContent-restriction|extension)) ee
+simpleContent = eb 'simpleContent' attrs-with-sp (annotation?,(extension | simpleType-restriction)) ee
+extension = eb 'extension' attrs-with-sp (annotation?,((group|all|choice|sequence)?, ((attribute|attributeGroup)*,anyAttribute?))) ee 
+all = eb 'all' attrs-with-sp annotation? element* ee
+sequence = eb 'sequence' attrs-with-sp annotation?,(element|group|choice|sequence|any)* ee
+union = eb 'union' attrs-with-sp (annotation?,(simpleType*)) ee 	   
+list = eb 'list' attrs-with-sp  (annotation?,(simpleType?)) ee 	   
+simpleType-restriction = eb <'restriction'> attrs-with-sp 
                          (annotation?,(simpleType?,(minExclusive|minInclusive|
 						  maxExclusive|maxInclusive|totalDigits|fractionDigits|
 						  length|minLength|maxLength|enumeration|whiteSpace|pattern)*)) 
-                         '</' xs 'restriction>' os
-simpleContent-restriction = os '<' xs 'restriction base=' strLit any-attributes '>' os 
+						  ee
+simpleContent-restriction = eb <'restriction'> attrs-with-sp 
 						(annotation?,(simpleType?,(minExclusive |minInclusive|
 						maxExclusive|maxInclusive|totalDigits|fractionDigits|
 						length|minLength|maxLength|enumeration|whiteSpace|pattern)*)?,
 						((attribute|attributeGroup)*,anyAttribute?))
-                        '</' xs 'restriction>' os
-complexContent-restriction = os '<' xs 'restriction base=' strLit any-attributes '>'
+                        ee
+complexContent-restriction = eb <'restriction'> attrs-with-sp
 							 (annotation?,(group|all|choice|sequence)?,
 							 ((attribute|attributeGroup)*,anyAttribute?))
-							 '</' xs 'restriction>' os                         
-typed-attribute = os '<' xs 'attribute' space name-attr space 'type=' strLit 
-				  (use-attr | default-attr | fixed-attr)? any-attributes 
-		 		  (end | ('>' annotation? '</' xs 'attribute>')) os 
-embedded-attribute = os '<' xs 'attribute' space name-attr any-attributes '>' 
-					 annotation? simpleType? 
-					 '</' xs 'attribute>' os
-ref-attribute = os '<' xs 'attribute' space 'ref=' strLit any-attributes
-		 		  (end | ('>' annotation? '</' xs 'attribute>')) os 
-attribute = typed-attribute | embedded-attribute | ref-attribute
-fractionDigits = os '<' xs 'fractionDigits' space 'value=' '\"' decimalLit '\"' any-attributes 
-	 		  	 (end | ('>' annotation? '</' xs 'fractionDigits>')) os 
-totalDigits = os '<' xs 'totalDigits' space 'value=' '\"' decimalLit '\"' any-attributes 
-	 		  	 (end | ('>' annotation? '</' xs 'totalDigits>')) os 
-whiteSpace = os '<' xs 'whiteSpace value=' (preserve | replace | collapse) 
-	 		 (end | ('>' annotation? '</' xs 'whiteSpace>')) os 
-minInclusive = os '<' xs 'minInclusive value=' '\"' decimalLit '\"' 
-                         (('>' '</' xs 'minInclusive>') | end) os
-maxInclusive = os '<' xs 'maxInclusive value=' '\"' decimalLit '\"' (('>' '</' xs 'maxInclusive>') | end) os
-minExclusive = os '<' xs 'minExclusive value=' '\"' decimalLit '\"' (('>' '</' xs 'minExclusive>') | end) os
-maxExclusive = os '<' xs 'maxExclusive value=' '\"' decimalLit '\"' (('>' '</' xs 'maxExclusive>') | end) os
-enumeration = os '<' xs 'enumeration value=' strLit 
-              (('>' '</' xs 'enumeration>') | end) os
-          
-length = os '<' xs 'length value=' '\"' decimalLit '\"' 
-         (('>' '</' xs 'length>') | end) os
-minLength = os '<' xs 'minLength value=' '\"' decimalLit '\"' 
-            (('>' '</' xs 'minLength>') | end) os
-maxLength = os '<' xs 'maxLength value=' '\"' decimalLit '\"' 
-            (('>' '</' xs 'maxLength>') | end) os
-pattern = os '<' xs 'pattern value=' strLit 
-          (('>' '</' xs 'pattern>') | end) os
-name-attr = 'name=' strLit
-mixed-attr = 'mixed=' (true | false)
-use-attr = 'use=' required | optional
-fixed-attr = 'fixed=' strLit
-default-attr = 'default=' strLit
-min-occurs-attr = 'minOccurs=' '\"' decimalLit '\"' 
-max-occurs-attr = 'maxOccurs=' '\"' decimalLit '\"' 
-true = '\"true\"'
-false = '\"false\"'
-preserve = '\"preserve\"'
-replace = '\"replace\"'
-collapse = '\"collapse\"'
-required = '\"required\"'
-optional = '\"optional\"'
-string-type = '\"' xs 'string' '\"'  
-xs = ('xs' ':') | '' 
-end = '/>'
+							 ee                         
+attribute = eb 'attribute' attrs-with-sp annotation? simpleType? ee
+fractionDigits = eb <'fractionDigits'> attrs-with-sp annotation? ee 
+totalDigits = eb <'totalDigits'> attrs-with-sp annotation? ee 
+whiteSpace = eb <'whiteSpace'> attrs-with-sp annotation? ee 
+minInclusive = eb <'minInclusive'> attrs-with-sp annotation? ee
+maxInclusive = eb <'maxInclusive'> attrs-with-sp annotation? ee
+minExclusive = eb <'minExclusive'> attrs-with-sp annotation? ee
+maxExclusive = eb <'maxExclusive'> attrs-with-sp annotation? ee
+enumeration = eb <'enumeration'> attrs-with-sp annotation? ee
+length = eb <'length'> attrs-with-sp annotation? ee
+minLength = eb <'minLength'> attrs-with-sp annotation? ee
+maxLength = eb <'maxLength'> attrs-with-sp annotation? ee
+pattern = eb <'pattern'> attrs-with-sp annotation? ee
+app-info = eb 'appinfo' attrs-with-sp string ee 
+documentation = eb 'documentation' attrs-with-sp string ee  
+annotation = eb 'annotation' attrs-with-sp (app-info | documentation)* ee
 decimalLit = ('+' | '-')? decimalDigit*
 decimalDigit = #'[0-9]'
-strLit = <'\"'> { charValue } <'\"'>
-string = charValue*  
+string = charValue*
 charValue = #"[^\n]"
-space = <#'[ \t\n,]+'>
+<space> = <#'[ \t\n,]+'>
 os = <#'[ \t\n]*'>
-
-
-
+<attrs-with-sp> = (space attrs)?
+attrs = ab (ident space string-literal)? (',' os ident space string-literal)* ae
+<eb> = < os '['> ns? <':'>
+<ee> = <']'> 
+<ab> = < '{'>
+<ae> = <'}'>
+ns = ident
+<letter> 	 = #'[A-Za-z]'
+decimalDigit = #'[0-9]'
+octalDigit   = #'[0-7]'
+hexDigit     = #'[0-9a-fA-F]'
+string-literal = '\"' (letter | decimalDigit | #'[-_/.:]')* '\"'
+ns-ident = ident? ident
+ident = ':' (letter { letter | decimalDigit | "_" })*

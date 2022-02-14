@@ -7,7 +7,6 @@
   `(let [x# ~body]
      (println "dbg:" '~body "=" x#)
      x#))
-(def parser (insta/parser (clojure.java.io/resource "xmlschema.bnf")))
 
 (defn html->hiccup
    [html]
@@ -22,7 +21,7 @@
   (let [enlive (xml/parse (java.io.ByteArrayInputStream. (.getBytes text)))]
     (html->hiccup enlive)))
 
-(def parser2 (insta/parser (clojure.java.io/resource "xmlschema2.bnf")))
+(def parser (insta/parser (clojure.java.io/resource "xmlschema.bnf")))
 
 (def env 
   {:simpleTypes 
