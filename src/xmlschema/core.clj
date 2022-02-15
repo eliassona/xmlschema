@@ -25,8 +25,19 @@
 
 (def env 
   {:simpleTypes 
-   {"string" (fn [_ value] true),
-    "integer" (fn [_ value] true)}})
+   {"string" (fn 
+               ([_ value] true)
+               ([_ value cast]
+                 (if cast 
+                   value 
+                   true))),
+    "integer" (fn 
+                ([_ value] true)
+                ([_ value cast] 
+                  (if cast 
+                   value 
+                   true))
+                )}})
 
 (defn same-elements? [c]
   (= (count (set c))) 1)
@@ -38,7 +49,7 @@
         value (gensym)
         logic-expr (-> conditions first meta :type)]
   `(fn [~env ~value]
-     (if-let [base# (((:simpleTypes ~env) (~arg-map :base)) ~env ~value)]
+     (if-let [base# (((:simpleTypes ~env) ~(arg-map :base)) ~env ~value)]
       (and base#
          ~(condp = logic-expr
             :or `(or ~@(map (fn [c] `(~c ~env ~value)) conditions))
@@ -53,7 +64,7 @@
                  (= value# exp-value#))) {:type :or}))
 
 
-(defn op-exp [arg-map op]
+(defn op-expr [arg-map op]
   (when-let [exp-value (:value arg-map)]
     (with-meta 
       `(fn [env# value#]
@@ -77,6 +88,24 @@
      s
      (str s))))
 
+
+(defn element [arg-map type]
+  [(:name arg-map) type :element]
+   )
+
+(defn schema [& elements]
+  (let [m 
+    (apply 
+      hash-map 
+      (mapcat 
+        (fn [[name type-fn]] [name type-fn]) 
+        (filter (fn [e] (= (nth e 2) :element)) elements)))]
+    `(fn [xml#]
+       (let [element-map# ~m
+             type-fn# (element-map# (-> xml# first name))]
+       ))))
+
+
 (def ast->clj-map  
   {
    :ident (fn[& chars] (read-string (apply str chars))) 
@@ -89,6 +118,9 @@
    :minInclusive min-inclusive
    :maxExclusive max-exclusive
    :minExclusive min-exclusive
+   :simpleType identity
+   :element element
+   :schema schema
    })
 
 (defn ast->clj [ast]
@@ -99,26 +131,5 @@
 
 
 
-(def r 
-  (clojure.core/fn
-   [G__9464 G__9465]
-   (clojure.core/if-let
-    [base__9430__auto__
-     (((:simpleTypes G__9464) ({:base "integer"} :base))
-      G__9464
-      G__9465)]
-    (clojure.core/and
-     base__9430__auto__
-     (clojure.core/and
-      ((clojure.core/fn
-        [env__9237__auto__ value__9238__auto__]
-        (clojure.core/<= value__9238__auto__ 10))
-       G__9464
-       G__9465)
-      ((clojure.core/fn
-        [env__9237__auto__ value__9238__auto__]
-        (clojure.core/>= value__9238__auto__ 0))
-       G__9464
-       G__9465)))
-    (throw (java.lang.IllegalArgumentException. "Unknown base")))))
+
 

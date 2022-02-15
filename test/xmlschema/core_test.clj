@@ -55,3 +55,18 @@
     (is (= true (restriction env 0)))
     (is (= false (restriction env -1)))
     ))
+
+
+(deftest simple-type-element
+  (let [schema 
+        (eval 
+          (ast->clj 
+              (parser 
+                (pr-str [:schema 
+                         [:element {:name "car"} 
+                          [:simpleType 
+                            [:restriction {:base "integer"} 
+                             [:maxInclusive {:value "10"}]
+                             [:minInclusive {:value "0"}]]]]]))))]
+    [:schema [:car "BMW"]]
+    ))
