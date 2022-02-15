@@ -25,18 +25,17 @@
 
 (def env 
   {:simpleTypes 
-   {"string" (fn [_ value] true)
-               ,
-    "integer" (fn 
-                ([_ value] true)
-                ([_ value cast] 
-                  (if cast 
-                   (let [v (read-string value)]
-                     (if (number? v)
-                       v
-                       value))
-                   true))
-                )}})
+   {"string" (fn [_ value] [true value])
+    "integer" (fn [_ value]
+                (try 
+                  (let [v (Long/valueOf value)]
+                    [true v])
+                  (catch NumberFormatException e
+                    [false value])))
+                    
+                    
+                        
+    }})
 
 (defn same-elements? [c]
   (= (count (set c))) 1)
@@ -46,14 +45,16 @@
     (throw (IllegalArgumentException.)))
   (let [env (gensym)
         value (gensym)
+        base-result (gensym)
+        base-value (gensym)
         logic-expr (-> conditions first meta :type)]
   `(fn [~env ~value]
-     (if-let [base# (((:simpleTypes ~env) ~(arg-map :base)) ~env ~value)]
-      (and base#
-         ~(condp = logic-expr
-            :or `(or ~@(map (fn [c] `(~c ~env ~value)) conditions))
-            :and `(and ~@(map (fn [c] `(~c ~env ~value)) conditions))
-            )) 
+     (if-let [[~base-result ~base-value] (((:simpleTypes ~env) ~(arg-map :base)) ~env ~value)]
+      [(and ~base-result
+          ~(condp = logic-expr
+             :or `(or ~@(map (fn [c] `(~c ~env ~base-value)) conditions))
+             :and `(and ~@(map (fn [c] `(~c ~env ~base-value)) conditions))
+             )) ~base-value] 
       (throw (IllegalArgumentException. "Unknown base"))))))
 
 
@@ -64,11 +65,10 @@
 
 
 (defn numeric-op-expr [arg-map op]
-  (let [i ((:simpleTypes env) "integer")]
-    (when-let [exp-value (i nil (:value arg-map) true)]
+    (when-let [exp-value (:value arg-map)]
       (with-meta 
         `(fn [env# value#]
-           (~op value# ~exp-value)) {:type :and}))))
+           (~op value# ~(Long/valueOf exp-value))) {:type :and}))) ;TODO make better cast here
 
 (defn max-inclusive [arg-map]
   (numeric-op-expr arg-map `<=))

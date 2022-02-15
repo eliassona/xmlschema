@@ -36,9 +36,9 @@
                                      [:enumeration {:value "Audi"}]
                                      [:enumeration {:value "BMW"}]]) 
                             :start :simpleType-restriction)))]
-    (is (= true (restriction env "BMW")))
-    (is (= false (restriction env "BMw")))
-    (is (= true (restriction env "Audi")))
+    (is (= [true "BMW"] (restriction env "BMW")))
+    (is (= [false "BMw"] (restriction env "BMw")))
+    (is (= [true "Audi"] (restriction env "Audi")))
     ))
 
 (deftest ast-test-min-max
@@ -49,11 +49,11 @@
                                      [:maxInclusive {:value "10"}]
                                      [:minInclusive {:value "0"}]]) 
                             :start :simpleType-restriction)))]
-    (is (= true (restriction env 5)))
-    (is (= true (restriction env 10)))
-    (is (= false (restriction env 11)))
-    (is (= true (restriction env 0)))
-    (is (= false (restriction env -1)))
+    (is (= [true 5] (restriction env "5")))
+    (is (= [true 10] (restriction env "10")))
+    (is (= [false 11] (restriction env "11")))
+    (is (= [true 0] (restriction env "0")))
+    (is (= [false -1] (restriction env "-1")))
     ))
 
 
