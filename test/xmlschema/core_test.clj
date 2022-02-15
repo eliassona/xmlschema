@@ -13,15 +13,15 @@
       (is true))))
 
 (defn assert-schemas [p]
-  #_(let [a (partial assert-schema p)]
-	   (a "typed_element.xml" :schema)
-	   (a "typed_elements.xml" :schema)
-	   (a "element_with_embedded_restrictions.xml" :schema)
-	   (a "predef_restrictions.xml" :schema)
-	   (a "complex_type.xml" :schema)
-	   (a "group.xml" :schema)
-	   (a "choice.xml" :schema)
-    )
+  (let [a (partial assert-schema p)]
+	  (a "typed_element.xml" :schema)
+	  (a "typed_elements.xml" :schema)
+	  (a "element_with_embedded_restrictions.xml" :schema)
+	  (a "predef_restrictions.xml" :schema)
+	  (a "complex_type.xml" :schema)
+	  (a "group.xml" :schema)
+	  (a "choice.xml" :schema)
+   )
 )  
 
 (deftest parse-test
