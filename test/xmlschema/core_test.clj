@@ -54,6 +54,7 @@
     (is (= [false 11] (restriction env "11")))
     (is (= [true 0] (restriction env "0")))
     (is (= [false -1] (restriction env "-1")))
+    (is (= [false "a1"] (restriction env "a1")))
     ))
 
 
