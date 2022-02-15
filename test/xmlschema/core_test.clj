@@ -45,16 +45,10 @@
   (let [restriction (eval 
                       (ast->clj 
                           (parser 
-                            (pr-str [:restriction {:base "integer"} 
-                                     [:maxInclusive {:value "10"}]
-                                     [:minInclusive {:value "0"}]]) 
+                            (pr-str [:restriction {:base "positiveInteger"} 
+                                     [:maxInclusive {:value "10"}]]) 
                             :start :simpleType-restriction)))]
     (is (= [true 5] (restriction env "5")))
-    (is (= [true 10] (restriction env "10")))
-    (is (= [false 11] (restriction env "11")))
-    (is (= [true 0] (restriction env "0")))
-    (is (= [false -1] (restriction env "-1")))
-    (is (= [false "a1"] (restriction env "a1")))
     ))
 
 
@@ -71,3 +65,5 @@
                              [:minInclusive {:value "0"}]]]]]))))]
     [:schema [:car "BMW"]]
     ))
+
+

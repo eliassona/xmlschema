@@ -160,12 +160,21 @@
        ast))
 
 
+(defn parse-predef [predef]
+  (ast->clj (parser (pr-str predef) :start :simpleType)))
 
-(def env (merge env
-  (apply 
-    hash-map 
-    (mapcat 
-      (fn [p] (ast->clj (parser (pr-str p) :start :simpleType))) 
-      predefs))))
+(defn eval-predef [[name type-fn]]
+  [name (eval type-fn)])
+
+(def env 
+  (assoc env 
+   :simpleTypes 
+   (merge 
+     (:simpleTypes env)
+      (apply 
+        hash-map 
+        (mapcat 
+          (comp eval-predef parse-predef) 
+          predefs)))))
 
 
