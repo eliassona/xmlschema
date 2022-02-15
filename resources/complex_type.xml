@@ -207,4 +207,11 @@
     </xs:simpleContent>
   </xs:complexType>
 </xs:element>
+<xs:element name="unique" type="string">
+	<xs:unique name="nameUniqueness">
+		<xs:selector xpath= "ex:character"/>
+		<xs:field xpath="ex:name"/>
+	</xs:unique>
+</xs:element>
+
 </schema>

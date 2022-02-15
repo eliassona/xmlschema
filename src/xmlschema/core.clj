@@ -37,36 +37,7 @@
                         
     }})
 
-(def predefs
-  [
-   [:simpleType {:name "byte"} 
-    [:restriction {:base "integer"} 
-	    [:minInclusive {:value "-128"}] 
-	    [:maxInclusive {:value "127"}]]]
-   [:simpleType {:name "short"} 
-    [:restriction {:base "integer"} 
-	    [:minInclusive {:value "-32768"}] 
-	    [:maxInclusive {:value "32767"}]]] 
-   [:simpleType {:name "unsignedByte"} 
-	   [:restriction {:base "integer"} 
-		   [:minInclusive {:value "0"}] 
-		   [:maxInclusive {:value "255"}]]] 
-   [:simpleType {:name "unsignedShort"} 
-	   [:restriction {:base "integer"} 
-		   [:minInclusive {:value "0"}] 
-		   [:maxInclusive {:value "65535"}]]] 
-   [:simpleType {:name "nonPositiveInteger"} 
-	   [:restriction {:base "integer"} 
-		   [:maxInclusive {:value "0"}]]] 
-   [:simpleType {:name "nonNegativeInteger"} 
-	   [:restriction {:base "integer"} 
-		   [:minInclusive {:value "0"}]]] 
-   [:simpleType {:name "positiveInteger"} 
-	   [:restriction {:base "integer"} 
-		   [:minExclusive {:value "0"}]]] 
-   [:simpleType {:name "negativeInteger"} 
-	   [:restriction {:base "integer"} 
-		   [:maxExclusive {:value "0"}]]]]) 
+ 
 
 
 
@@ -165,6 +136,37 @@
 
 (defn eval-predef [[name type-fn]]
   [name (eval type-fn)])
+
+(def predefs
+  [
+   [:simpleType {:name "byte"} 
+    [:restriction {:base "integer"} 
+	    [:minInclusive {:value "-128"}] 
+	    [:maxInclusive {:value "127"}]]]
+   [:simpleType {:name "short"} 
+    [:restriction {:base "integer"} 
+	    [:minInclusive {:value "-32768"}] 
+	    [:maxInclusive {:value "32767"}]]] 
+   [:simpleType {:name "unsignedByte"} 
+	   [:restriction {:base "integer"} 
+		   [:minInclusive {:value "0"}] 
+		   [:maxInclusive {:value "255"}]]] 
+   [:simpleType {:name "unsignedShort"} 
+	   [:restriction {:base "integer"} 
+		   [:minInclusive {:value "0"}] 
+		   [:maxInclusive {:value "65535"}]]] 
+   [:simpleType {:name "nonPositiveInteger"} 
+	   [:restriction {:base "integer"} 
+		   [:maxInclusive {:value "0"}]]] 
+   [:simpleType {:name "nonNegativeInteger"} 
+	   [:restriction {:base "integer"} 
+		   [:minInclusive {:value "0"}]]] 
+   [:simpleType {:name "positiveInteger"} 
+	   [:restriction {:base "integer"} 
+		   [:minExclusive {:value "0"}]]] 
+   [:simpleType {:name "negativeInteger"} 
+	   [:restriction {:base "integer"} 
+		   [:maxExclusive {:value "0"}]]]])
 
 (def env 
   (assoc env 
