@@ -25,17 +25,16 @@
 
 (def env 
   {:simpleTypes 
-   {"string" (fn 
-               ([_ value] true)
-               ([_ value cast]
-                 (if cast 
-                   value 
-                   true))),
+   {"string" (fn [_ value] true)
+               ,
     "integer" (fn 
                 ([_ value] true)
                 ([_ value cast] 
                   (if cast 
-                   value 
+                   (let [v (read-string value)]
+                     (if (number? v)
+                       v
+                       value))
                    true))
                 )}})
 
@@ -64,29 +63,26 @@
                  (= value# exp-value#))) {:type :or}))
 
 
-(defn op-expr [arg-map op]
-  (when-let [exp-value (:value arg-map)]
-    (with-meta 
-      `(fn [env# value#]
-         (~op value# ~exp-value)) {:type :and})))
+(defn numeric-op-expr [arg-map op]
+  (let [i ((:simpleTypes env) "integer")]
+    (when-let [exp-value (i nil (:value arg-map) true)]
+      (with-meta 
+        `(fn [env# value#]
+           (~op value# ~exp-value)) {:type :and}))))
 
 (defn max-inclusive [arg-map]
-  (op-expr arg-map `<=))
+  (numeric-op-expr arg-map `<=))
 
 (defn min-inclusive [arg-map]
-  (op-expr arg-map `>=))
+  (numeric-op-expr arg-map `>=))
 
 (defn max-exclusive [arg-map]
-  (op-expr arg-map `<))
+  (numeric-op-expr arg-map `<))
 
 (defn min-exclusive [arg-map]
-  (op-expr arg-map `>))
+  (numeric-op-expr arg-map `>))
 
-(defn string-literal [& chars]
-  (let [s (read-string (apply str chars))]
-   (if (number? s)
-     s
-     (str s))))
+
 
 
 (defn element [arg-map type]
@@ -109,8 +105,7 @@
 (def ast->clj-map  
   {
    :ident (fn[& chars] (read-string (apply str chars))) 
-   :string-literal string-literal 
-                                   
+   :string-literal (fn [& chars] (apply str chars)) 
    :attrs (fn [& args] (apply hash-map args))
    :enumeration enumeration
    :simpleType-restriction simple-type-restriction
