@@ -8,18 +8,18 @@
      (println "dbg:" '~body "=" x#)
      x#))
 
-(defn html->hiccup
-   [html]
-   (if-not (string? html)
-     (->> (map html->hiccup (:content html))
-       (concat [(:tag html) (:attrs html)])
+(defn xml->hiccup
+   [xml]
+   (if-not (string? xml)
+     (->> (map xml->hiccup (:content xml))
+       (concat [(:tag xml) (:attrs xml)])
        (keep identity)
        vec)
-     html))
+     xml))
 
 (defn hiccup-of [text]
   (let [enlive (xml/parse (java.io.ByteArrayInputStream. (.getBytes text)))]
-    (html->hiccup enlive)))
+    (xml->hiccup enlive)))
 
 (def parser (insta/parser (clojure.java.io/resource "xmlschema.bnf")))
 
