@@ -213,5 +213,103 @@
 		<xs:field xpath="ex:name"/>
 	</xs:unique>
 </xs:element>
+<xs:element name="root">
+    <xs:complexType>
+        <xs:sequence>
+            <xs:element name="referenced">
+                <xs:complexType>
+                    <xs:attribute name="id" type="xs:string" />
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="owner">
+                <xs:complexType>
+                    <xs:attribute name="id" type="xs:string" />
+                </xs:complexType>
+            </xs:element>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:key name="aKey">
+        <xs:selector xpath="owner" />
+        <xs:field xpath="@id" />
+    </xs:key>
+    <xs:keyref name="aKeyRef" refer="aKey">
+        <xs:selector xpath="referenced" />
+        <xs:field xpath="@id" />
+    </xs:keyref>
+</xs:element>
+<xs:element name="udr">
+	<xs:complexType>
+	<xs:group>
+	  <xs:sequence>
+	    <xs:element name="customer" type="xs:string"/>
+	    <xs:element name="orderdetails" type="xs:string"/>
+	    <xs:element name="billto" type="xs:string"/>
+	    <xs:element name="shipto" type="xs:string"/>
+	  </xs:sequence>
+	</xs:group>
+	  <xs:complexContent>
+	    <xs:extension base="personinfo">
+	      <xs:sequence>
+	        <xs:element name="address" type="xs:string"/>
+	        <xs:element name="city" type="xs:string"/>
+	        <xs:element name="country" type="xs:string"/>
+	      </xs:sequence>
+	    </xs:extension>
+	  </xs:complexContent>
+	</xs:complexType>
+</xs:element>
+<xs:complexType name="ACustomer">
+	<xs:group>
+	  <xs:sequence>
+	    <xs:element name="customer" type="xs:string"/>
+	    <xs:element name="orderdetails" type="xs:string"/>
+	    <xs:element name="billto" type="xs:string"/>
+	    <xs:element name="shipto" type="xs:string"/>
+	  </xs:sequence>
+	</xs:group>
+</xs:complexType>
+<xs:complexType name="customer">
+  <xs:sequence>
+    <xs:element name="firstname" type="xs:string"/>
+    <xs:element name="lastname" type="xs:string"/>
+    <xs:element name="country" type="xs:string"/>
+  </xs:sequence>
+</xs:complexType>
+<xs:element name="udr">
 
+<xs:complexType name="Norwegian_customer">
+  <xs:complexContent>
+    <xs:restriction base="customer">
+      <xs:sequence>
+        <xs:element name="firstname" type="xs:string"/>
+        <xs:element name="lastname" type="xs:string"/>
+        <xs:element name="country" type="xs:string" fixed="Norway"/>
+      </xs:sequence>
+    </xs:restriction>
+  </xs:complexContent>
+</xs:complexType>
+</xs:element>
+<xs:simpleType name="valuelist">
+  <xs:list itemType="xs:integer"/>
+</xs:simpleType>
+<xs:simpleType name="ClassRankType">
+    <xs:restriction base="xs:integer">
+        <xs:totalDigits value="4"/>
+        <xs:minInclusive value="1"/>
+        <xs:maxInclusive value="9999"/>
+    </xs:restriction>
+</xs:simpleType>    
+<xs:element name="udr">
+	<xs:complexType>
+		<xs:element name="hej">
+			<xs:simpleType>
+			    <xs:restriction base="xs:integer">
+			        <xs:totalDigits value="4"/>
+			        <xs:minInclusive value="1"/>
+			        <xs:maxInclusive value="9999"/>
+			    </xs:restriction>
+			</xs:simpleType>
+		</xs:element>
+	</xs:complexType>
+</xs:element>
 </schema>

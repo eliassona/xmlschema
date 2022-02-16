@@ -102,7 +102,9 @@
            (filter (fn [e] (= (nth e 2) :element)) elements)))]
        `(fn [xml#]
           (let [element-map# ~m
-                type-fn# (element-map# (-> xml# first name))]
+                [element# attrs# data#] xml#
+                type-fn# (dbg (element-map# (-> attrs# :name name)))]
+            ;type-fn returns binary!!!!
           ))))
    (defn simple-type 
      ([type-fn] type-fn)

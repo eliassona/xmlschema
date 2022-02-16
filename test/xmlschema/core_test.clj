@@ -7,26 +7,24 @@
 
 (defn assert-schema [p resource start]
   (let [text (pr-str (hiccup-of (slurp (clojure.java.io/resource resource))))
-        result (p text start parser)]
+        result (p text start start)]
     (if (insta/failure? result)
       (is false (insta/get-failure result))
       (is true))))
 
-(defn assert-schemas [p]
-  (let [a (partial assert-schema p)]
+(deftest parse-test 
+  (let [a (partial assert-schema parser)]
 	  (a "typed_element.xml" :schema)
 	  (a "typed_elements.xml" :schema)
 	  (a "element_with_embedded_restrictions.xml" :schema)
 	  (a "predef_restrictions.xml" :schema)
-	  (a "complex_type.xml" :schema)
 	  (a "group.xml" :schema)
 	  (a "choice.xml" :schema)
+;	  (a "complex_type.xml" :schema)
+	  (a "totaldigits.xml" :schema)
    )
 )  
 
-(deftest parse-test
-  (assert-schemas parser)
-  )
   
 (deftest ast-test-enum
   (let [restriction (eval 
