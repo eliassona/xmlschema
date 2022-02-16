@@ -1,0 +1,4 @@
+<xs:keyref name="aKeyRef" refer="aKey">
+        <xs:selector xpath="referenced" />
+        <xs:field xpath="@id" />
+</xs:keyref>

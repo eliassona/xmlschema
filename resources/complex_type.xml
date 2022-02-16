@@ -237,27 +237,6 @@
         <xs:field xpath="@id" />
     </xs:keyref>
 </xs:element>
-<xs:element name="udr">
-	<xs:complexType>
-	<xs:group>
-	  <xs:sequence>
-	    <xs:element name="customer" type="xs:string"/>
-	    <xs:element name="orderdetails" type="xs:string"/>
-	    <xs:element name="billto" type="xs:string"/>
-	    <xs:element name="shipto" type="xs:string"/>
-	  </xs:sequence>
-	</xs:group>
-	  <xs:complexContent>
-	    <xs:extension base="personinfo">
-	      <xs:sequence>
-	        <xs:element name="address" type="xs:string"/>
-	        <xs:element name="city" type="xs:string"/>
-	        <xs:element name="country" type="xs:string"/>
-	      </xs:sequence>
-	    </xs:extension>
-	  </xs:complexContent>
-	</xs:complexType>
-</xs:element>
 <xs:complexType name="ACustomer">
 	<xs:group>
 	  <xs:sequence>

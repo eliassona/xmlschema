@@ -5,27 +5,36 @@
   (:use [clojure.pprint]))
 
 
-(defn assert-schema [p resource start]
+(defn assert-schema [resource start]
   (let [text (pr-str (hiccup-of (slurp (clojure.java.io/resource resource))))
-        result (p text start start)]
+        result (parser text :start start)]
     (if (insta/failure? result)
       (is false (insta/get-failure result))
-      (is true))))
+      (do 
+        #_(ast->clj result)
+        (is true)))))
 
 (deftest parse-test 
-  (let [a (partial assert-schema parser)]
-	  (a "typed_element.xml" :schema)
-	  (a "typed_elements.xml" :schema)
-	  (a "element_with_embedded_restrictions.xml" :schema)
-	  (a "predef_restrictions.xml" :schema)
-	  (a "group.xml" :schema)
-	  (a "choice.xml" :schema)
-;	  (a "complex_type.xml" :schema)
-	  (a "totaldigits.xml" :schema)
-   )
-)  
+  (let [a (partial assert-schema)]
+	  ;(a "typed_element.xml" :schema)
+	  ;(a "typed_elements.xml" :schema)
+	  ;(a "element_with_embedded_restrictions.xml" :schema)
+	  ;(a "group.xml" :schema)
+	  
+	 ; (a "complex_type.xml" :schema)
+;	  (a "totaldigits.xml" :schema)
+  ))
+(deftest test-extension 
+  (assert-schema "extension.xml" :element))
+(deftest test-group
+  (assert-schema "group.xml" :schema))
+(deftest test-choice
+  (assert-schema "choice.xml" :schema))
+(deftest test-predefs
+  (assert-schema "predef_restrictions.xml" :schema))
+(deftest test-keyref
+  (assert-schema "keyref.xml" :keyref))
 
-  
 (deftest ast-test-enum
   (let [restriction (eval 
                       (ast->clj 

@@ -109,8 +109,18 @@
    (defn simple-type 
      ([type-fn] type-fn)
      ([arg-map type-fn] [(:name arg-map) type-fn]))
-     
+   
+   (defn assert-req-attrs [arg-map & keys]
+     (doseq [k keys]
+       (assert (contains? arg-map k) (format "argument %s is missing" k))))
 
+   (defn keyref [& [_ arg-map]] 
+     (assert-req-attrs arg-map :name :refer))
+
+   (defn extension [& arg-map]
+     (dbg arg-map)
+     #_(assert-req-attrs (dbg arg-map) :base))
+   
    (def ast->clj-map  
      {
       :ident (fn[& chars] (read-string (apply str chars))) 
@@ -125,6 +135,8 @@
       :simpleType simple-type
       :element element
       :schema schema
+      :keyref keyref
+      :extension extension
       })
 
    (defn ast->clj [ast]

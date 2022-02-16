@@ -17,7 +17,7 @@ unique = eb 'unique' attrs-with-sp (annotation?,(selector,field+)) ee
 key = eb 'key' attrs-with-sp (annotation?,(selector,field+)) ee
 selector = eb 'selector' attrs-with-sp annotation? ee
 field = eb 'field' attrs-with-sp annotation? ee
-keyref = eb 'keyref' attrs-with-sp (annotation?,(selector,field+)) ee 
+keyref = eb <'keyref'> attrs-with-sp (annotation?,(selector,field+)) ee 
 complexType = eb 'complexType' attrs-with-sp 
 	(annotation?,(simpleContent|complexContent|((group|all|
 	 choice|sequence)?,((attribute|attributeGroup)*,anyAttribute?))))
@@ -72,7 +72,7 @@ charValue = #"[^\n]"
 <space> = <#'[ \t\n,]+'>
 os = <#'[ \t\n]*'>
 <attrs-with-sp> = (space attrs)?
-attrs = ab (ident space string-literal)? (',' os ident space string-literal)* ae
+attrs = ab (ident space string-literal)? (<',' os> ident space string-literal)* ae
 <eb> = < os '['> ns? <':'>
 <ee> = <']'> 
 <ab> = < '{'>
@@ -82,6 +82,6 @@ ns = ident
 <decimalDigit> = #'[0-9]'
 octalDigit   = #'[0-7]'
 hexDigit     = #'[0-9a-fA-F]'
-string-literal = <'\"'> (letter | decimalDigit | #'[-_/.:]')* <'\"'>
+string-literal = <'\"'> (letter | decimalDigit | #'[-_/.:@]')* <'\"'>
 ns-ident = ident? ident
 ident = ':' (letter { letter | decimalDigit | "_" })*

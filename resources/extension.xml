@@ -1,0 +1,13 @@
+<xs:element name="udr">
+	<xs:complexType>
+	  <xs:complexContent>
+	    <xs:extension base="personinfo">
+	      <xs:sequence>
+	        <xs:element name="address" type="xs:string"/>
+	        <xs:element name="city" type="xs:string"/>
+	        <xs:element name="country" type="xs:string"/>
+	      </xs:sequence>
+	    </xs:extension>
+	  </xs:complexContent>
+	</xs:complexType>
+</xs:element>
