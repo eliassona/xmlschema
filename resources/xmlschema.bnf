@@ -33,7 +33,7 @@ extension = eb 'extension' attrs-with-sp (annotation?,((group|all|choice|sequenc
 all = eb 'all' attrs-with-sp annotation? element* ee
 sequence = eb 'sequence' attrs-with-sp annotation?,(element|group|choice|sequence|any)* ee
 union = eb 'union' attrs-with-sp (annotation?,(simpleType*)) ee 	   
-list = eb 'list' attrs-with-sp  (annotation?,(simpleType?)) ee 	   
+list = eb <'list'> attrs-with-sp  (annotation?,(simpleType?)) ee 	   
 simpleType-restriction = eb <'restriction'> attrs-with-sp 
                          (annotation?,(simpleType?,(minExclusive|minInclusive|
 						  maxExclusive|maxInclusive|totalDigits|fractionDigits|

@@ -39,12 +39,16 @@
 
  
 
+   (defn assert-req-attrs [arg-map & keys]
+     (doseq [k keys]
+       (assert (contains? arg-map k) (format "argument %s is missing" k))))
 
 
    (defn same-elements? [c]
      (= (count (set c))) 1)
 
    (defn simple-type-restriction [arg-map & conditions]
+     (assert-req-attrs arg-map :base)
      (when (not (same-elements? (map (fn [c] (-> c meta :type)) conditions)))
        (throw (IllegalArgumentException.)))
      (let [env (gensym)
@@ -110,9 +114,6 @@
      ([type-fn] type-fn)
      ([arg-map type-fn] [(:name arg-map) type-fn]))
    
-   (defn assert-req-attrs [arg-map & keys]
-     (doseq [k keys]
-       (assert (contains? arg-map k) (format "argument %s is missing" k))))
 
    (defn keyref [& [_ arg-map]] 
      (assert-req-attrs arg-map :name :refer))
@@ -120,6 +121,19 @@
    (defn extension [& arg-map]
      (dbg arg-map)
      #_(assert-req-attrs (dbg arg-map) :base))
+
+   (defn field [& [_ arg-map]] 
+     (assert-req-attrs arg-map :xpath))
+   
+   (defn include [& [_ arg-map]] 
+     (assert-req-attrs arg-map :schemaLocation))
+
+   (defn xml-schema-list [& args]
+     (let [[arg-map] args]
+       (if (= (count args) 1)
+         (assert-req-attrs arg-map :itemType)
+         (dbg "TODO")
+         )))
    
    (def ast->clj-map  
      {
@@ -137,6 +151,9 @@
       :schema schema
       :keyref keyref
       :extension extension
+      :field field
+      :include include 
+      :list xml-schema-list
       })
 
    (defn ast->clj [ast]
