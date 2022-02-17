@@ -14,10 +14,9 @@
         #_(ast->clj result)
         (is true)))))
 
+ 
 
-(defn schema-compile [hiccup start]
-  (let [p (fn [text] (parser text :start start))]
-    (-> hiccup pr-str p ast->clj eval))) 
+
 
 (deftest parse-test 
   (let [a (partial assert-schema)]
@@ -41,7 +40,7 @@
   (assert-schema "keyref.xml" :keyref))
 
 (deftest ast-test-enum
-  (let [restriction (schema-compile [:restriction {:base "string"} 
+  (let [restriction (schema-eval [:restriction {:base "string"} 
                               [:enumeration {:value "Audi"}]
                               [:enumeration {:value "BMW"}]] 
                             :simpleType-restriction)]
@@ -51,28 +50,74 @@
     ))
 
 (deftest ast-test-min-max
-  (let [restriction (schema-compile [:restriction {:base "positiveInteger"} 
+  (let [restriction (schema-eval [:restriction {:base "positiveInteger"} 
                                      [:maxInclusive {:value "10"}]] 
                             :simpleType-restriction)]
     (is (= [true 5] (restriction env "5")))
     ))
 
 
-(deftest simple-type-element
-  (let [schema 
-        (schema-compile [:schema 
-                         [:element {:name "car"} 
-                          [:simpleType 
-                            [:restriction {:base "integer"} 
-                             [:maxInclusive {:value "10"}]
-                             [:minInclusive {:value "0"}]]]]] :schema)]
-    [:schema [:car "BMW"]]
+(deftest test-simple-type
+  (let [simpleType 
+        (schema-eval [:simpleType 
+                       [:restriction {:base "integer"} 
+                        [:maxInclusive {:value "10"}]
+                        [:minInclusive {:value "0"}]]] :simpleType)]
+    (is [true 5] (simpleType env "5"))
+    
     ))
 
+(deftest test-simple-type-element
+  (let [[name type-fn type] 
+        (schema-eval [:element {:name "car"}
+                      [:simpleType 
+                        [:restriction {:base "integer"} 
+                         [:maxInclusive {:value "10"}]
+                         [:minInclusive {:value "0"}]]]] :element)]
+    (is (= "car" name))
+    (is [true 5] (type-fn env "5"))
+    (is :element type)
+    ))
+
+(deftest test-schema-for-simple-type-element
+  #_(let [[name type-fn type] 
+         (schema-eval [:schema 
+                       [:element {:name "car"}
+                        [:simpleType 
+                          [:restriction {:base "integer"} 
+                           [:maxInclusive {:value "10"}]
+                           [:minInclusive {:value "0"}]]]]] :element)]
+     (is (= "car" name))
+     (is [true 5] (type-fn env "5"))
+     (is :element type)
+     ))
+
 (deftest arg-test
-  (schema-compile [:annotation {:name "asdf", :public "asdf"}] :annotation)
-  (schema-compile [:list {:itemType "string"}] :list)
-  (schema-compile [:field {:xpath "asdf"}] :annotation)
-  (schema-compile [:include {:schemaLocation "asdf"}] :annotation)
+  (schema-eval [:annotation {:name "asdf", :public "asdf"}] :annotation)
+  (schema-eval [:list {:itemType "string"}] :list)
+  (schema-eval [:field {:xpath "asdf"}] :annotation)
+  (schema-eval [:include {:schemaLocation "asdf"}] :annotation)
   )
 
+
+(def st 
+  (clojure.core/fn
+   [G__26494 G__26495]
+   (clojure.core/if-let
+    [[G__26496 G__26497]
+     (((:simpleTypes G__26494) "integer") G__26494 G__26495)]
+    [(clojure.core/and
+      G__26496
+      (clojure.core/and
+       ((clojure.core/fn
+         [env__25749__auto__ value__25750__auto__]
+         (clojure.core/<= value__25750__auto__ 10))
+        G__26494
+        G__26497)
+       ((clojure.core/fn
+         [env__25749__auto__ value__25750__auto__]
+         (clojure.core/>= value__25750__auto__ 0))
+        G__26494
+        G__26497)))
+     G__26497]
+    (throw (java.lang.IllegalArgumentException. "Unknown base")))))

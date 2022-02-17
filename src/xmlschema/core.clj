@@ -103,7 +103,7 @@
          hash-map 
          (mapcat 
            (fn [[name type-fn]] [name type-fn]) 
-           (filter (fn [e] (= (nth e 2) :element)) elements)))]
+           (filter (fn [[_ _ t]] (= t :element)) elements)))]
        `(fn [xml#]
           (let [element-map# ~m
                 [element# attrs# data#] xml#
@@ -138,8 +138,10 @@
 
    (defn notation [& [arg-map]] 
      (assert-req-attrs arg-map :name :public))
+   
    (defn redefine [& [arg-map]] 
      (assert-req-attrs arg-map :schemaLocation))
+   
    (defn unique [& [arg-map]] 
      (assert-req-attrs arg-map :name))
    
@@ -173,7 +175,14 @@
        ast->clj-map 
        ast))
 
+(defn schema->clj [hiccup start]
+  (let [p (fn [text] (parser text :start start))]
+    (-> hiccup pr-str p ast->clj)))
 
+(defn schema-eval [hiccup start]
+  (eval (schema->clj hiccup start)))
+   
+   
 (defn parse-predef [predef]
   (ast->clj (parser (pr-str predef) :start :simpleType)))
 
