@@ -99,7 +99,7 @@
   )
 
 (deftest test-element-with-type-arg
-  (schema-eval [:element {:name "car", :type "string"}])
+  (schema-eval [:element {:name "car", :type "string"}] :element)
   )
                
 

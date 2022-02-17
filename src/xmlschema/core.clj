@@ -24,25 +24,14 @@
 (def parser (insta/parser (clojure.java.io/resource "xmlschema.bnf")))
 
 (def env 
-  {:simpleType 
-   {"string" (fn [_ value] [true value])
-    "integer" (fn [_ value]
+   {"string" (with-meta (fn [_ value] [true value]) {:type :simpleType}) 
+    "integer" (with-meta (fn [_ value]
                 (try 
                   (let [v (Long/valueOf value)]
                     [true v])
                   (catch NumberFormatException e
-                    [false value])))
-                    
-                    
-                        
-    }
-   :complexType {}
-   :group {}
-   :attributeGroup {}
-   :element {} 
-   :attribute {}
-   :notation {}
-   })
+                    [false value]))) {:type :simpleType})
+    })
 
  
 
@@ -64,7 +53,7 @@
            base-value (gensym)
            logic-expr (-> conditions first meta :type)]
      `(fn [~env ~value]
-        (if-let [[~base-result ~base-value] (((:simpleType ~env) ~(arg-map :base)) ~env ~value)]
+        (if-let [[~base-result ~base-value] ((~env ~(arg-map :base)) ~env ~value)]
          [(and ~base-result
              ~(condp = logic-expr
                 :or `(or ~@(map (fn [c] `(~c ~env ~base-value)) conditions))
@@ -199,7 +188,7 @@
   (ast->clj (parser (pr-str predef) :start :simpleType)))
 
 (defn eval-predef [[name type-fn]]
-  [name (eval type-fn)])
+  [name (eval (with-meta type-fn {:type :simpleType}))])
 
 (def predefs
   [
@@ -232,15 +221,10 @@
 	   [:restriction {:base "integer"} 
 		   [:maxExclusive {:value "0"}]]]])
 
-(def env 
-  (assoc env 
-   :simpleType 
-   (merge 
-     (:simpleType env)
-      (apply 
+(def env
+  (merge env (apply 
         hash-map 
         (mapcat 
           (comp eval-predef parse-predef) 
-          predefs)))))
-
+          predefs))))
 
