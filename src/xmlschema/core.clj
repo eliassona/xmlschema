@@ -24,7 +24,7 @@
 (def parser (insta/parser (clojure.java.io/resource "xmlschema.bnf")))
 
 (def env 
-  {:simpleTypes 
+  {:simpleType 
    {"string" (fn [_ value] [true value])
     "integer" (fn [_ value]
                 (try 
@@ -35,7 +35,14 @@
                     
                     
                         
-    }})
+    }
+   :complexType {}
+   :group {}
+   :attributeGroup {}
+   :element {} 
+   :attribute {}
+   :notation {}
+   })
 
  
 
@@ -57,7 +64,7 @@
            base-value (gensym)
            logic-expr (-> conditions first meta :type)]
      `(fn [~env ~value]
-        (if-let [[~base-result ~base-value] (((:simpleTypes ~env) ~(arg-map :base)) ~env ~value)]
+        (if-let [[~base-result ~base-value] (((:simpleType ~env) ~(arg-map :base)) ~env ~value)]
          [(and ~base-result
              ~(condp = logic-expr
                 :or `(or ~@(map (fn [c] `(~c ~env ~base-value)) conditions))
@@ -93,9 +100,12 @@
 
 
 
-   (defn element [arg-map type]
+   (defn element 
+     ([arg-map type]
      [(:name arg-map) type :element]
       )
+     ([arg-map]
+       arg-map))
 
    (defn schema [& elements]
      (let [m 
@@ -222,9 +232,9 @@
 
 (def env 
   (assoc env 
-   :simpleTypes 
+   :simpleType 
    (merge 
-     (:simpleTypes env)
+     (:simpleType env)
       (apply 
         hash-map 
         (mapcat 

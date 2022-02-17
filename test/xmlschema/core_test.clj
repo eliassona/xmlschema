@@ -66,6 +66,17 @@
     (is [true 5] (simpleType env "5"))
     
     ))
+(deftest test-named-simple-type
+  (let [[name type-fn] 
+        (schema-eval [:simpleType {:name "car"} 
+                       [:restriction {:base "integer"} 
+                        [:maxInclusive {:value "10"}]
+                        [:minInclusive {:value "0"}]]] :simpleType)]
+    
+    (is (= "car" name))
+    (is [true 5] (type-fn env "5"))
+    
+    ))
 
 (deftest test-simple-type-element
   (let [[name type-fn type] 
@@ -79,7 +90,15 @@
     (is :element type)
     ))
 
-(deftest test-schema-for-simple-type-element
+(deftest test-complex-type
+  (schema-eval [:complexType 
+                 [:sequence  
+                  [:element {:name "hej" :type "string"}]
+                  [:element {:name "satoshi" :type "string"}]
+                  ]] :complexType)
+  )
+
+(deftest test-schema-for-named-simple-type-element
   #_(let [[name type-fn type] 
          (schema-eval [:schema 
                        [:element {:name "car"}
@@ -100,24 +119,4 @@
   )
 
 
-(def st 
-  (clojure.core/fn
-   [G__26494 G__26495]
-   (clojure.core/if-let
-    [[G__26496 G__26497]
-     (((:simpleTypes G__26494) "integer") G__26494 G__26495)]
-    [(clojure.core/and
-      G__26496
-      (clojure.core/and
-       ((clojure.core/fn
-         [env__25749__auto__ value__25750__auto__]
-         (clojure.core/<= value__25750__auto__ 10))
-        G__26494
-        G__26497)
-       ((clojure.core/fn
-         [env__25749__auto__ value__25750__auto__]
-         (clojure.core/>= value__25750__auto__ 0))
-        G__26494
-        G__26497)))
-     G__26497]
-    (throw (java.lang.IllegalArgumentException. "Unknown base")))))
+
