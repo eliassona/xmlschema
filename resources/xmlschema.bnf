@@ -7,32 +7,32 @@ schema = eb <'schema'> attrs-with-sp
 		 ((include|import|redefine|annotation)*,(((simpleType|complexType|
 		 group|attributeGroup)|element|attribute|notation),annotation*)*)
 		 ee
-include = eb 'include' attrs-with-sp annotation? ee  
-import = eb 'import' attrs-with-sp annotation? ee 
-redefine = eb 'redefine' attrs-with-sp (annotation?|(simpleType|complexType|group|attributeGroup))* ee 	   
-notation = eb 'notation' attrs-with-sp annotation? ee 	   
-choice = eb 'choice' attrs-with-sp (annotation?,(element|group|choice|sequence|any)*) ee
+include = eb <'include'> attrs-with-sp annotation? ee  
+import = eb <'import'> attrs-with-sp annotation? ee 
+redefine = eb <'redefine'> attrs-with-sp (annotation?|(simpleType|complexType|group|attributeGroup))* ee 	   
+notation = eb <'notation'> attrs-with-sp annotation? ee 	   
+choice = eb <'choice'> attrs-with-sp (annotation?,(element|group|choice|sequence|any)*) ee
 element = eb <'element'> attrs-with-sp annotation?,(simpleType|complexType)?,(unique|key|keyref)* ee 
-unique = eb 'unique' attrs-with-sp (annotation?,(selector,field+)) ee 
-key = eb 'key' attrs-with-sp (annotation?,(selector,field+)) ee
-selector = eb 'selector' attrs-with-sp annotation? ee
+unique = eb <'unique'> attrs-with-sp (annotation?,(selector,field+)) ee 
+key = eb <'key'> attrs-with-sp (annotation?,(selector,field+)) ee
+selector = eb <'selector'> attrs-with-sp annotation? ee
 field = eb <'field'> attrs-with-sp annotation? ee
 keyref = eb <'keyref'> attrs-with-sp (annotation?,(selector,field+)) ee 
-complexType = eb 'complexType' attrs-with-sp 
+complexType = eb <'complexType'> attrs-with-sp 
 	(annotation?,(simpleContent|complexContent|((group|all|
 	 choice|sequence)?,((attribute|attributeGroup)*,anyAttribute?))))
 	 ee
-group = eb 'group' attrs-with-sp (annotation?,(all|choice|sequence)?) ee
-any = eb 'any' attrs-with-sp annotation? ee 
+group = eb <'group'> attrs-with-sp (annotation?,(all|choice|sequence)?) ee
+any = eb <'any'> attrs-with-sp annotation? ee 
 simpleType = eb <'simpleType'> attrs-with-sp (annotation? (simpleType-restriction| list| union)) ee
-anyAttribute = eb 'anyAttribute' attrs-with-sp annotation? ee 
-attributeGroup = eb 'attributeGroup' attrs-with-sp annotation? (attribute|attributeGroup)* anyAttribute? ee
-complexContent = eb 'complexContent' attrs-with-sp (annotation?,(complexContent-restriction|extension)) ee
-simpleContent = eb 'simpleContent' attrs-with-sp (annotation?,(extension | simpleType-restriction)) ee
+anyAttribute = eb <'anyAttribute'> attrs-with-sp annotation? ee 
+attributeGroup = eb <'attributeGroup'> attrs-with-sp annotation? (attribute|attributeGroup)* anyAttribute? ee
+complexContent = eb <'complexContent'> attrs-with-sp (annotation?,(complexContent-restriction|extension)) ee
+simpleContent = eb <'simpleContent'> attrs-with-sp (annotation?,(extension | simpleType-restriction)) ee
 extension = eb <'extension'> attrs-with-sp (annotation?,((group|all|choice|sequence)?, ((attribute|attributeGroup)*,anyAttribute?))) ee 
-all = eb 'all' attrs-with-sp annotation? element* ee
-sequence = eb 'sequence' attrs-with-sp annotation?,(element|group|choice|sequence|any)* ee
-union = eb 'union' attrs-with-sp (annotation?,(simpleType*)) ee 	   
+all = eb <'all'> attrs-with-sp annotation? element* ee
+sequence = eb <'sequence'> attrs-with-sp annotation?,(element|group|choice|sequence|any)* ee
+union = eb <'union'> attrs-with-sp (annotation?,(simpleType*)) ee 	   
 list = eb <'list'> attrs-with-sp  (annotation?,(simpleType?)) ee 	   
 simpleType-restriction = eb <'restriction'> attrs-with-sp 
                          (annotation?,(simpleType?,(minExclusive|minInclusive|
@@ -49,7 +49,7 @@ complexContent-restriction = eb <'restriction'> attrs-with-sp
 							 (annotation?,(group|all|choice|sequence)?,
 							 ((attribute|attributeGroup)*,anyAttribute?))
 							 ee                         
-attribute = eb 'attribute' attrs-with-sp annotation? simpleType? ee
+attribute = eb <'attribute'> attrs-with-sp annotation? simpleType? ee
 fractionDigits = eb <'fractionDigits'> attrs-with-sp annotation? ee 
 totalDigits = eb <'totalDigits'> attrs-with-sp annotation? ee 
 whiteSpace = eb <'whiteSpace'> attrs-with-sp annotation? ee 
@@ -62,8 +62,8 @@ length = eb <'length'> attrs-with-sp annotation? ee
 minLength = eb <'minLength'> attrs-with-sp annotation? ee
 maxLength = eb <'maxLength'> attrs-with-sp annotation? ee
 pattern = eb <'pattern'> attrs-with-sp annotation? ee
-app-info = eb 'appinfo' attrs-with-sp string ee 
-documentation = eb 'documentation' attrs-with-sp string ee  
+app-info = eb <'appinfo'> attrs-with-sp string ee 
+documentation = eb <'documentation'> attrs-with-sp string ee  
 annotation = eb <'annotation'> attrs-with-sp (app-info | documentation)* ee
 decimalLit = ('+' | '-')? decimalDigit*
 decimalDigit = #'[0-9]'

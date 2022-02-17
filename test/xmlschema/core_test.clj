@@ -69,4 +69,10 @@
     [:schema [:car "BMW"]]
     ))
 
+(deftest arg-test
+  (schema-compile [:annotation {:name "asdf", :public "asdf"}] :annotation)
+  (schema-compile [:list {:itemType "string"}] :list)
+  (schema-compile [:field {:xpath "asdf"}] :annotation)
+  (schema-compile [:include {:schemaLocation "asdf"}] :annotation)
+  )
 
