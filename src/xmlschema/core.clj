@@ -94,9 +94,16 @@
      [(:name arg-map) type :element]
       )
      ([arg-map]
-       (if-let [t (:type arg-map)]
-         `[~(:name arg-map)]
-       arg-map)))
+       (if-let [type-name (:type arg-map)]
+         `[~(:name arg-map) 
+           (fn [env# value#] 
+             (if-let [t# (env# ~type-name)]
+               (t# env# value#)
+               (throw (IllegalArgumentException. "Unknown type"))))
+           :element]))) ;TODO      
+   
+   
+
 
    (defn schema [& elements]
      (let [m 
