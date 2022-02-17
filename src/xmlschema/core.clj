@@ -105,7 +105,9 @@
      [(:name arg-map) type :element]
       )
      ([arg-map]
-       arg-map))
+       (if-let [t (:type arg-map)]
+         `[~(:name arg-map)]
+       arg-map)))
 
    (defn schema [& elements]
      (let [m 

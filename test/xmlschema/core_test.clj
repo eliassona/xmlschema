@@ -98,6 +98,11 @@
                   ]] :complexType)
   )
 
+(deftest test-element-with-type-arg
+  (schema-eval [:element {:name "car", :type "string"}])
+  )
+               
+
 (deftest test-schema-for-named-simple-type-element
   #_(let [[name type-fn type] 
          (schema-eval [:schema 
