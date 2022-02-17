@@ -14,6 +14,11 @@
         #_(ast->clj result)
         (is true)))))
 
+
+(defn schema-compile [hiccup start]
+  (let [p (fn [text] (parser text :start start))]
+    (-> hiccup pr-str p ast->clj eval))) 
+
 (deftest parse-test 
   (let [a (partial assert-schema)]
 	  ;(a "typed_element.xml" :schema)
@@ -36,40 +41,31 @@
   (assert-schema "keyref.xml" :keyref))
 
 (deftest ast-test-enum
-  (let [restriction (eval 
-                      (ast->clj 
-                          (parser 
-                            (pr-str [:restriction {:base "string"} 
-                                     [:enumeration {:value "Audi"}]
-                                     [:enumeration {:value "BMW"}]]) 
-                            :start :simpleType-restriction)))]
+  (let [restriction (schema-compile [:restriction {:base "string"} 
+                              [:enumeration {:value "Audi"}]
+                              [:enumeration {:value "BMW"}]] 
+                            :simpleType-restriction)]
     (is (= [true "BMW"] (restriction env "BMW")))
     (is (= [false "BMw"] (restriction env "BMw")))
     (is (= [true "Audi"] (restriction env "Audi")))
     ))
 
 (deftest ast-test-min-max
-  (let [restriction (eval 
-                      (ast->clj 
-                          (parser 
-                            (pr-str [:restriction {:base "positiveInteger"} 
-                                     [:maxInclusive {:value "10"}]]) 
-                            :start :simpleType-restriction)))]
+  (let [restriction (schema-compile [:restriction {:base "positiveInteger"} 
+                                     [:maxInclusive {:value "10"}]] 
+                            :simpleType-restriction)]
     (is (= [true 5] (restriction env "5")))
     ))
 
 
 (deftest simple-type-element
   (let [schema 
-        (eval 
-          (ast->clj 
-              (parser 
-                (pr-str [:schema 
+        (schema-compile [:schema 
                          [:element {:name "car"} 
                           [:simpleType 
                             [:restriction {:base "integer"} 
                              [:maxInclusive {:value "10"}]
-                             [:minInclusive {:value "0"}]]]]]))))]
+                             [:minInclusive {:value "0"}]]]]] :schema)]
     [:schema [:car "BMW"]]
     ))
 

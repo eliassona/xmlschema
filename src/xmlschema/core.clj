@@ -115,14 +115,13 @@
      ([arg-map type-fn] [(:name arg-map) type-fn]))
    
 
-   (defn keyref [& [_ arg-map]] 
+   (defn keyref [& [arg-map]] 
      (assert-req-attrs arg-map :name :refer))
 
    (defn extension [& arg-map]
-     (dbg arg-map)
-     #_(assert-req-attrs (dbg arg-map) :base))
+     (assert-req-attrs (dbg arg-map) :base))
 
-   (defn field [& [_ arg-map]] 
+   (defn field [& [arg-map]] 
      (assert-req-attrs arg-map :xpath))
    
    (defn include [& [_ arg-map]] 
@@ -134,6 +133,9 @@
          (assert-req-attrs arg-map :itemType)
          (dbg "TODO")
          )))
+
+   (defn annotation [& [arg-map]] 
+     (assert-req-attrs arg-map :name :public))
    
    (def ast->clj-map  
      {
@@ -154,6 +156,7 @@
       :field field
       :include include 
       :list xml-schema-list
+      :annotation annotation
       })
 
    (defn ast->clj [ast]
