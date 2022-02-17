@@ -123,6 +123,8 @@
 
    (defn field [& [arg-map]] 
      (assert-req-attrs arg-map :xpath))
+   (defn selector [& [arg-map]] 
+     (assert-req-attrs arg-map :xpath))
    
    (defn include [& [_ arg-map]] 
      (assert-req-attrs arg-map :schemaLocation))
@@ -134,8 +136,12 @@
          (dbg "TODO")
          )))
 
-   (defn annotation [& [arg-map]] 
+   (defn notation [& [arg-map]] 
      (assert-req-attrs arg-map :name :public))
+   (defn redefine [& [arg-map]] 
+     (assert-req-attrs arg-map :schemaLocation))
+   (defn unique [& [arg-map]] 
+     (assert-req-attrs arg-map :name))
    
    (def ast->clj-map  
      {
@@ -156,7 +162,10 @@
       :field field
       :include include 
       :list xml-schema-list
-      :annotation annotation
+      :notation notation
+      :redefine redefine
+      :selector selector
+      :unique unique
       })
 
    (defn ast->clj [ast]
