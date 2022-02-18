@@ -141,7 +141,7 @@
      (let [[arg-map] args]
        (if (= (count args) 1)
          (assert-req-attrs arg-map :itemType)
-         (dbg "TODO")
+         (comment "TODO")
          )))
 
    (defn notation [& [arg-map]] 
@@ -165,6 +165,12 @@
    (defn occurance-of [l]
      (reduce (fn [acc v] (update acc v (fn [v] (if v (inc v) 1)))) {} l))
    
+   
+   (defn valid-sequence? [data ks min-occurs max-occurs]
+     (let [pd (partition-by keyword data)]
+       
+     )
+   
    (defn choice [& args]
      (let [args (if (-> args first map?) args (cons {} args))
            [min-occurs max-occurs] (min-max-occurs-of (first args))]
@@ -185,26 +191,7 @@
             ))))
    
    
-
    
-   (defn schema-sequence [& args]
-     (let [args (if (-> args first map?) args (cons {} args))
-           [min-occurs max-occurs] (min-max-occurs-of (first args))]
-       `(fn [env# value#]
-          (let [m# ~(apply hash-map (mapcat identity (rest args)))
-                result# (map 
-                          (fn [[name# data#]] 
-                            [name# ((m# (name name#)) env# data#)]) value#)
-                names# (map first result#)
-                s# (set names#)
-                n# ((occurance-of names#) (first s#))]
-            (conj 
-              result#
-              (and 
-                (< (count s#) 2) 
-                (and (>= n# ~min-occurs) (<= n# ~max-occurs))))
-            
-            ))))
    (def ast->clj-map  
      {
       :ident (fn[& chars] (read-string (apply str chars))) 
@@ -229,7 +216,8 @@
       :selector selector
       :unique unique
       :choice choice
-      :sequence schema-sequence
+;      :sequence schema-sequence
+;      :all all
       })
 
    (defn ast->clj [ast]

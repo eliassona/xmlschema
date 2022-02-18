@@ -109,15 +109,15 @@
 
 
 (deftest test-sequence-type
-  #_(let [type-fn
-         (schema-eval [:sequence {} 
-                       [:element {:name "hej" :type "string"}]
-                       [:element {:name "satoshi" :type "string"}]
-                       ] :sequence)]
-     (is (= [true [:hej [true "soffa"][:satoshi [true "kudde"]]]] 
+  (let [type-fn
+        (schema-eval [:sequence {} 
+                      [:element {:name "hej" :type "string"}]
+                      [:element {:name "satoshi" :type "string"}]
+                      ] :sequence)]
+    #_(is (= [true [:hej [true "soffa"][:satoshi [true "kudde"]]]] 
                    (type-fn env [[:hej "soffa"][:satoshi "kudde"]])))
     
-     )
+    )
   )
 
 (deftest test-element-with-type-arg
