@@ -92,12 +92,12 @@
 
 (deftest test-choice-type
   (let [type-fn
-        (schema-eval [:choice  
+        (schema-eval [:choice {} 
                       [:element {:name "hej" :type "string"}]
                       [:element {:name "satoshi" :type "string"}]
                       ] :choice)]
     (is (= [[:hej [true "asdf"]]] (type-fn env [[:hej "asdf"]])))
-    (is (= [[:hej [true "asdf"]][:hej [true "fsda"]]] 
+    #_(is (= [[:hej [true "asdf"]][:hej [true "fsda"]]] 
            (type-fn env [[:hej "asdf"][:hej "fsda"]])))
     )
   )

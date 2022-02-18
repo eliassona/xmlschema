@@ -152,17 +152,34 @@
    
    (defn unique [& [arg-map]] 
      (assert-req-attrs arg-map :name))
+   
+   (defn val-or-default [value default]
+     (if value value default))
+   
+   (defn min-max-occurs-of ([arg-map min-default max-default]
+     [(val-or-default (:minOccurs arg-map) min-default)
+      (val-or-default (:maxOccurs arg-map) max-default)])
+     ([arg-map]
+       (min-max-occurs-of  arg-map 0 1)))
+   
+   (defn occurance-of [l]
+     (reduce (fn [acc v] (update acc v (fn [v] (if v (inc v) 1)))) {} l))
+   
    (defn choice [& args]
-     `(fn [env# value#]
-        (let [m# ~(apply hash-map (mapcat identity args))]
-          (map 
-            (fn [[name# data#]] 
-              [name# ((m# (name name#)) env# data#)]) value#) 
-          
-          )
-       )
-     ;(dbg (into hash-map args))
-     )
+     (let [args (if (-> args first map?) args (cons {} args))
+           [min-occurs max-occurs] (min-max-occurs-of (first args))]
+       `(fn [env# value#]
+          (let [m# ~(apply hash-map (mapcat identity (rest args)))
+                result# (map 
+                          (fn [[name# data#]] 
+                            [name# ((m# (name name#)) env# data#)]) value#)
+                names# (map first result#)
+                s# (set names#)
+                a# (assert (< (count s#) 2))
+                n# ((occurance-of names#) (first s#))]
+            (assert (and (>= n# ~min-occurs) (<= n# ~max-occurs)) "Occurance failure")
+            result#
+            ))))
    
    (def ast->clj-map  
      {
