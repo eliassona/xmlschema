@@ -115,7 +115,7 @@
        `(fn [xml#]
           (let [element-map# ~m
                 [element# attrs# data#] xml#
-                type-fn# (dbg (element-map# (-> attrs# :name name)))]
+                type-fn# (element-map# (-> attrs# :name name))]
             ;type-fn returns binary!!!!
           ))))
    (defn simple-type 
@@ -127,7 +127,7 @@
      (assert-req-attrs arg-map :name :refer))
 
    (defn extension [& arg-map]
-     (assert-req-attrs (dbg arg-map) :base))
+     (assert-req-attrs arg-map :base))
 
    (defn field [& [arg-map]] 
      (assert-req-attrs arg-map :xpath))
@@ -152,6 +152,17 @@
    
    (defn unique [& [arg-map]] 
      (assert-req-attrs arg-map :name))
+   (defn choice [& args]
+     `(fn [env# value#]
+        (let [m# ~(apply hash-map (mapcat identity args))]
+          (map 
+            (fn [[name# data#]] 
+              [name# ((m# (name name#)) env# data#)]) value#) 
+          
+          )
+       )
+     ;(dbg (into hash-map args))
+     )
    
    (def ast->clj-map  
      {
@@ -176,6 +187,7 @@
       :redefine redefine
       :selector selector
       :unique unique
+      :choice choice
       })
 
    (defn ast->clj [ast]

@@ -90,12 +90,16 @@
     (is :element type)
     ))
 
-(deftest test-complex-type
-  (schema-eval [:complexType 
-                 [:sequence  
-                  [:element {:name "hej" :type "string"}]
-                  [:element {:name "satoshi" :type "string"}]
-                  ]] :complexType)
+(deftest test-choice-type
+  (let [type-fn
+        (schema-eval [:choice  
+                      [:element {:name "hej" :type "string"}]
+                      [:element {:name "satoshi" :type "string"}]
+                      ] :choice)]
+    (is (= [[:hej [true "asdf"]]] (type-fn env [[:hej "asdf"]])))
+    (is (= [[:hej [true "asdf"]][:hej [true "fsda"]]] 
+           (type-fn env [[:hej "asdf"][:hej "fsda"]])))
+    )
   )
 
 (deftest test-element-with-type-arg

@@ -82,6 +82,6 @@ ns = ident
 <decimalDigit> = #'[0-9]'
 octalDigit   = #'[0-7]'
 hexDigit     = #'[0-9a-fA-F]'
-string-literal = <'\"'> (letter | decimalDigit | #'[-_/.:@]')* <'\"'>
+string-literal = <'\"'> (letter | decimalDigit | #'[-_ /.:@]')* <'\"'>
 ns-ident = ident? ident
 ident = ':' (letter { letter | decimalDigit | "_" })*
