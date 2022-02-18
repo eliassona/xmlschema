@@ -99,7 +99,25 @@
     (is (= [true [:hej [true "asdf"]]] (type-fn env [[:hej "asdf"]])))
     (is (= [false [:hej [true "asdf"]][:hej [true "fsda"]]] 
           (type-fn env [[:hej "asdf"][:hej "fsda"]])))
+    (is (= [false [:hej [true "asdf"]][:satoshi [true "fsda"]]] 
+          (type-fn env [[:hej "asdf"][:satoshi "fsda"]])))
     )
+  )
+
+
+
+
+
+(deftest test-sequence-type
+  #_(let [type-fn
+         (schema-eval [:sequence {} 
+                       [:element {:name "hej" :type "string"}]
+                       [:element {:name "satoshi" :type "string"}]
+                       ] :sequence)]
+     (is (= [true [:hej [true "soffa"][:satoshi [true "kudde"]]]] 
+                   (type-fn env [[:hej "soffa"][:satoshi "kudde"]])))
+    
+     )
   )
 
 (deftest test-element-with-type-arg

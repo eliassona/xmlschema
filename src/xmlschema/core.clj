@@ -169,7 +169,7 @@
      (let [args (if (-> args first map?) args (cons {} args))
            [min-occurs max-occurs] (min-max-occurs-of (first args))]
        `(fn [env# value#]
-          (let [m# ~(apply hash-map (mapcat identity (rest args)))
+          (let [m# ~(reduce (fn [acc [name type-fn]] (assoc acc name type-fn)) {} (rest args))
                 result# (map 
                           (fn [[name# data#]] 
                             [name# ((m# (name name#)) env# data#)]) value#)
@@ -184,6 +184,27 @@
             
             ))))
    
+   
+
+   
+   (defn schema-sequence [& args]
+     (let [args (if (-> args first map?) args (cons {} args))
+           [min-occurs max-occurs] (min-max-occurs-of (first args))]
+       `(fn [env# value#]
+          (let [m# ~(apply hash-map (mapcat identity (rest args)))
+                result# (map 
+                          (fn [[name# data#]] 
+                            [name# ((m# (name name#)) env# data#)]) value#)
+                names# (map first result#)
+                s# (set names#)
+                n# ((occurance-of names#) (first s#))]
+            (conj 
+              result#
+              (and 
+                (< (count s#) 2) 
+                (and (>= n# ~min-occurs) (<= n# ~max-occurs))))
+            
+            ))))
    (def ast->clj-map  
      {
       :ident (fn[& chars] (read-string (apply str chars))) 
@@ -208,6 +229,7 @@
       :selector selector
       :unique unique
       :choice choice
+      :sequence schema-sequence
       })
 
    (defn ast->clj [ast]
