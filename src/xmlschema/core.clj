@@ -175,10 +175,13 @@
                             [name# ((m# (name name#)) env# data#)]) value#)
                 names# (map first result#)
                 s# (set names#)
-                a# (assert (< (count s#) 2))
                 n# ((occurance-of names#) (first s#))]
-            (assert (and (>= n# ~min-occurs) (<= n# ~max-occurs)) "Occurance failure")
-            result#
+            (conj 
+              result#
+              (and 
+                (< (count s#) 2) 
+                (and (>= n# ~min-occurs) (<= n# ~max-occurs))))
+            
             ))))
    
    (def ast->clj-map  

@@ -96,9 +96,9 @@
                       [:element {:name "hej" :type "string"}]
                       [:element {:name "satoshi" :type "string"}]
                       ] :choice)]
-    (is (= [[:hej [true "asdf"]]] (type-fn env [[:hej "asdf"]])))
-    #_(is (= [[:hej [true "asdf"]][:hej [true "fsda"]]] 
-           (type-fn env [[:hej "asdf"][:hej "fsda"]])))
+    (is (= [true [:hej [true "asdf"]]] (type-fn env [[:hej "asdf"]])))
+    (is (= [false [:hej [true "asdf"]][:hej [true "fsda"]]] 
+          (type-fn env [[:hej "asdf"][:hej "fsda"]])))
     )
   )
 
