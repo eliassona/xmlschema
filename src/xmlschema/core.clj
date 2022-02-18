@@ -169,7 +169,8 @@
    (defn valid-sequence? [data ks min-occurs max-occurs]
      (let [pd (partition-by keyword data)]
        
-     )
+     ))
+   
    
    (defn choice [& args]
      (let [args (if (-> args first map?) args (cons {} args))
@@ -190,6 +191,40 @@
             
             ))))
    
+   (defn schema-sequence [& args]
+     (let [args (if (-> args first map?) args (cons {} args))
+           [min-occurs max-occurs] (min-max-occurs-of (first args))]
+       `(fn [env# value#]
+          (let [m# ~(reduce (fn [acc [name type-fn]] (assoc acc name type-fn)) {} (rest args))
+                result# (map 
+                          (fn [[name# data#]] 
+                            [name# ((m# (name name#)) env# data#)]) value#)
+                names# (map first result#)
+                s# (set names#)
+                ]
+            (conj 
+              result#
+              true   ;TODO
+              )
+            
+            ))))
+   (defn all [& args]
+     (let [args (if (-> args first map?) args (cons {} args))
+           [min-occurs max-occurs] (min-max-occurs-of (first args))]
+       `(fn [env# value#]
+          (let [m# ~(reduce (fn [acc [name type-fn]] (assoc acc name type-fn)) {} (rest args))
+                result# (map 
+                          (fn [[name# data#]] 
+                            [name# ((m# (name name#)) env# data#)]) value#)
+                names# (map first result#)
+                s# (set names#)
+                ]
+            (conj 
+              result#
+              true   ;TODO
+              )
+            
+            ))))
    
    
    (def ast->clj-map  
@@ -216,8 +251,8 @@
       :selector selector
       :unique unique
       :choice choice
-;      :sequence schema-sequence
-;      :all all
+      :sequence schema-sequence
+      :all all
       })
 
    (defn ast->clj [ast]
