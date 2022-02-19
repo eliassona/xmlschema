@@ -193,13 +193,13 @@
                 names# (map first result#)
                 s# (set names#)
                 n# ((occurance-of names#) (first s#))]
-            (conj 
-              result#
-              (and 
-                (< (count s#) 2) 
-                (and (>= n# ~min-occurs) (<= n# ~max-occurs))))
-            
-            ))))
+            (add-meta 
+              (conj 
+                result#
+                (and 
+                  (< (count s#) 2) 
+                  (and (>= n# ~min-occurs) (<= n# ~max-occurs))))
+              :choice)))))
    
    (defn schema-sequence [& args]
      (let [args (normalize-args args)
@@ -214,9 +214,8 @@
               (conj 
                 result#
                 true   ;TODO
-                ) :sequence)
-            
-            ))))
+                ) :sequence)))))
+   
    (defn all [& args]
      (let [args (normalize-args args)
            [min-occurs max-occurs] (min-max-occurs-of (first args))]
@@ -226,12 +225,11 @@
                 names# (map first result#)
                 s# (set names#)
                 ]
-            (conj 
-              result#
-              true   ;TODO
-              )
-            
-            ))))
+            (add-meta 
+              (conj 
+                result#
+                true   ;TODO
+                ) :all)))))
    
    
    (def ast->clj-map  
