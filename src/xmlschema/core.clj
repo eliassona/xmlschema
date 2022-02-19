@@ -170,16 +170,26 @@
      (let [pd (partition-by keyword data)]
        
      ))
+   (defn add-meta [o k]
+     (with-meta o {:type k}))
    
+   (defn normalize-args [args]
+     (if (-> args first map?) args (cons {} args)))
+   
+   (defn make-map [args]
+     (reduce (fn [acc [name type-fn]] (assoc acc name type-fn)) {} args))
+   
+   (defn get-result [m env value]
+     (map 
+      (fn [[name# data#]] 
+        [name# ((m (name name#)) env data#)]) value))
    
    (defn choice [& args]
-     (let [args (if (-> args first map?) args (cons {} args))
+     (let [args (normalize-args args)
            [min-occurs max-occurs] (min-max-occurs-of (first args))]
        `(fn [env# value#]
-          (let [m# ~(reduce (fn [acc [name type-fn]] (assoc acc name type-fn)) {} (rest args))
-                result# (map 
-                          (fn [[name# data#]] 
-                            [name# ((m# (name name#)) env# data#)]) value#)
+          (let [m# ~(make-map (rest args))
+                result# (get-result m# env# value#) 
                 names# (map first result#)
                 s# (set names#)
                 n# ((occurance-of names#) (first s#))]
@@ -192,30 +202,27 @@
             ))))
    
    (defn schema-sequence [& args]
-     (let [args (if (-> args first map?) args (cons {} args))
+     (let [args (normalize-args args)
            [min-occurs max-occurs] (min-max-occurs-of (first args))]
        `(fn [env# value#]
-          (let [m# ~(reduce (fn [acc [name type-fn]] (assoc acc name type-fn)) {} (rest args))
-                result# (map 
-                          (fn [[name# data#]] 
-                            [name# ((m# (name name#)) env# data#)]) value#)
+          (let [m# ~(make-map (rest args))
+                result# (get-result m# env# value#)
                 names# (map first result#)
                 s# (set names#)
                 ]
-            (conj 
-              result#
-              true   ;TODO
-              )
+            (add-meta 
+              (conj 
+                result#
+                true   ;TODO
+                ) :sequence)
             
             ))))
    (defn all [& args]
-     (let [args (if (-> args first map?) args (cons {} args))
+     (let [args (normalize-args args)
            [min-occurs max-occurs] (min-max-occurs-of (first args))]
        `(fn [env# value#]
-          (let [m# ~(reduce (fn [acc [name type-fn]] (assoc acc name type-fn)) {} (rest args))
-                result# (map 
-                          (fn [[name# data#]] 
-                            [name# ((m# (name name#)) env# data#)]) value#)
+          (let [m# ~(make-map (rest args))
+                result# (get-result m# env# value#)
                 names# (map first result#)
                 s# (set names#)
                 ]
