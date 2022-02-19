@@ -34,6 +34,8 @@
     })
 
  
+   (defn add-meta [o k]
+     (with-meta o {:type k}))
 
    (defn assert-req-attrs [arg-map & keys]
      (doseq [k keys]
@@ -170,8 +172,6 @@
      (let [pd (partition-by keyword data)]
        
      ))
-   (defn add-meta [o k]
-     (with-meta o {:type k}))
    
    (defn normalize-args [args]
      (if (-> args first map?) args (cons {} args)))
@@ -184,11 +184,15 @@
       (fn [[name# data#]] 
         [name# ((m (name name#)) env data#)]) value))
    
+   (defn filter-elements [m]
+     (filter (fn [e] (= (-> e val meta :type) :element)) m))
+   
    (defn choice [& args]
      (let [args (normalize-args args)
            [min-occurs max-occurs] (min-max-occurs-of (first args))]
        `(fn [env# value#]
           (let [m# ~(make-map (rest args))
+                em# (dbg (filter-elements m#))
                 result# (get-result m# env# value#) 
                 names# (map first result#)
                 s# (set names#)
