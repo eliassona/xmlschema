@@ -93,16 +93,16 @@
 
    (defn element 
      ([arg-map type]
-     [(:name arg-map) type :element]
+     (add-meta [(:name arg-map) type] :element)
       )
      ([arg-map]
        (if-let [type-name (:type arg-map)]
-         `[~(:name arg-map) 
+         (add-meta `[~(:name arg-map) 
            (fn [env# value#] 
              (if-let [t# (env# ~type-name)]
                (t# env# value#)
                (throw (IllegalArgumentException. "Unknown type"))))
-           :element]))) ;TODO      
+           ] :element))))      
    
    
 
@@ -185,14 +185,15 @@
         [name# ((m (name name#)) env data#)]) value))
    
    (defn filter-elements [m]
-     (filter (fn [e] (= (-> e val meta :type) :element)) m))
+     ;(dbg (keys m))
+     (filter (fn [e] (dbg e) (= (-> (dbg e) val meta :type) :element)) m))
    
    (defn choice [& args]
      (let [args (normalize-args args)
            [min-occurs max-occurs] (min-max-occurs-of (first args))]
        `(fn [env# value#]
           (let [m# ~(make-map (rest args))
-                em# (dbg (filter-elements m#))
+;                em# (filter-elements m#)
                 result# (get-result m# env# value#) 
                 names# (map first result#)
                 s# (set names#)
@@ -210,6 +211,7 @@
            [min-occurs max-occurs] (min-max-occurs-of (first args))]
        `(fn [env# value#]
           (let [m# ~(make-map (rest args))
+                em# (filter-elements m#)
                 result# (get-result m# env# value#)
                 names# (map first result#)
                 s# (set names#)

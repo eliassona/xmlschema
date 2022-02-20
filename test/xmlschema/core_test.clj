@@ -133,11 +133,11 @@
   )
 
 (deftest test-element-with-type-arg
-  (let [[name type-fn type]
+  (let [[name type-fn :as all]
         (schema-eval [:element {:name "car", :type "string"}] :element)]
     (is (= "car" name))
     (is (= [true "asdf"] (type-fn env "asdf")))
-    (is (= :element type))
+    (is (= :element (-> all meta :type)))
   ))
                
 
