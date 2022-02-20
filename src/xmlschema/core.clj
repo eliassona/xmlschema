@@ -98,28 +98,25 @@
      ([arg-map]
        (if-let [type-name (:type arg-map)]
          (add-meta `[~(:name arg-map) 
-           (fn [env# value#] 
+           (fn ([env# value#] 
              (if-let [t# (env# ~type-name)]
                (t# env# value#)
                (throw (IllegalArgumentException. "Unknown type"))))
+             ([] (-> ~arg-map :name keyword))) ;TODO
+             
            ] :element))))      
    
    
-
+   (defn type? [expected-type o]
+     (= expected-type (-> o meta :type)))
 
    (defn schema [& elements]
-     (let [m 
-       (apply 
-         hash-map 
-         (mapcat 
-           (fn [[name type-fn]] [name type-fn]) 
-           (filter (fn [[_ _ t]] (= t :element)) elements)))]
-       `(fn [xml#]
-          (let [element-map# ~m
-                [element# attrs# data#] xml#
-                type-fn# (element-map# (-> attrs# :name name))]
-            ;type-fn returns binary!!!!
-          ))))
+       `(fn 
+          ([xml#])
+          ([]
+            (dbg ~(map (comp (fn [f] (-> (dbg f) meta))) elements))
+            ~(vec (map (comp (fn [f] `(~f)) second) (filter (partial type? :element) elements))))))
+   
    (defn simple-type 
      ([type-fn] type-fn)
      ([arg-map type-fn] [(:name arg-map) type-fn]))
@@ -209,7 +206,7 @@
    (defn schema-sequence [& args]
      (let [args (normalize-args args)
            [min-occurs max-occurs] (min-max-occurs-of (first args))]
-       `(fn [env# value#]
+       `(fn ([env# value#]
           (let [m# ~(make-map (rest args))
                 em# (filter-elements m#)
                 result# (get-result m# env# value#)
@@ -220,7 +217,8 @@
               (conj 
                 result#
                 true   ;TODO
-                ) :sequence)))))
+                ) :sequence)))
+          ([] "TODO"))))
    
    (defn all [& args]
      (let [args (normalize-args args)
