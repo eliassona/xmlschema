@@ -162,4 +162,8 @@
   )
 
 
+(deftest schema-layout
+  (is (= [:a :b] ((schema-eval [:schema [:element {:name "a" :type "string"}]
+                              [:element {:name "b" :type "string"}]] :schema))))
+  )
 

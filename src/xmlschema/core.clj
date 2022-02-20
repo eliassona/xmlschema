@@ -93,7 +93,8 @@
 
    (defn element 
      ([arg-map type]
-     (add-meta [(:name arg-map) type] :element)
+       (dbg type)
+       (add-meta [(:name arg-map) type] :element)
       )
      ([arg-map]
        (if-let [type-name (:type arg-map)]
@@ -107,6 +108,8 @@
            ] :element))))      
    
    
+   
+   
    (defn type? [expected-type o]
      (= expected-type (-> o meta :type)))
 
@@ -114,8 +117,9 @@
        `(fn 
           ([xml#])
           ([]
-            (dbg ~(map (comp (fn [f] (-> (dbg f) meta))) elements))
-            ~(vec (map (comp (fn [f] `(~f)) second) (filter (partial type? :element) elements))))))
+            ~(vec (map 
+                    (comp (fn [f] `(~f)) second) 
+                       (filter (partial type? :element) elements))))))
    
    (defn simple-type 
      ([type-fn] type-fn)
