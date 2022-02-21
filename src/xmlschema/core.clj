@@ -93,18 +93,23 @@
 
 
    (defn element 
-     ([arg-map type]
-       (with-meta type {:type :element, :name (-> arg-map :name keyword)})
-      )
-     ([arg-map]
-       (if-let [type-name (:type arg-map)]
+     ([arg-map type-fn]
+       (let [name (-> arg-map :name keyword)]
          `(with-meta 
             (fn ([env# value#] 
-              (if-let [t# (env# ~type-name)]
-                (t# env# value#)
-                (throw (IllegalArgumentException. "Unknown type"))))
-              ([] (-> ~arg-map :name keyword))) 
-            {:type :element, :name ~(-> arg-map :name keyword)}))))      
+              (~type-fn env# value#))
+              ([] (dbg :hej) ~name)) 
+            {:type :element, :name ~name})))
+     ([arg-map]
+       (let [name (-> arg-map :name keyword)]
+         (if-let [type-name (:type arg-map)]
+           `(with-meta 
+              (fn ([env# value#] 
+                (if-let [t# (dbg (env# ~type-name))]
+                  (t# env# value#)
+                  (throw (IllegalArgumentException. "Unknown type"))))
+                ([] ~name)) 
+              {:type :element, :name ~name})))))      
    
    
    
