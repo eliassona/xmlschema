@@ -167,5 +167,19 @@
 (deftest schema-layout
   (is (= [:a :b] ((schema-eval [:schema [:element {:name "a" :type "string"}]
                               [:element {:name "b" :type "string"}]] :schema))))
+  (is (= [:hej :satoshi :nakamoto :bitcoin :a] 
+         ((schema-eval [:sequence {} 
+                       [:element {:name "hej" :type "string"}]
+                       [:element {:name "satoshi" :type "string"}]
+                       [:sequence
+                        [:element {:name "nakamoto" :type "string"}]
+                        [:element {:name "bitcoin" :type "string"}]
+                        [:choice
+                         [:element {:name "a" :type "string"}]
+                         ]
+                        ]
+                       ] :sequence))))
+  
   )
+
 

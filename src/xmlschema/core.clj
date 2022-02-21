@@ -189,10 +189,19 @@
         [name# ((m (name name#)) env data#)]) value))
    
    
+   (defn extract-name [arg]
+     (let [t (-> arg meta :type)]
+       (if (= t :element)
+         (-> arg first keyword)
+         `(~arg))))
+   
+   (defn all-sequence-items [args]
+     (map extract-name args))
+   
    (defn choice [& args]
      (let [args (normalize-args args)
            [min-occurs max-occurs] (min-max-occurs-of (first args))]
-       `(fn [env# value#]
+       `(fn ([env# value#]
           (let [m# ~(make-map (rest args))
                 result# (get-result m# env# value#) 
                 names# (map first result#)
@@ -204,7 +213,8 @@
                 (and 
                   (< (count s#) 2) 
                   (and (>= n# ~min-occurs) (<= n# ~max-occurs))))
-              :choice)))))
+              :choice)))
+          ([] (flatten [~@(all-sequence-items (rest args))])))))
    
    (defn schema-sequence [& args]
      (let [args (normalize-args args)
@@ -220,12 +230,12 @@
                 result#
                 true   ;TODO
                 ) :sequence)))
-          ([] "TODO"))))
+          ([] (flatten [~@(all-sequence-items (rest args))])))))
  
    (defn all [& args]
      (let [args (normalize-args args)
            [min-occurs max-occurs] (min-max-occurs-of (first args))]
-       `(fn [env# value#]
+       `(fn ([env# value#]
           (let [m# ~(make-map (rest args))
                 result# (get-result m# env# value#)
                 names# (map first result#)
@@ -235,7 +245,8 @@
               (conj 
                 result#
                 true   ;TODO
-                ) :all)))))
+                ) :all)))
+          ([] (flatten [~@(all-sequence-items (rest args))])))))
    
    
    (def ast->clj-map  
