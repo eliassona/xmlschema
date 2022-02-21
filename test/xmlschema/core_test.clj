@@ -155,6 +155,18 @@
     (is (= :element (-> e meta :type)))
     ))
 
+(deftest test-schema-for-named-simple-type-element-at-schema-level
+  #_(let [s 
+         (schema-eval [:schema 
+                       [:element {:name "car"}
+                        [:simpleType 
+                          [:restriction {:base "integer"} 
+                           [:maxInclusive {:value "10"}]
+                           [:minInclusive {:value "0"}]]]]] :schema)]
+     (is [true 5] (e env [:car "5"]))
+     (is [false 11] (e env [:car "11"]))
+     ))
+
 (deftest arg-test
   (schema-eval [:annotation {:name "asdf", :public "asdf"}] :annotation)
   (schema-eval [:list {:itemType "string"}] :list)

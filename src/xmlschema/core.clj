@@ -114,14 +114,20 @@
      (= expected-type (-> o meta :type)))
 
    (defn schema [& elements]
-       `(let [elements# [~@elements]]
+       `(let [root-objects# [~@elements]
+              elements# (filter (fn [e#] (= (:type (meta e#)) :element)) root-objects#)
+              elem-map# (apply merge (map (fn [e#] {(-> e# meta :name) e#}) elements#))
+              ]
           (fn 
-            ([xml#])
+            ([env# xml#]
+              ((elem-map# (first xml#)) env# (rest xml#)))
             ([]
-              (map 
-                (fn [e#] (-> e# meta :name)) 
-                (filter (fn [e#] (= (:type (meta e#)) :element)) elements#))))))
+              (map
+                (fn [e#] (e#)) elements#)))))
    
+
+
+
    
    
    
