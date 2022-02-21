@@ -23,19 +23,20 @@
 
 (def parser (insta/parser (clojure.java.io/resource "xmlschema.bnf")))
 
+(defn add-meta [o k]
+  (with-meta o {:type k}))
+
 (def env 
-   {"string" (with-meta (fn [_ value] [true value]) {:type :simpleType}) 
-    "integer" (with-meta (fn [_ value]
+   {"string" (add-meta (fn [_ value] [true value]) :simpleType) 
+    "integer" (add-meta (fn [_ value]
                 (try 
                   (let [v (Long/valueOf value)]
                     [true v])
                   (catch NumberFormatException e
-                    [false value]))) {:type :simpleType})
+                    [false value]))) :simpleType)
     })
 
  
-   (defn add-meta [o k]
-     (with-meta o {:type k}))
 
    (defn assert-req-attrs [arg-map & keys]
      (doseq [k keys]
@@ -93,7 +94,6 @@
 
    (defn element 
      ([arg-map type]
-       (dbg type)
        (add-meta [(:name arg-map) type] :element)
       )
      ([arg-map]
@@ -174,27 +174,26 @@
        
      ))
    
+   (defn filter-elements [m]
+     (filter (fn [e] (= (-> e meta :type) :element)) m))
+
    (defn normalize-args [args]
      (if (-> args first map?) args (cons {} args)))
    
    (defn make-map [args]
-     (reduce (fn [acc [name type-fn]] (assoc acc name type-fn)) {} args))
+     (reduce (fn [acc [name type-fn]] (assoc acc name type-fn)) {} (filter-elements args)))
    
    (defn get-result [m env value]
      (map 
       (fn [[name# data#]] 
         [name# ((m (name name#)) env data#)]) value))
    
-   (defn filter-elements [m]
-     ;(dbg (keys m))
-     (filter (fn [e] (dbg e) (= (-> (dbg e) val meta :type) :element)) m))
    
    (defn choice [& args]
      (let [args (normalize-args args)
            [min-occurs max-occurs] (min-max-occurs-of (first args))]
        `(fn [env# value#]
           (let [m# ~(make-map (rest args))
-;                em# (filter-elements m#)
                 result# (get-result m# env# value#) 
                 names# (map first result#)
                 s# (set names#)
@@ -212,7 +211,6 @@
            [min-occurs max-occurs] (min-max-occurs-of (first args))]
        `(fn ([env# value#]
           (let [m# ~(make-map (rest args))
-                em# (filter-elements m#)
                 result# (get-result m# env# value#)
                 names# (map first result#)
                 s# (set names#)
@@ -223,7 +221,7 @@
                 true   ;TODO
                 ) :sequence)))
           ([] "TODO"))))
-   
+ 
    (defn all [& args]
      (let [args (normalize-args args)
            [min-occurs max-occurs] (min-max-occurs-of (first args))]
