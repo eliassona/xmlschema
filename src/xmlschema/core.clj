@@ -94,18 +94,18 @@
 
    (defn element 
      ([arg-map type]
-       (add-meta [(:name arg-map) type] :element)
+       (with-meta type {:type :element, :name (-> arg-map :name keyword)})
       )
      ([arg-map]
        (if-let [type-name (:type arg-map)]
-         (add-meta `[~(:name arg-map) 
-           (fn ([env# value#] 
-             (if-let [t# (env# ~type-name)]
-               (t# env# value#)
-               (throw (IllegalArgumentException. "Unknown type"))))
-             ([] (-> ~arg-map :name keyword))) ;TODO
-             
-           ] :element))))      
+         `(with-meta 
+            (fn ([env# value#] 
+              (if-let [t# (env# ~type-name)]
+                (t# env# value#)
+                (throw (IllegalArgumentException. "Unknown type"))))
+              ([] (-> ~arg-map :name keyword))) 
+            {:type :element, :name ~(-> arg-map :name keyword)}))))      
+   
    
    
    
@@ -114,12 +114,16 @@
      (= expected-type (-> o meta :type)))
 
    (defn schema [& elements]
-       `(fn 
-          ([xml#])
-          ([]
-            ~(vec (map 
-                    (comp (fn [f] `(~f)) second) 
-                       (filter (partial type? :element) elements))))))
+       `(let [elements# [~@elements]]
+          (fn 
+            ([xml#])
+            ([]
+              (map 
+                (fn [e#] (-> e# meta :name)) 
+                (filter (fn [e#] (= (:type (meta e#)) :element)) elements#))))))
+   
+   
+   
    
    (defn simple-type 
      ([type-fn] type-fn)
@@ -175,13 +179,14 @@
      ))
    
    (defn filter-elements [m]
-     (filter (fn [e] (= (-> e meta :type) :element)) m))
+     (filter (fn [e] (meta e) (= (-> e meta :type) :element)) m))
 
    (defn normalize-args [args]
      (if (-> args first map?) args (cons {} args)))
    
    (defn make-map [args]
-     (reduce (fn [acc [name type-fn]] (assoc acc name type-fn)) {} (filter-elements args)))
+     (reduce 
+       (fn [acc type-fn] (assoc acc (-> type-fn meta :name) type-fn)) {} (filter-elements args)))
    
    (defn get-result [m env value]
      (map 
@@ -192,7 +197,7 @@
    (defn extract-name [arg]
      (let [t (-> arg meta :type)]
        (if (= t :element)
-         (-> arg first keyword)
+         (-> arg meta :name)
          `(~arg))))
    
    (defn all-sequence-items [args]
