@@ -27,8 +27,8 @@
   (with-meta o {:type k}))
 
 (def env 
-   {"string" (add-meta (fn [_ value] [true value]) :simpleType) 
-    "integer" (add-meta (fn [_ value]
+   {"string" (add-meta (fn [_ [value]] [true value]) :simpleType) 
+    "integer" (add-meta (fn [_ [value]]
                 (try 
                   (let [v (Long/valueOf value)]
                     [true v])
@@ -114,16 +114,17 @@
      (= expected-type (-> o meta :type)))
 
    (defn schema [& elements]
-       `(let [root-objects# [~@elements]
-              elements# (filter (fn [e#] (= (:type (meta e#)) :element)) root-objects#)
-              elem-map# (apply merge (map (fn [e#] {(-> e# meta :name) e#}) elements#))
-              ]
-          (fn 
-            ([env# xml#]
-              ((elem-map# (first xml#)) env# (rest xml#)))
-            ([]
-              (map
-                (fn [e#] (e#)) elements#)))))
+     `(let [root-objects# [~@elements]
+            elements# (filter (fn [e#] (= (:type (meta e#)) :element)) root-objects#)
+            elem-map# (apply merge (map (fn [e#] {(-> e# meta :name) e#}) elements#))
+            env# (merge ~'env (apply merge (map (fn [e#] {(-> e# meta :name name) e#}) root-objects#)))
+            ]
+        (fn 
+          ([xml#]
+            ((elem-map# (first xml#)) env# (rest xml#)))
+          ([]
+            (map
+              (fn [e#] (e#)) elements#)))))
    
 
 

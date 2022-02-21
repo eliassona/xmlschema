@@ -44,16 +44,16 @@
                               [:enumeration {:value "Audi"}]
                               [:enumeration {:value "BMW"}]] 
                             :simpleType-restriction)]
-    (is (= [true "BMW"] (restriction env "BMW")))
-    (is (= [false "BMw"] (restriction env "BMw")))
-    (is (= [true "Audi"] (restriction env "Audi")))
+    (is (= [true "BMW"] (restriction env ["BMW"])))
+    (is (= [false "BMw"] (restriction env ["BMw"])))
+    (is (= [true "Audi"] (restriction env ["Audi"])))
     ))
 
 (deftest ast-test-min-max
   (let [restriction (schema-eval [:restriction {:base "positiveInteger"} 
                                      [:maxInclusive {:value "10"}]] 
                             :simpleType-restriction)]
-    (is (= [true 5] (restriction env "5")))
+    (is (= [true 5] (restriction env ["5"])))
     ))
 
 
@@ -63,7 +63,7 @@
                        [:restriction {:base "integer"} 
                         [:maxInclusive {:value "10"}]
                         [:minInclusive {:value "0"}]]] :simpleType)]
-    (is [true 5] (simpleType env "5"))
+    (is [true 5] (simpleType env ["5"]))
     
     ))
 (deftest test-named-simple-type
@@ -74,7 +74,7 @@
                         [:minInclusive {:value "0"}]]] :simpleType)]
     
     (is (= "car" name))
-    (is [true 5] (type-fn env "5"))
+    (is [true 5] (type-fn env ["5"]))
     
     ))
 
@@ -86,7 +86,7 @@
                          [:maxInclusive {:value "10"}]
                          [:minInclusive {:value "0"}]]]] :element)]
     (is (= :car (-> element meta :name)))
-    (is [true 5] (element env "5"))
+    (is [true 5] (element env ["5"]))
     (is :element (-> element meta :type))
     ))
 
@@ -137,7 +137,7 @@
 (deftest test-element-with-type-arg
   (let [e (schema-eval [:element {:name "car", :type "string"}] :element)]
     (is (= :car (-> e meta :name)))
-    (is (= [true "asdf"] (e env "asdf")))
+    (is (= [true "asdf"] (e env ["asdf"])))
     (is (= :element (-> e meta :type)))
   ))
                
@@ -150,8 +150,8 @@
                          [:maxInclusive {:value "10"}]
                          [:minInclusive {:value "0"}]]]] :element)]
     (is (= :car (-> e meta :name)))
-    (is [true 5] (e env "5"))
-    (is [false 11] (e env "11"))
+    (is [true 5] (e env ["5"]))
+    (is [false 11] (e env ["11"]))
     (is (= :element (-> e meta :type)))
     ))
 
