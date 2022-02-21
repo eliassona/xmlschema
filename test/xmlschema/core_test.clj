@@ -67,13 +67,12 @@
     
     ))
 (deftest test-named-simple-type
-  (let [[name type-fn] 
+  (let [type-fn 
         (schema-eval [:simpleType {:name "car"} 
                        [:restriction {:base "integer"} 
                         [:maxInclusive {:value "10"}]
                         [:minInclusive {:value "0"}]]] :simpleType)]
     
-    (is (= "car" name))
     (is [true 5] (type-fn env ["5"]))
     
     ))
@@ -91,16 +90,16 @@
     ))
 
 (deftest test-type-simple-type-element
-  #_(let [schema 
-         (schema-eval [:schema
-                       [:simpleType {:name "hej"}
-                          [:restriction {:base "integer"} 
-                           [:maxInclusive {:value "10"}]
-                           [:minInclusive {:value "0"}]]]
-                       [:element {:name "car" :type "hej"}]] 
-                      :schema)]
-     (is [true 5] (schema [:car "5"]))
-     ))
+  (let [schema 
+        (schema-eval [:schema
+                      [:simpleType {:name "hej"}
+                         [:restriction {:base "integer"} 
+                          [:maxInclusive {:value "10"}]
+                          [:minInclusive {:value "0"}]]]
+                      [:element {:name "car" :type "hej"}]] 
+                     :schema)]
+    (is [true 5] (schema [:car "5"]))
+    ))
 
 
 (deftest test-choice-type

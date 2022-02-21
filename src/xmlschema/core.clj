@@ -140,8 +140,9 @@
    
    
    (defn simple-type 
-     ([type-fn] type-fn)
-     ([arg-map type-fn] [(:name arg-map) type-fn]))
+     ([type-fn] `(add-meta (fn [env# value#] (~type-fn env# value#))) :simpleType)
+     ([arg-map type-fn] 
+       `(with-meta (fn [env# value#] (~type-fn env# value#)) {:type :simpleType, :name (:name ~arg-map)})))
    
 
    (defn keyref [& [arg-map]] 
@@ -312,8 +313,6 @@
 (defn parse-predef [predef]
   (ast->clj (parser (pr-str predef) :start :simpleType)))
 
-(defn eval-predef [[name type-fn]]
-  [name (eval (with-meta type-fn {:type :simpleType}))])
 
 (def predefs
   [
@@ -347,9 +346,9 @@
 		   [:maxExclusive {:value "0"}]]]])
 
 (def env
-  (merge env (apply 
-        hash-map 
-        (mapcat 
-          (comp eval-predef parse-predef) 
-          predefs))))
+  (merge env 
+   (apply merge 
+    (map 
+      (comp (fn [f] {(-> f meta :name) f}) eval parse-predef) 
+      predefs))))
 
