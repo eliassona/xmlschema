@@ -78,7 +78,7 @@
     
     ))
 
-(deftest test-simple-type-element
+(deftest test-embedded-simple-type-element
   (let [element 
         (schema-eval [:element {:name "car"}
                       [:simpleType 
@@ -89,6 +89,19 @@
     (is [true 5] (element env ["5"]))
     (is :element (-> element meta :type))
     ))
+
+(deftest test-type-simple-type-element
+  #_(let [schema 
+         (schema-eval [:schema
+                       [:simpleType {:name "hej"}
+                          [:restriction {:base "integer"} 
+                           [:maxInclusive {:value "10"}]
+                           [:minInclusive {:value "0"}]]]
+                       [:element {:name "car" :type "hej"}]] 
+                      :schema)]
+     (is [true 5] (schema [:car "5"]))
+     ))
+
 
 (deftest test-choice-type
   #_(let [type-fn
@@ -156,16 +169,16 @@
     ))
 
 (deftest test-schema-for-named-simple-type-element-at-schema-level
-  #_(let [s 
-         (schema-eval [:schema 
-                       [:element {:name "car"}
-                        [:simpleType 
-                          [:restriction {:base "integer"} 
-                           [:maxInclusive {:value "10"}]
-                           [:minInclusive {:value "0"}]]]]] :schema)]
-     (is [true 5] (e env [:car "5"]))
-     (is [false 11] (e env [:car "11"]))
-     ))
+  (let [s 
+        (schema-eval [:schema 
+                      [:element {:name "car"}
+                       [:simpleType 
+                         [:restriction {:base "integer"} 
+                          [:maxInclusive {:value "10"}]
+                          [:minInclusive {:value "0"}]]]]] :schema)]
+    (is [true 5] (s [:car "5"]))
+    (is [false 11] (s [:car "11"]))
+    ))
 
 (deftest arg-test
   (schema-eval [:annotation {:name "asdf", :public "asdf"}] :annotation)
@@ -176,8 +189,17 @@
 
 
 (deftest schema-layout
-  (is (= [:a :b] ((schema-eval [:schema [:element {:name "a" :type "string"}]
-                              [:element {:name "b" :type "string"}]] :schema))))
+  (is (= {:elements [:a :b]
+          :env 
+          #{"string" "negativeInteger" 
+            "short" "unsignedByte" 
+            "a" "integer" "b" 
+            "nonNegativeInteger" 
+            "nonPositiveInteger" "unsignedShort" 
+            "byte" "positiveInteger"}} 
+         ((schema-eval [:schema 
+                        [:element {:name "a" :type "string"}]
+                        [:element {:name "b" :type "string"}]] :schema))))
   #_(is (= [:hej :satoshi :nakamoto :bitcoin :a] 
           ((schema-eval [:sequence {} 
                         [:element {:name "hej" :type "string"}]

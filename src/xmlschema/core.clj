@@ -123,8 +123,10 @@
           ([xml#]
             ((elem-map# (first xml#)) env# (rest xml#)))
           ([]
-            (map
-              (fn [e#] (e#)) elements#)))))
+            {:elements 
+             (map
+               (fn [e#] (e#)) elements#)
+             :env (set (keys env#))}))))
    
 
 
