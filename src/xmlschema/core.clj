@@ -89,27 +89,28 @@
    (defn min-exclusive [arg-map]
      (numeric-op-expr arg-map `>))
 
-
+   (defn elements-of [n type-fn]
+     n)
 
 
    (defn element 
      ([arg-map type-fn]
-       (let [name (-> arg-map :name keyword)]
-         `(with-meta 
-            (fn ([env# value#] 
-              (~type-fn env# value#))
-              ([] (dbg :hej) ~name)) 
-            {:type :element, :name ~name})))
+      `(let [n# (-> ~arg-map :name keyword)]
+         (with-meta 
+           (fn ([env# value#] 
+             (~type-fn env# value#))
+             ([] (elements-of n# ~type-fn))) 
+           {:type :element, :name n#})))
      ([arg-map]
-       (let [name (-> arg-map :name keyword)]
-         (if-let [type-name (:type arg-map)]
-           `(with-meta 
+       `(let [n# (-> ~arg-map :name keyword)]
+          (if-let [type-name# (:type ~arg-map)]
+            (with-meta 
               (fn ([env# value#] 
-                (if-let [t# (env# ~type-name)]
+                (if-let [t# (env# type-name#)]
                   (t# env# value#)
                   (throw (IllegalArgumentException. "Unknown type"))))
-                ([] ~name)) 
-              {:type :element, :name ~name})))))      
+                ([] n#)) 
+              {:type :element, :name n#})))))      
    
    
    
@@ -303,10 +304,17 @@
    (defn complexType [& args]
      `(let [args# (normalize-args [~@args])
             sub-elem# (sub-element-of (rest args#))]
-        (fn ([]
-              (if sub-elem#
-                (sub-elem#)
-                []))))
+        (fn
+          ([env# value#]
+            (if (map? (first value#))
+              (do
+                
+                )
+              [(sub-elem# env# value#)]))
+          ([]
+            (if sub-elem#
+              (sub-elem#)
+              []))))
      )
    
    (def ast->clj-map  

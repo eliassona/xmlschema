@@ -211,10 +211,24 @@
   )
 
 (deftest test-complexType
-  (is (= [:a :b] ((schema-eval [:complexType
+  (let [ct (schema-eval [:complexType
                                 [:sequence 
                                  [:element {:name "a" :type "string"}]
                                  [:element {:name "b" :type "string"}]]
-                                 ] :complexType))))
-  
-  )
+                                 ] :complexType)]
+    
+    (is (= [:a :b] (ct)))
+    (is (= [[true [:a [true "fiv"]] [:b [true "jiv"]]]] (ct env [[:a "fiv"][:b "jiv"]])))
+  ))
+
+(deftest test-complexType-embedded-element
+  (let [ct (schema-eval [:element {:name "e"}
+               [:complexType
+                [:sequence 
+                 [:element {:name "a" :type "string"}]
+                 [:element {:name "b" :type "string"}]]
+                ]] :element)]
+    
+    (is (= [:e [:a :b]] (ct)))
+    (is (= [[true [:a [true "fiv"]] [:b [true "jiv"]]]] (ct env [[:a "fiv"][:b "jiv"]])))
+  ))
