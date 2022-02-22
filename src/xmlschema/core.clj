@@ -254,9 +254,37 @@
          ([] (flatten [all-items#])))))
    
    (defn schema-sequence [& args]
+     `(let [args# (normalize-args [~@args])
+            all-items# (all-sequence-items (rest args#))
+            [min-occurs# max-occurs#] (min-max-occurs-of (first args#))
+            m# (make-map (rest args#))
+            ]
+       (fn ([env# value#]
+         (let [result# (get-result m# env# value#) 
+               ]
+           (add-meta 
+             (conj 
+               result#
+               true) ;TODO
+             :sequence)))
+         ([] (flatten [all-items#]))))
      )
  
    (defn all [& args]
+     `(let [args# (normalize-args [~@args])
+            all-items# (all-sequence-items (rest args#))
+            [min-occurs# max-occurs#] (min-max-occurs-of (first args#))
+            m# (make-map (rest args#))
+            ]
+       (fn ([env# value#]
+         (let [result# (get-result m# env# value#) 
+               ]
+           (add-meta 
+             (conj 
+               result#
+               true) ;TODO
+             :all)))
+         ([] (flatten [all-items#]))))
      )
    
    (defn complexType [& args]
