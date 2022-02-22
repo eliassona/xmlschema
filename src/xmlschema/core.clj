@@ -27,13 +27,13 @@
   (with-meta o {:type k}))
 
 (def env 
-   {"string" (add-meta (fn [_ [value]] [true value]) :simpleType) 
-    "integer" (add-meta (fn [_ [value]]
+   {"string" (with-meta (fn [_ [value]] [true value]) {:type :simpleType, :name "string"}) 
+    "integer" (with-meta (fn [_ [value]]
                 (try 
                   (let [v (Long/valueOf value)]
                     [true v])
                   (catch NumberFormatException e
-                    [false value]))) :simpleType)
+                    [false value]))) {:type :simpleType, :name "integer"})
     })
 
  
@@ -105,7 +105,7 @@
          (if-let [type-name (:type arg-map)]
            `(with-meta 
               (fn ([env# value#] 
-                (if-let [t# (dbg (env# ~type-name))]
+                (if-let [t# (env# ~type-name)]
                   (t# env# value#)
                   (throw (IllegalArgumentException. "Unknown type"))))
                 ([] ~name)) 
@@ -117,12 +117,25 @@
    
    (defn type? [expected-type o]
      (= expected-type (-> o meta :type)))
+   
+   (defn name-of [o]
+     (if-let [n (-> o meta :name name)]
+       n
+       (throw (IllegalArgumentException. "Name attribute missing"))))
 
+   (def named-root-objects #{:simpleType :complexType 
+                             :group :attributeGroup
+                             :element :attribute
+                             :notation})
+   
+   (defn only-named-objects [root-objects]
+     (filter (fn [o] (contains? named-root-objects (-> o meta :type))) root-objects))
+   
    (defn schema [& elements]
      `(let [root-objects# [~@elements]
             elements# (filter (fn [e#] (= (:type (meta e#)) :element)) root-objects#)
             elem-map# (apply merge (map (fn [e#] {(-> e# meta :name) e#}) elements#))
-            env# (merge ~'env (apply merge (map (fn [e#] {(-> e# meta :name name) e#}) root-objects#)))
+            env# (merge ~'env (apply merge (map (fn [e#] {(name-of e#) e#}) (only-named-objects root-objects#))))
             ]
         (fn 
           ([xml#]
