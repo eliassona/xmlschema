@@ -27,13 +27,19 @@
   (with-meta o {:type k}))
 
 (def env 
-   {"string" (with-meta (fn [_ [value]] [true value]) {:type :simpleType, :name "string"}) 
-    "integer" (with-meta (fn [_ [value]]
+   {"string" (with-meta 
+               (fn ([_ [value]] [true value])
+                 ([_] nil))
+               {:type :simpleType, :name "string"}) 
+    "integer" (with-meta 
+                (fn ([_ [value]]
                 (try 
                   (let [v (Long/valueOf value)]
                     [true v])
                   (catch NumberFormatException e
-                    [false value]))) {:type :simpleType, :name "integer"})
+                    [false value])))
+                  ([_] nil)) 
+                {:type :simpleType, :name "integer"})
     })
 
  
@@ -89,8 +95,10 @@
    (defn min-exclusive [arg-map]
      (numeric-op-expr arg-map `>))
 
-   (defn elements-of [n type-fn]
-     n)
+   (defn elements-of [env n type-fn]
+     (if-let [t (type-fn env)]
+       [n t]
+       n))
 
 
    (defn element 
@@ -99,7 +107,7 @@
          (with-meta 
            (fn ([env# value#] 
              (~type-fn env# value#))
-             ([env#] (elements-of n# ~type-fn))) 
+             ([env#] (elements-of env# n# ~type-fn))) 
            {:type :element, :name n#})))
      ([arg-map]
        `(let [n# (-> ~arg-map :name keyword)]
@@ -109,7 +117,7 @@
                 (if-let [t# (env# type-name#)]
                   (t# env# value#)
                   (throw (IllegalArgumentException. "Unknown type"))))
-                ([env#] n#)) 
+                ([env#] (elements-of env# n# (env# type-name#)))) 
               {:type :element, :name n#})))))      
    
    
