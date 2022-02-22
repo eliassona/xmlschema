@@ -63,17 +63,17 @@
                        [:restriction {:base "integer"} 
                         [:maxInclusive {:value "10"}]
                         [:minInclusive {:value "0"}]]] :simpleType)]
-    (is [true 5] (simpleType env ["5"]))
+    (is (= [true 5] (simpleType env ["5"])))
     
     ))
 (deftest test-named-simple-type
-  (let [type-fn 
+  (let [simpleType 
         (schema-eval [:simpleType {:name "car"} 
                        [:restriction {:base "integer"} 
                         [:maxInclusive {:value "10"}]
                         [:minInclusive {:value "0"}]]] :simpleType)]
     
-    (is [true 5] (type-fn env ["5"]))
+    (is (= [true 5] (simpleType env ["5"])))
     
     ))
 
@@ -85,8 +85,8 @@
                          [:maxInclusive {:value "10"}]
                          [:minInclusive {:value "0"}]]]] :element)]
     (is (= :car (-> element meta :name)))
-    (is [true 5] (element env ["5"]))
-    (is :element (-> element meta :type))
+    (is (= [true 5] (element env ["5"])))
+    (is ( = :element (-> element meta :type)))
     ))
 
 (deftest test-type-simple-type-element
@@ -98,7 +98,7 @@
                           [:minInclusive {:value "0"}]]]
                       [:element {:name "car" :type "hej"}]] 
                      :schema)]
-    (is [true 5] (schema [:car "5"]))
+    (is (= [true 5] (schema [:car "5"])))
     ))
 
 
@@ -158,8 +158,8 @@
                          [:maxInclusive {:value "10"}]
                          [:minInclusive {:value "0"}]]]] :element)]
     (is (= :car (-> e meta :name)))
-    (is [true 5] (e env ["5"]))
-    (is [false 11] (e env ["11"]))
+    (is (= [true 5] (e env ["5"])))
+    (is (= [false 11] (e env ["11"])))
     (is (= :element (-> e meta :type)))
     ))
 
@@ -171,8 +171,8 @@
                          [:restriction {:base "integer"} 
                           [:maxInclusive {:value "10"}]
                           [:minInclusive {:value "0"}]]]]] :schema)]
-    (is [true 5] (s [:car "5"]))
-    (is [false 11] (s [:car "11"]))
+    (is (= [true 5] (s [:car "5"])))
+    (is (= [false 11] (s [:car "11"])))
     ))
 
 (deftest arg-test
@@ -232,3 +232,5 @@
     (is (= [:e [:a :b]] (ct env)))
     (is (= [[true [:a [true "fiv"]] [:b [true "jiv"]]]] (ct env [[:a "fiv"][:b "jiv"]])))
   ))
+
+(deftest test-complexType-at-schema-level)

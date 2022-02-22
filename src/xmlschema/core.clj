@@ -162,7 +162,7 @@
    
    
    (defn simple-type 
-     ([type-fn] `(add-meta (fn [env# value#] (~type-fn env# value#))) :simpleType)
+     ([type-fn] `(add-meta (fn [env# value#] (~type-fn env# value#)) :simpleType))
      ([arg-map type-fn] 
        `(with-meta (fn [env# value#] (~type-fn env# value#)) {:type :simpleType, :name (:name ~arg-map)})))
    
