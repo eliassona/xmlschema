@@ -210,6 +210,11 @@
   
   )
 
-(deftest test-complexType-in-env
+(deftest test-complexType
+  (is (= [:a :b] ((schema-eval [:complexType
+                                [:sequence 
+                                 [:element {:name "a" :type "string"}]
+                                 [:element {:name "b" :type "string"}]]
+                                 ] :complexType))))
   
   )

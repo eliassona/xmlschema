@@ -240,20 +240,20 @@
             [min-occurs# max-occurs#] (min-max-occurs-of (first args#))
             m# (make-map (rest args#))
             ]
-       (fn ([env# value#]
-         (let [result# (get-result m# env# value#) 
-               names# (map first result#)
-               s# (set names#)
-               n# ((occurance-of names#) (first s#))
-               ]
-           (add-meta 
-             (conj 
-               result#
-               (and 
-                 (< (count s#) 2) 
-                 (and (>= n# min-occurs#) (<= n# max-occurs#))))
-             :choice)))
-         ([] (flatten [all-items#])))))
+        (add-meta 
+			    (fn ([env# value#]
+			      (let [result# (get-result m# env# value#) 
+			            names# (map first result#)
+			            s# (set names#)
+			            n# ((occurance-of names#) (first s#))
+			            ]
+			          (conj 
+			            result#
+			            (and 
+			              (< (count s#) 2) 
+			              (and (>= n# min-occurs#) (<= n# max-occurs#))))))
+			      ([] (flatten [all-items#])))
+       :choice)))
    
    (defn schema-sequence [& args]
      `(let [args# (normalize-args [~@args])
@@ -262,16 +262,15 @@
             [min-occurs# max-occurs#] (min-max-occurs-of (first args#))
             m# (make-map (rest args#))
             ]
-       (fn ([env# value#]
-         (let [result# (get-result m# env# value#) 
-               ]
-           (add-meta 
-             (conj 
-               result#
-               true) ;TODO
-             :sequence)))
-         ([] all-items#)))
-     )
+       (add-meta 
+         (fn ([env# value#]
+           (let [result# (get-result m# env# value#) 
+                 ]
+               (conj 
+                 result#
+                 true)))
+         ([] all-items#))
+         :sequence)))
  
    (defn all [& args]
      `(let [args# (normalize-args [~@args])
@@ -279,18 +278,35 @@
             [min-occurs# max-occurs#] (min-max-occurs-of (first args#))
             m# (make-map (rest args#))
             ]
-       (fn ([env# value#]
-         (let [result# (get-result m# env# value#) 
-               ]
-           (add-meta 
-             (conj 
-               result#
-               true) ;TODO
-             :all)))
-         ([] (flatten [all-items#]))))
-     )
+        (add-meta 
+          (fn ([env# value#]
+                   (let [result# (get-result m# env# value#) 
+                         ]
+                       (conj 
+                         result#
+                         true)))
+            ([] (flatten [all-items#])))
+          :all)))
+     
+   
+ #_  (annotation?,(simpleContent|complexContent|((group|all|
+	 choice|sequence)?,((attribute|attributeGroup)*,anyAttribute?))))
+   
+   (def complex-type-sub-element #{:simpleContent 
+                                   :complexContent 
+                                   :group :all 
+                                   :choice :sequence}) 
+ 
+   (defn sub-element-of [args]
+     (first (filter (fn [e] (contains? complex-type-sub-element (-> e meta :type))) args)))
    
    (defn complexType [& args]
+     `(let [args# (normalize-args [~@args])
+            sub-elem# (sub-element-of (rest args#))]
+        (fn ([]
+              (if sub-elem#
+                (sub-elem#)
+                []))))
      )
    
    (def ast->clj-map  
