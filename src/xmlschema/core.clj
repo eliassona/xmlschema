@@ -119,8 +119,8 @@
      (= expected-type (-> o meta :type)))
    
    (defn name-of [o]
-     (if-let [n (-> o meta :name name)]
-       n
+     (if-let [n (-> o meta :name)]
+       (name n)
        (throw (IllegalArgumentException. "Name attribute missing"))))
 
    (def named-root-objects #{:simpleType :complexType 
@@ -281,6 +281,8 @@
                 ) :all)))
           ([] (flatten [~@(all-sequence-items (rest args))])))))
    
+   (defn complexType [& args]
+     )
    
    (def ast->clj-map  
      {
@@ -308,6 +310,7 @@
       :choice choice
       :sequence schema-sequence
       :all all
+      :complexType complexType
       })
 
    (defn ast->clj [ast]
