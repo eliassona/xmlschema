@@ -206,8 +206,10 @@
        
      ))
    
-   (defn filter-elements [m]
-     (filter (fn [e] (= (-> e meta :type) :element)) m))
+   (defn filter-elements 
+     ([m op]
+       (filter (fn [e] (op (-> e meta :type) :element)) m))
+     ([m] (filter-elements m =)))
 
    (defn normalize-args [args]
      (if (-> args first map?) args (cons {} args)))
@@ -227,7 +229,7 @@
      (let [t (-> arg meta :type)]
        (if (= t :element)
          (-> arg meta :name)
-         `(~arg))))
+         (arg))))
    
    (defn all-sequence-items [args]
      (map extract-name args))
@@ -255,7 +257,8 @@
    
    (defn schema-sequence [& args]
      `(let [args# (normalize-args [~@args])
-            all-items# (all-sequence-items (rest args#))
+            all-items# (flatten (all-sequence-items (rest args#)))
+            all-items-set# (set all-items#)
             [min-occurs# max-occurs#] (min-max-occurs-of (first args#))
             m# (make-map (rest args#))
             ]
@@ -267,7 +270,7 @@
                result#
                true) ;TODO
              :sequence)))
-         ([] (flatten [all-items#]))))
+         ([] all-items#)))
      )
  
    (defn all [& args]
