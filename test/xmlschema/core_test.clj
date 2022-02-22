@@ -217,7 +217,7 @@
                                  [:element {:name "b" :type "string"}]]
                                  ] :complexType)]
     
-    (is (= [:a :b] (ct)))
+    (is (= [:a :b] (ct env)))
     (is (= [[true [:a [true "fiv"]] [:b [true "jiv"]]]] (ct env [[:a "fiv"][:b "jiv"]])))
   ))
 
@@ -229,6 +229,6 @@
                  [:element {:name "b" :type "string"}]]
                 ]] :element)]
     
-    (is (= [:e [:a :b]] (ct)))
+    (is (= [:e [:a :b]] (ct env)))
     (is (= [[true [:a [true "fiv"]] [:b [true "jiv"]]]] (ct env [[:a "fiv"][:b "jiv"]])))
   ))

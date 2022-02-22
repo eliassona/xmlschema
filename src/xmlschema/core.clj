@@ -99,7 +99,7 @@
          (with-meta 
            (fn ([env# value#] 
              (~type-fn env# value#))
-             ([] (elements-of n# ~type-fn))) 
+             ([env#] (elements-of n# ~type-fn))) 
            {:type :element, :name n#})))
      ([arg-map]
        `(let [n# (-> ~arg-map :name keyword)]
@@ -109,7 +109,7 @@
                 (if-let [t# (env# type-name#)]
                   (t# env# value#)
                   (throw (IllegalArgumentException. "Unknown type"))))
-                ([] n#)) 
+                ([env#] n#)) 
               {:type :element, :name n#})))))      
    
    
@@ -144,7 +144,7 @@
           ([]
             {:elements 
              (map
-               (fn [e#] (e#)) elements#)
+               (fn [e#] (e# env#)) elements#)
              :env (set (keys env#))}))))
    
 
@@ -226,18 +226,17 @@
            [n ((n m) env (rest v))])) value))
    
    
-   (defn extract-name [arg]
+   (defn extract-name [env arg]
      (let [t (-> arg meta :type)]
        (if (= t :element)
          (-> arg meta :name)
-         (arg))))
+         (arg env))))
    
-   (defn all-sequence-items [args]
-     (map extract-name args))
+   (defn all-sequence-items [env args]
+     (map (partial extract-name env) args))
    
    (defn choice [& args]
      `(let [args# (normalize-args [~@args])
-            all-items# (all-sequence-items (rest args#))
             [min-occurs# max-occurs#] (min-max-occurs-of (first args#))
             m# (make-map (rest args#))
             ]
@@ -253,29 +252,27 @@
 			            (and 
 			              (< (count s#) 2) 
 			              (and (>= n# min-occurs#) (<= n# max-occurs#))))))
-			      ([] (flatten [all-items#])))
+			      ([env#] (flatten (all-sequence-items env# (rest args#)))))
        :choice)))
    
    (defn schema-sequence [& args]
      `(let [args# (normalize-args [~@args])
-            all-items# (flatten (all-sequence-items (rest args#)))
-            all-items-set# (set all-items#)
             [min-occurs# max-occurs#] (min-max-occurs-of (first args#))
             m# (make-map (rest args#))
             ]
        (add-meta 
          (fn ([env# value#]
            (let [result# (get-result m# env# value#) 
+
                  ]
                (conj 
                  result#
                  true)))
-         ([] all-items#))
+         ([env#] (flatten (all-sequence-items env# (rest args#)))))
          :sequence)))
  
    (defn all [& args]
      `(let [args# (normalize-args [~@args])
-            all-items# (all-sequence-items (rest args#))
             [min-occurs# max-occurs#] (min-max-occurs-of (first args#))
             m# (make-map (rest args#))
             ]
@@ -286,7 +283,7 @@
                        (conj 
                          result#
                          true)))
-            ([] (flatten [all-items#])))
+            ([env#] (flatten (all-sequence-items env# (rest args#)))))
           :all)))
      
    
@@ -311,9 +308,9 @@
                 
                 )
               [(sub-elem# env# value#)]))
-          ([]
+          ([env#]
             (if sub-elem#
-              (sub-elem#)
+              (sub-elem# env#)
               []))))
      )
    
