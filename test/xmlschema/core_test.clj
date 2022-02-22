@@ -103,17 +103,17 @@
 
 
 (deftest test-choice-type
-  #_(let [type-fn
-         (schema-eval [:choice {} 
-                       [:element {:name "hej" :type "string"}]
-                       [:element {:name "satoshi" :type "string"}]
-                       ] :choice)]
-     (is (= [true [:hej [true "asdf"]]] (type-fn env [[:hej "asdf"]])))
-     (is (= [false [:hej [true "asdf"]][:hej [true "fsda"]]] 
-           (type-fn env [[:hej "asdf"][:hej "fsda"]])))
-     (is (= [false [:hej [true "asdf"]][:satoshi [true "fsda"]]] 
-           (type-fn env [[:hej "asdf"][:satoshi "fsda"]])))
-     )
+  (let [type-fn
+        (schema-eval [:choice {} 
+                      [:element {:name "hej" :type "string"}]
+                      [:element {:name "satoshi" :type "string"}]
+                      ] :choice)]
+    (is (= [true [:hej [true "asdf"]]] (type-fn env [[:hej "asdf"]])))
+    (is (= [false [:hej [true "asdf"]][:hej [true "fsda"]]] 
+          (type-fn env [[:hej "asdf"][:hej "fsda"]])))
+    (is (= [false [:hej [true "asdf"]][:satoshi [true "fsda"]]] 
+          (type-fn env [[:hej "asdf"][:satoshi "fsda"]])))
+    )
   )
 
 

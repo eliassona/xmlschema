@@ -207,7 +207,7 @@
      ))
    
    (defn filter-elements [m]
-     (filter (fn [e] (meta e) (= (-> e meta :type) :element)) m))
+     (filter (fn [e] (= (-> e meta :type) :element)) m))
 
    (defn normalize-args [args]
      (if (-> args first map?) args (cons {} args)))
@@ -218,8 +218,9 @@
    
    (defn get-result [m env value]
      (map 
-      (fn [[name# data#]] 
-        [name# ((m (name name#)) env data#)]) value))
+       (fn [v] 
+         (let [n (first v)]
+           [n ((n m) env (rest v))])) value))
    
    
    (defn extract-name [arg]
@@ -232,54 +233,31 @@
      (map extract-name args))
    
    (defn choice [& args]
-     (let [args (normalize-args args)
-           [min-occurs max-occurs] (min-max-occurs-of (first args))]
-       `(fn ([env# value#]
-          (let [m# ~(make-map (rest args))
-                result# (get-result m# env# value#) 
-                names# (map first result#)
-                s# (set names#)
-                n# ((occurance-of names#) (first s#))]
-            (add-meta 
-              (conj 
-                result#
-                (and 
-                  (< (count s#) 2) 
-                  (and (>= n# ~min-occurs) (<= n# ~max-occurs))))
-              :choice)))
-          ([] (flatten [~@(all-sequence-items (rest args))])))))
+     `(let [args# (normalize-args [~@args])
+            all-items# (all-sequence-items (rest args#))
+            [min-occurs# max-occurs#] (min-max-occurs-of (first args#))
+            m# (make-map (rest args#))
+            ]
+       (fn ([env# value#]
+         (let [result# (get-result m# env# value#) 
+               names# (map first result#)
+               s# (set names#)
+               n# ((occurance-of names#) (first s#))
+               ]
+           (add-meta 
+             (conj 
+               result#
+               (and 
+                 (< (count s#) 2) 
+                 (and (>= n# min-occurs#) (<= n# max-occurs#))))
+             :choice)))
+         ([] (flatten [all-items#])))))
    
    (defn schema-sequence [& args]
-     (let [args (normalize-args args)
-           [min-occurs max-occurs] (min-max-occurs-of (first args))]
-       `(fn ([env# value#]
-          (let [m# ~(make-map (rest args))
-                result# (get-result m# env# value#)
-                names# (map first result#)
-                s# (set names#)
-                ]
-            (add-meta 
-              (conj 
-                result#
-                true   ;TODO
-                ) :sequence)))
-          ([] (flatten [~@(all-sequence-items (rest args))])))))
+     )
  
    (defn all [& args]
-     (let [args (normalize-args args)
-           [min-occurs max-occurs] (min-max-occurs-of (first args))]
-       `(fn ([env# value#]
-          (let [m# ~(make-map (rest args))
-                result# (get-result m# env# value#)
-                names# (map first result#)
-                s# (set names#)
-                ]
-            (add-meta 
-              (conj 
-                result#
-                true   ;TODO
-                ) :all)))
-          ([] (flatten [~@(all-sequence-items (rest args))])))))
+     )
    
    (defn complexType [& args]
      )
