@@ -106,7 +106,7 @@
       `(let [n# (-> ~arg-map :name keyword)]
          (with-meta 
            (fn ([env# value#] 
-             (~type-fn env# value#))
+             [n# (~type-fn env# value#)])
              ([env#] (elements-of env# n# ~type-fn))) 
            {:type :element, :name n#})))
      ([arg-map]
@@ -115,7 +115,7 @@
             (with-meta 
               (fn ([env# value#] 
                 (if-let [t# (env# type-name#)]
-                  (t# env# value#)
+                  [n# (t# env# value#)]
                   (throw (IllegalArgumentException. "Unknown type"))))
                 ([env#] (elements-of env# n# (env# type-name#)))) 
               {:type :element, :name n#})))))      
@@ -231,7 +231,7 @@
      (map 
        (fn [v] 
          (let [n (first v)]
-           [n ((n m) env (rest v))])) value))
+           ((n m) env (rest v)))) value))
    
    
    (defn extract-name [env arg]
