@@ -311,9 +311,10 @@
         (fn
           ([env# value#]
             (if (map? (first value#))
-              (do
-                [(sub-elem# env# (rest value#))]
-                )
+              (let [e# (rest value#)
+                    a# (first value#)]
+                (dbg a#)
+                (if (empty? e#) [] [(sub-elem# env# (rest value#))]))
               [(sub-elem# env# value#)]))
           ([env#]
             (if sub-elem#

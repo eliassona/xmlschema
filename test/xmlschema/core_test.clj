@@ -256,17 +256,17 @@
     ))
 
 (deftest test-attribute-name-at-schema-level 
-  #_(let [s (schema-eval 
-              [:schema
-               [:element {:name "a"}
-                [:complexType
-                 [:attribute {:name "code"}
-                  [:simpleType
-                    [:restriction {:base "string"}
-                      [:enumeration {:value "Pig"}]
-                      [:enumeration {:value "Horse"}]]]]]
-                ]
+  (let [s (schema-eval 
+             [:schema
+              [:element {:name "a"}
+               [:complexType
+                [:attribute {:name "code"}
+                 [:simpleType
+                   [:restriction {:base "string"}
+                     [:enumeration {:value "Pig"}]
+                     [:enumeration {:value "Horse"}]]]]]
                ]
-              :schema)]
-     (is (= [true "Pig"] (s env [:a {:code "Pig"}])))
-     ))
+              ]
+             :schema)]
+    (is (= [true "Pig"] (s env [:a {:code "Pig"}])))
+    ))
