@@ -341,6 +341,8 @@
           (add-meta
             (fn 
               ([env# value#]
+                (let [key# (first value#)
+                      value# (rest value#)]
                 (cond
                   n#
                   (type-fn# env# value#)
@@ -352,7 +354,7 @@
                     (throw (IllegalArgumentException. "invalid ref")))
                   :else
                   (throw (IllegalArgumentException. "name or ref must be set"))
-                  ))
+                  )))
                 
               ([env#]
                 #{n#}

@@ -252,18 +252,21 @@
                  [:enumeration {:value "Horse"}]]]]
             :attribute)]
     (is (= #{"code"} (a env)))
-    (is (= [true "Pig"] (a env ["Pig"])))
+    (is (= [true "Pig"] (a env [:code "Pig"])))
     ))
 
-(deftest test-attribute-name 
-  (let [a (schema-eval 
-            [:schema
-             [:attribute {:name "code"}
-              [:simpleType
-                [:restriction {:base "string"}
-                  [:enumeration {:value "Pig"}]
-                  [:enumeration {:value "Horse"}]]]]]
-            :schema)]
-    (is (= #{"code"} (a env)))
-    (is (= [true "Pig"] (a env ["Pig"])))
-    ))
+(deftest test-attribute-name-at-schema-level 
+  #_(let [s (schema-eval 
+              [:schema
+               [:element {:name "a"}
+                [:complexType
+                 [:attribute {:name "code"}
+                  [:simpleType
+                    [:restriction {:base "string"}
+                      [:enumeration {:value "Pig"}]
+                      [:enumeration {:value "Horse"}]]]]]
+                ]
+               ]
+              :schema)]
+     (is (= [true "Pig"] (s env [:a {:code "Pig"}])))
+     ))
