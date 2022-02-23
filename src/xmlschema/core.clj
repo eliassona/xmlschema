@@ -301,14 +301,18 @@
    (defn sub-element-of [args]
      (first (filter (fn [e] (contains? complex-type-sub-element (-> e meta :type))) args)))
    
+   (defn attrs-of [args]
+     (filter (fn [v] (= (-> v meta :type) :attribute)) args))
+   
    (defn complexType [& args]
      `(let [args# (normalize-args [~@args])
-            sub-elem# (sub-element-of (rest args#))]
+            sub-elem# (sub-element-of (rest args#))
+            attrs# (attrs-of args#)]
         (fn
           ([env# value#]
             (if (map? (first value#))
               (do
-                
+                [(sub-elem# env# (rest value#))]
                 )
               [(sub-elem# env# value#)]))
           ([env#]

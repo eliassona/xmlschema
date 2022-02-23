@@ -225,7 +225,7 @@
                                  ] :complexType)]
     
     (is (= [:a :b] (ct env)))
-    (is (= [[true [:a [true "fiv"]] [:b [true "jiv"]]]] (ct env [[:a "fiv"][:b "jiv"]])))
+    (is (= [[true [:a [true "fiv"]] [:b [true "jiv"]]]] (ct env [{} [:a "fiv"][:b "jiv"]])))
   ))
 
 (deftest test-complexType-embedded-element
