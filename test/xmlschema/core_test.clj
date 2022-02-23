@@ -56,6 +56,13 @@
     (is (= [true 5] (restriction env ["5"])))
     ))
 
+(deftest test-empty-restriction
+    (is (= [true "asdf"] ((schema-eval [:restriction {:base "string"}] :simpleType-restriction) env ["asdf"])))
+    (is (= [true 10] ((schema-eval [:restriction {:base "integer"}] :simpleType-restriction) env ["10"])))
+    (is (= [false -1] ((schema-eval [:restriction {:base "positiveInteger"}] :simpleType-restriction) env ["-1"])))
+    )
+    
+
 
 (deftest test-simple-type
   (let [simpleType 

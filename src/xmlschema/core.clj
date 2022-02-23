@@ -60,11 +60,12 @@
            value (gensym)
            base-result (gensym)
            base-value (gensym)
-           logic-expr (-> conditions first meta :type)]
+           logic-expr (if (empty? conditions) :empty (-> conditions first meta :type))]
      `(fn [~env ~value]
         (if-let [[~base-result ~base-value] ((~env ~(arg-map :base)) ~env ~value)]
          [(and ~base-result
              ~(condp = logic-expr
+                :empty true
                 :or `(or ~@(map (fn [c] `(~c ~env ~base-value)) conditions))
                 :and `(and ~@(map (fn [c] `(~c ~env ~base-value)) conditions))
                 )) ~base-value] 
@@ -161,11 +162,19 @@
    
    
    
-   (defn simple-type 
-     ([type-fn] `(add-meta (fn [env# value#] (~type-fn env# value#)) :simpleType))
-     ([arg-map type-fn] 
-       `(with-meta (fn [env# value#] (~type-fn env# value#)) {:type :simpleType, :name (:name ~arg-map)})))
+   #_(defn simple-type 
+      ([type-fn] `(add-meta (fn [env# value#] (~type-fn env# value#)) :simpleType))
+      ([arg-map type-fn] 
+        `(with-meta (fn [env# value#] (~type-fn env# value#)) {:type :simpleType, :name (:name ~arg-map)})))
    
+   (defn simple-type [& args]
+     `(let [[arg-map# type-fn#] (normalize-args [~@args])]
+        (with-meta 
+          (fn [env# value#] (type-fn# env# value#)) 
+          (merge {:type :simpleType} 
+                 (if (contains? arg-map# :name) 
+                   {:name (:name arg-map#)} {})))))
+     
 
    (defn keyref [& [arg-map]] 
      (assert-req-attrs arg-map :name :refer))
@@ -369,7 +378,9 @@
 
 
 (def predefs
-  [
+  [#_[:simpleType {:name "string"} 
+     [:restriction {:base ""} 
+	      ]]
    [:simpleType {:name "byte"} 
     [:restriction {:base "integer"} 
 	    [:minInclusive {:value "-128"}] 
