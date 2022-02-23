@@ -23,8 +23,11 @@
 
 (def parser (insta/parser (clojure.java.io/resource "xmlschema.bnf")))
 
-(defn add-meta [o k]
-  (with-meta o {:type k}))
+(defn add-meta 
+  ([o t]
+    (add-meta o t nil))
+  ([o t n]
+    (with-meta o (merge {:type t} (if n {:name n} {})))))
 
    (defn assert-req-attrs [arg-map & keys]
      (doseq [k keys]
@@ -140,24 +143,23 @@
    
    
    (defn simple-type [& args]
-     `(let [[arg-map# type-fn#] (normalize-args [~@args])]
-        (let [n# (:name arg-map#)]
-          (with-meta
-            (condp = n# 
-              "string"
-              (fn ([env# [value#]] [true value#])
-                 ([env#] nil))
-              "integer"
-              (fn ([env# [value#]]
-                (try 
-                  (let [v# (Long/valueOf value#)]
-                    [true v#])
-                  (catch NumberFormatException e#
-                    [false value#])))
-                  ([env#] nil))
-              (fn [env# value#] (type-fn# env# value#))) 
-            (merge {:type :simpleType} 
-                   (if n# {:name n#} {}))))))
+     `(let [[arg-map# type-fn#] (normalize-args [~@args])
+            n# (:name arg-map#)]
+        (add-meta
+          (condp = n# 
+            "string"
+            (fn ([env# [value#]] [true value#])
+               ([env#] nil))
+            "integer"
+            (fn ([env# [value#]]
+              (try 
+                (let [v# (Long/valueOf value#)]
+                  [true v#])
+                (catch NumberFormatException e#
+                  [false value#])))
+                ([env#] nil))
+            (fn [env# value#] (type-fn# env# value#))) 
+          :simpleType n#)))
      
 
    (defn keyref [& [arg-map]] 
@@ -315,6 +317,19 @@
               []))))
      )
    
+   (defn group [& args]
+     `(let [[arg-map# type-fn#] (normalize-args [~@args])
+            n# (:name arg-map#)]
+        (add-meta 
+          (fn 
+            ([env# value#]
+              (type-fn# env# value#))
+            ([env#]
+              (type-fn# env#)
+              ))
+        :group n#)))
+    
+   
    (def ast->clj-map  
      {
       :ident (fn[& chars] (read-string (apply str chars))) 
@@ -342,6 +357,7 @@
       :sequence schema-sequence
       :all all
       :complexType complexType
+      :group group
       })
 
    (defn ast->clj [ast]
