@@ -105,7 +105,7 @@
      ([arg-map type-fn]
       `(let [n# (-> ~arg-map :name keyword)]
          (with-meta 
-           (fn ([env# value#] 
+           (fn ([env# [tmp# & value#]] 
              [n# (~type-fn env# value#)])
              ([env#] (elements-of env# n# ~type-fn))) 
            {:type :element, :name n#})))
@@ -113,7 +113,7 @@
        `(let [n# (-> ~arg-map :name keyword)]
           (if-let [type-name# (:type ~arg-map)]
             (with-meta 
-              (fn ([env# value#] 
+              (fn ([env# [tmp# & value#]] 
                 (if-let [t# (env# type-name#)]
                   [n# (t# env# value#)]
                   (throw (IllegalArgumentException. "Unknown type"))))
@@ -148,7 +148,7 @@
             ]
         (fn 
           ([xml#]
-            ((elem-map# (first xml#)) env# (rest xml#)))
+            ((elem-map# (first xml#)) env# xml#))
           ([]
             {:elements 
              (map
@@ -231,7 +231,7 @@
      (map 
        (fn [v] 
          (let [n (first v)]
-           ((n m) env (rest v)))) value))
+           ((n m) env v))) value))
    
    
    (defn extract-name [env arg]

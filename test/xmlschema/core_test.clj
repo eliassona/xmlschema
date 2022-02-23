@@ -85,7 +85,7 @@
                          [:maxInclusive {:value "10"}]
                          [:minInclusive {:value "0"}]]]] :element)]
     (is (= :car (-> element meta :name)))
-    (is (= [:car [true 5]] (element env ["5"])))
+    (is (= [:car [true 5]] (element env [:car "5"])))
     (is ( = :element (-> element meta :type)))
     ))
 
@@ -145,7 +145,7 @@
 (deftest test-element-with-type-arg
   (let [e (schema-eval [:element {:name "car", :type "string"}] :element)]
     (is (= :car (-> e meta :name)))
-    (is (= [:car [true "asdf"]] (e env ["asdf"])))
+    (is (= [:car [true "asdf"]] (e env [:car "asdf"])))
     (is (= :element (-> e meta :type)))
   ))
                
@@ -158,8 +158,8 @@
                          [:maxInclusive {:value "10"}]
                          [:minInclusive {:value "0"}]]]] :element)]
     (is (= :car (-> e meta :name)))
-    (is (= [:car [true 5]] (e env ["5"])))
-    (is (= [:car [false 11]] (e env ["11"])))
+    (is (= [:car [true 5]] (e env [:car "5"])))
+    (is (= [:car [false 11]] (e env [:car "11"])))
     (is (= :element (-> e meta :type)))
     ))
 
@@ -230,7 +230,7 @@
                 ]] :element)]
     
     (is (= [:e [:a :b]] (ct env)))
-    (is (= [:e [[true [:a [true "fiv"]] [:b [true "jiv"]]]]] (ct env [[:a "fiv"][:b "jiv"]])))
+    (is (= [:e [[true [:a [true "fiv"]] [:b [true "jiv"]]]]] (ct env [:e [:a "fiv"][:b "jiv"]])))
   ))
 
 (deftest test-complexType-at-schema-level)
