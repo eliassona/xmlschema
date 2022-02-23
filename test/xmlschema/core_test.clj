@@ -241,3 +241,29 @@
   ))
 
 (deftest test-complexType-at-schema-level)
+
+
+(deftest test-attribute-name 
+  (let [a (schema-eval 
+            [:attribute {:name "code"}
+             [:simpleType
+               [:restriction {:base "string"}
+                 [:enumeration {:value "Pig"}]
+                 [:enumeration {:value "Horse"}]]]]
+            :attribute)]
+    (is (= #{"code"} (a env)))
+    (is (= [true "Pig"] (a env ["Pig"])))
+    ))
+
+(deftest test-attribute-name 
+  (let [a (schema-eval 
+            [:schema
+             [:attribute {:name "code"}
+              [:simpleType
+                [:restriction {:base "string"}
+                  [:enumeration {:value "Pig"}]
+                  [:enumeration {:value "Horse"}]]]]]
+            :schema)]
+    (is (= #{"code"} (a env)))
+    (is (= [true "Pig"] (a env ["Pig"])))
+    ))

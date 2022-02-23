@@ -330,6 +330,35 @@
         :group n#)))
     
    
+   (defn attribute [& args]
+     `(let [[arg-map# type-fn#] (normalize-args [~@args])
+            n# (:name arg-map#)
+            ref# (:ref arg-map#)
+            use# (:use arg-map#)
+            ]
+        (if (and n# ref#)
+          (throw (IllegalArgumentException. "name and ref cannot be used at the same time"))
+          (add-meta
+            (fn 
+              ([env# value#]
+                (cond
+                  n#
+                  (type-fn# env# value#)
+                  ref#
+                  (if-let [a# (env# ref#)]
+                    (if (= (-> a# meta :type) :attribute)
+                      (type-fn# env# value#)
+                      (throw (IllegalArgumentException. "ref must point to an attribute")))
+                    (throw (IllegalArgumentException. "invalid ref")))
+                  :else
+                  (throw (IllegalArgumentException. "name or ref must be set"))
+                  ))
+                
+              ([env#]
+                #{n#}
+                ))
+          :attribute n#))))
+   
    (def ast->clj-map  
      {
       :ident (fn[& chars] (read-string (apply str chars))) 
@@ -358,6 +387,7 @@
       :all all
       :complexType complexType
       :group group
+      :attribute attribute
       })
 
    (defn ast->clj [ast]
