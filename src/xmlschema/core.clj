@@ -26,24 +26,6 @@
 (defn add-meta [o k]
   (with-meta o {:type k}))
 
-(def env 
-   {"string" (with-meta 
-               (fn ([_ [value]] [true value])
-                 ([_] nil))
-               {:type :simpleType, :name "string"}) 
-    "integer" (with-meta 
-                (fn ([_ [value]]
-                (try 
-                  (let [v (Long/valueOf value)]
-                    [true v])
-                  (catch NumberFormatException e
-                    [false value])))
-                  ([_] nil)) 
-                {:type :simpleType, :name "integer"})
-    })
-
- 
-
    (defn assert-req-attrs [arg-map & keys]
      (doseq [k keys]
        (assert (contains? arg-map k) (format "argument %s is missing" k))))
@@ -156,24 +138,26 @@
                (fn [e#] (e# env#)) elements#)
              :env (set (keys env#))}))))
    
-
-
-
-   
-   
-   
-   #_(defn simple-type 
-      ([type-fn] `(add-meta (fn [env# value#] (~type-fn env# value#)) :simpleType))
-      ([arg-map type-fn] 
-        `(with-meta (fn [env# value#] (~type-fn env# value#)) {:type :simpleType, :name (:name ~arg-map)})))
    
    (defn simple-type [& args]
      `(let [[arg-map# type-fn#] (normalize-args [~@args])]
-        (with-meta 
-          (fn [env# value#] (type-fn# env# value#)) 
-          (merge {:type :simpleType} 
-                 (if (contains? arg-map# :name) 
-                   {:name (:name arg-map#)} {})))))
+        (let [n# (:name arg-map#)]
+          (with-meta
+            (condp = n# 
+              "string"
+              (fn ([env# [value#]] [true value#])
+                 ([env#] nil))
+              "integer"
+              (fn ([env# [value#]]
+                (try 
+                  (let [v# (Long/valueOf value#)]
+                    [true v#])
+                  (catch NumberFormatException e#
+                    [false value#])))
+                  ([env#] nil))
+              (fn [env# value#] (type-fn# env# value#))) 
+            (merge {:type :simpleType} 
+                   (if n# {:name n#} {}))))))
      
 
    (defn keyref [& [arg-map]] 
@@ -378,9 +362,12 @@
 
 
 (def predefs
-  [#_[:simpleType {:name "string"} 
-     [:restriction {:base ""} 
-	      ]]
+  [[:simpleType {:name "string"} 
+    [:restriction {:base ""} 
+	     ]]
+   [:simpleType {:name "integer"} 
+    [:restriction {:base ""} 
+	     ]]
    [:simpleType {:name "byte"} 
     [:restriction {:base "integer"} 
 	    [:minInclusive {:value "-128"}] 
@@ -411,9 +398,8 @@
 		   [:maxExclusive {:value "0"}]]]])
 
 (def env
-  (merge env 
-   (apply merge 
-    (map 
-      (comp (fn [f] {(-> f meta :name) f}) eval parse-predef) 
-      predefs))))
+  (apply merge 
+   (map 
+     (comp (fn [f] {(-> f meta :name) f}) eval parse-predef) 
+     predefs)))
 
