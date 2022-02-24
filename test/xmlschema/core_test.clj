@@ -274,6 +274,27 @@
     (is (= [:a {:code [true "Pig"], :base [true "hej"]} [true [:b [true "elem"]][:c [true "celem"]]]]
            (s env [:a {:code "Pig", :base "hej"} [:b "elem"][:c "celem"]])))
     ))
+
+(deftest test-attribute-name-at-schema-level 
+  (let [s (schema-eval 
+              [:schema 
+               [:element {:name "a"}
+                [:complexType
+                 [:sequence
+                  [:element {:name "b" :type "string"}]
+                  [:element {:name "c" :type "string"}]]
+                 [:attribute {:name "code"}
+                  [:simpleType
+                    [:restriction {:base "string"}
+                      [:enumeration {:value "Pig"}]
+                      [:enumeration {:value "Horse"}]]]]
+                 [:attribute {:name "base" :type "string"}]
+                ]]]
+             :schema)]
+    (is (= [:a {:code [true "Pig"], :base [true "hej"]} [true [:b [true "elem"]][:c [true "celem"]]]]
+           (s [:a {:code "Pig", :base "hej"} [:b "elem"][:c "celem"]])))
+    ))
+
 (deftest test-boolan-element
   (let [e (schema-eval [:element {:name "a" :type "boolean"}] :element)]
     (is (= [:a [true true]] (e env [:e "true"])))

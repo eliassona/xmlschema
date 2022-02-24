@@ -326,9 +326,7 @@
    (defn attrs-of [args]
      (filter (fn [v] (contains? attrs-sub-element (-> v meta :type))) args))
    
-   #_[:a {:code [true "Pig" :base [true "hej"]]} [:b [true "elem"]]] 
-   #_[:a [{:code [true "Pig"], :base [true "hej"]} [(true [:b [true "elem"]])]]]
-  
+   
    (defn complexType [& args]
      `(let [args# (normalize-args [~@args])
             arg-map# (first args#)
