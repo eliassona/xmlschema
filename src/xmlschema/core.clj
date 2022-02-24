@@ -85,24 +85,38 @@
      (if-let [t (type-fn env)]
        [n t]
        n))
-   (defn prepare-value [type-fn value]
-     (if (= (-> type-fn meta :type) :simpleType)
-       (first value)
-       value))
+   
+   
+   (defn prepare-value [type-fn value default fixed]
+     (let [st (= (-> type-fn meta :type) :simpleType)]
+       (when (and (or default fixed) (not st))
+          (throw (IllegalArgumentException. "default and fixed can only be used for simpleType")))
+       (if st
+         (let [v (first value)]
+           (cond 
+             default (if v v default)
+             fixed (if (= v fixed) v (throw (IllegalArgumentException. (format "is fixed"))))
+             :else v
+             ))
+         value)))
 
          
    
    (defn element [& args] 
      `(let [[arg-map# type-fn#] (normalize-args [~@args])
             n# (-> arg-map# :name keyword)
-            type-name# (:type arg-map#)]
+            type-name# (:type arg-map#)
+            default# (:default arg-map#)
+            fixed# (:fixed arg-map#)]
+        (when (and default# fixed#)
+          (throw (IllegalArgumentException. "default and fixed cannot be used at the same time")))
         (add-meta
           (fn ([env# [tmp# & value#]] 
              (if type-name#   
                (if-let [t# (env# type-name#)]
-                 [n# (t# env# (prepare-value t# value#))]
+                 [n# (t# env# (prepare-value t# value# default# fixed#))]
                  (throw (IllegalArgumentException. (format "Unknown type: %s" type-name#))))
-               [n# (type-fn# env# (prepare-value type-fn# value#))]))
+               [n# (type-fn# env# (prepare-value type-fn# value# default# fixed#))]))
             ([env#] (if type-name#
                       (elements-of env# n# (env# type-name#))
                       (elements-of env# n# type-fn#))))
