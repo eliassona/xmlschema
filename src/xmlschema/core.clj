@@ -511,7 +511,19 @@
 		   [:minExclusive {:value "0"}]]] 
    [:simpleType {:name "negativeInteger"} 
 	   [:restriction {:base "integer"} 
-		   [:maxExclusive {:value "0"}]]]])
+		   [:maxExclusive {:value "0"}]]]
+   [:simpleType {:name "anyURI"} 
+	   [:restriction {:base "string"}]] ;TODO
+   [:simpleType {:name "base64Binary"} 
+	   [:restriction {:base "string"}]] ;TODO
+   [:simpleType {:name "hexBinary"} 
+	   [:restriction {:base "string"}]] ;TODO
+   [:simpleType {:name "date"} 
+	   [:restriction {:base "string"}]] ;TODO
+   [:simpleType {:name "decimal"} 
+	   [:restriction {:base "string"}]];TODO 
+   
+   ])
 
 (def env
   (apply merge 

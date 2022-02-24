@@ -193,7 +193,9 @@
 (deftest schema-layout
   (is (= {:elements [:a :b]
           :env 
-          #{"string" "boolean" "negativeInteger" 
+          #{"date" "hexBinary" "decimal" 
+            "base64Binary" "anyURI" 
+            "string" "boolean" "negativeInteger" 
             "short" "unsignedByte" 
             "a" "integer" "b" 
             "nonNegativeInteger" 
