@@ -44,22 +44,22 @@
                               [:enumeration {:value "Audi"}]
                               [:enumeration {:value "BMW"}]] 
                             :simpleType-restriction)]
-    (is (= [true "BMW"] (restriction env ["BMW"])))
-    (is (= [false "BMw"] (restriction env ["BMw"])))
-    (is (= [true "Audi"] (restriction env ["Audi"])))
+    (is (= [true "BMW"] (restriction env "BMW")))
+    (is (= [false "BMw"] (restriction env "BMw")))
+    (is (= [true "Audi"] (restriction env "Audi")))
     ))
 
 (deftest ast-test-min-max
   (let [restriction (schema-eval [:restriction {:base "positiveInteger"} 
                                      [:maxInclusive {:value "10"}]] 
                             :simpleType-restriction)]
-    (is (= [true 5] (restriction env ["5"])))
+    (is (= [true 5] (restriction env "5")))
     ))
 
 (deftest test-empty-restriction
-    (is (= [true "asdf"] ((schema-eval [:restriction {:base "string"}] :simpleType-restriction) env ["asdf"])))
-    (is (= [true 10] ((schema-eval [:restriction {:base "integer"}] :simpleType-restriction) env ["10"])))
-    (is (= [false -1] ((schema-eval [:restriction {:base "positiveInteger"}] :simpleType-restriction) env ["-1"])))
+    (is (= [true "asdf"] ((schema-eval [:restriction {:base "string"}] :simpleType-restriction) env "asdf")))
+    (is (= [true 10] ((schema-eval [:restriction {:base "integer"}] :simpleType-restriction) env "10")))
+    (is (= [false -1] ((schema-eval [:restriction {:base "positiveInteger"}] :simpleType-restriction) env "-1")))
     )
     
 
@@ -70,7 +70,7 @@
                        [:restriction {:base "integer"} 
                         [:maxInclusive {:value "10"}]
                         [:minInclusive {:value "0"}]]] :simpleType)]
-    (is (= [true 5] (simpleType env ["5"])))
+    (is (= [true 5] (simpleType env "5")))
     
     ))
 (deftest test-named-simple-type
@@ -80,7 +80,7 @@
                         [:maxInclusive {:value "10"}]
                         [:minInclusive {:value "0"}]]] :simpleType)]
     
-    (is (= [true 5] (simpleType env ["5"])))
+    (is (= [true 5] (simpleType env "5")))
     
     ))
 

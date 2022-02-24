@@ -85,14 +85,17 @@
      (if-let [t (type-fn env)]
        [n t]
        n))
-
+   (defn prepare-value [type-fn value]
+     (if (= (-> type-fn meta :type) :simpleType)
+       (first value)
+       value))
 
    (defn element 
      ([arg-map type-fn]
       `(let [n# (-> ~arg-map :name keyword)]
          (with-meta 
            (fn ([env# [tmp# & value#]] 
-             [n# (~type-fn env# value#)])
+             [n# (~type-fn env# (prepare-value ~type-fn value#))])
              ([env#] (elements-of env# n# ~type-fn))) 
            {:type :element, :name n#})))
      ([arg-map]
@@ -101,7 +104,7 @@
             (with-meta 
               (fn ([env# [tmp# & value#]] 
                 (if-let [t# (env# type-name#)]
-                  [n# (t# env# value#)]
+                  [n# (t# env# (prepare-value t# value#))]
                   (throw (IllegalArgumentException. "Unknown type"))))
                 ([env#] (elements-of env# n# (env# type-name#)))) 
               {:type :element, :name n#})))))      
@@ -148,10 +151,10 @@
         (add-meta
           (condp = n# 
             "string"
-            (fn ([env# [value#]] [true value#])
+            (fn ([env# value#] [true value#])
                ([env#] nil))
             "integer"
-            (fn ([env# [value#]]
+            (fn ([env# value#]
               (try 
                 (let [v# (Long/valueOf value#)]
                   [true v#])
@@ -159,7 +162,7 @@
                   [false value#])))
                 ([env#] nil))
             "boolean"
-            (fn ([env# [value#]] 
+            (fn ([env# value#] 
                   (let [v# (read-string value#)]
                     (if (boolean? v#) [true v#] [false value#])))
                ([env#] nil))
@@ -365,7 +368,7 @@
                 (cond
                   n#
                   {key# (if value#
-                          ((if t# (env# t#) type-fn#) env# [value#])
+                          ((if t# (env# t#) type-fn#) env# value#)
                           [true nil])}
                   ref#
                   (if-let [a# (env# ref#)]
