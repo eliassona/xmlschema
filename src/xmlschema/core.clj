@@ -379,11 +379,20 @@
    
    (defn attributeGroup [& args]
      `(let [[arg-map# & type-fn#] (normalize-args [~@args])
-            n# (:name arg-map#)]
+            n# (:name arg-map#)
+            ref# (:ref arg-map#)]
+        (when (and n# ref#)
+          (throw (IllegalArgumentException. "name and ref cannot be used at the same time")))
+        (when (and ref# (not (empty? type-fn#)))
+          (throw (IllegalArgumentException. "ref and attributes cannot be used at the same time")))
         (add-meta
           (fn ([env# value#]
-            (apply merge (map (fn [f#] (f# env# value#)) type-fn#))
-            )
+            (if ref#
+              (let [rf# (env# ref#)]
+                (if (= (-> rt# meta :type) :attributeGroup)
+                  (rf# env# value#)
+                  (throw (IllegalArgumentException. "ref does not point to an attributeGroup"))))
+              (apply merge (map (fn [f#] (f# env# value#)) type-fn#))))
             ([env#]
               (set (apply concat (map (fn [f#] (f# env#)) type-fn#)))))
           :attributeGroup n#)))
