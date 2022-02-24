@@ -225,7 +225,7 @@
                                  ] :complexType)]
     
     (is (= [:a :b] (ct env)))
-    (is (= [[true [:a [true "fiv"]] [:b [true "jiv"]]]] (ct env [{} [:a "fiv"][:b "jiv"]])))
+    (is (= [[true [:a [true "fiv"]] [:b [true "jiv"]]]] (ct env [[:a "fiv"][:b "jiv"]])))
   ))
 
 (deftest test-complexType-embedded-element
@@ -252,21 +252,22 @@
                  [:enumeration {:value "Horse"}]]]]
             :attribute)]
     (is (= #{"code"} (a env)))
-    (is (= [true "Pig"] (a env [:code "Pig"])))
+    (is (= {:code [true "Pig"]} (a env {:code "Pig"})))
     ))
 
 (deftest test-attribute-name-at-schema-level 
   (let [s (schema-eval 
-             [:schema
               [:element {:name "a"}
                [:complexType
+                [:sequence
+                 [:element {:name "b" :type "string"}]]
                 [:attribute {:name "code"}
                  [:simpleType
                    [:restriction {:base "string"}
                      [:enumeration {:value "Pig"}]
-                     [:enumeration {:value "Horse"}]]]]]
-               ]
-              ]
-             :schema)]
-    (is (= [true "Pig"] (s env [:a {:code "Pig"}])))
+                     [:enumeration {:value "Horse"}]]]]
+                [:attribute {:name "base" :type "string"}]
+               ]]
+             :element)]
+    #_(is (= [:a {:code [true "Pig"]} [true "Pig"]] (s env [:a {:code "Pig", :base "hej"} [:b "elem"]])))
     ))

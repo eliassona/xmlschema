@@ -313,8 +313,8 @@
             (if (map? (first value#))
               (let [e# (rest value#)
                     a# (first value#)]
-                (dbg a#)
-                (if (empty? e#) [] [(sub-elem# env# (rest value#))]))
+                  [(apply merge (map (fn [attr#] (attr# env# a#)) attrs#))
+                  (if (empty? e#) [] [(sub-elem# env# (rest value#))])])
               [(sub-elem# env# value#)]))
           ([env#]
             (if sub-elem#
@@ -338,6 +338,7 @@
    (defn attribute [& args]
      `(let [[arg-map# type-fn#] (normalize-args [~@args])
             n# (:name arg-map#)
+            t# (:type arg-map#)
             ref# (:ref arg-map#)
             use# (:use arg-map#)
             ]
@@ -346,11 +347,11 @@
           (add-meta
             (fn 
               ([env# value#]
-                (let [key# (first value#)
-                      value# (rest value#)]
+                (let [key# (keyword n#)
+                      value# (value# key#)]
                 (cond
                   n#
-                  (type-fn# env# value#)
+                  {key# ((if t# (env# t#) type-fn#) env# [value#])} ;TODO
                   ref#
                   (if-let [a# (env# ref#)]
                     (if (= (-> a# meta :type) :attribute)
