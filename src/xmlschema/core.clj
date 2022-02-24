@@ -158,6 +158,11 @@
                 (catch NumberFormatException e#
                   [false value#])))
                 ([env#] nil))
+            "boolean"
+            (fn ([env# [value#]] 
+                  (let [v# (read-string value#)]
+                    (if (boolean? v#) [true v#] [false value#])))
+               ([env#] nil))
             (fn [env# value#] (type-fn# env# value#))) 
           :simpleType n#)))
      
@@ -451,6 +456,9 @@
     [:restriction {:base ""} 
 	     ]]
    [:simpleType {:name "integer"} 
+    [:restriction {:base ""} 
+	     ]]
+   [:simpleType {:name "boolean"} 
     [:restriction {:base ""} 
 	     ]]
    [:simpleType {:name "byte"} 

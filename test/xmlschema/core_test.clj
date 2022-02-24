@@ -193,7 +193,7 @@
 (deftest schema-layout
   (is (= {:elements [:a :b]
           :env 
-          #{"string" "negativeInteger" 
+          #{"string" "boolean" "negativeInteger" 
             "short" "unsignedByte" 
             "a" "integer" "b" 
             "nonNegativeInteger" 
@@ -272,3 +272,10 @@
              :element)]
     #_(is (= [:a {:code [true "Pig"]} [true "Pig"]] (s env [:a {:code "Pig", :base "hej"} [:b "elem"]])))
     ))
+(deftest test-boolan-element
+  (let [e (schema-eval [:element {:name "a" :type "boolean"}] :element)]
+    (is (= [:a [true true]] (e env [:e "true"])))
+    (is (= [:a [false "hej"]] (e env [:e "hej"])))))
+    
+    
+    
