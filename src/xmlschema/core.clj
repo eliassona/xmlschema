@@ -95,12 +95,15 @@
          (let [v (first value)]
            (cond 
              default (if v v default)
-             fixed (if (= v fixed) v (throw (IllegalArgumentException. (format "is fixed"))))
+             fixed (if (= v fixed) v (throw (IllegalArgumentException. (format "is fixed")))) ;TODO better error text
              :else v
              ))
          value)))
 
-         
+   (defn massage-return-value [name type-fn value]
+     (if (= (-> type-fn meta :type) :complexType)
+       `[~name ~@value] 
+        [name value]))
    
    (defn element [& args] 
      `(let [[arg-map# type-fn#] (normalize-args [~@args])
@@ -114,9 +117,9 @@
           (fn ([env# [tmp# & value#]] 
              (if type-name#   
                (if-let [t# (env# type-name#)]
-                 [n# (t# env# (prepare-value t# value# default# fixed#))]
+                 (massage-return-value n# t# (t# env# (prepare-value t# value# default# fixed#)))
                  (throw (IllegalArgumentException. (format "Unknown type: %s" type-name#))))
-               [n# (type-fn# env# (prepare-value type-fn# value# default# fixed#))]))
+               (massage-return-value n# type-fn# (type-fn# env# (prepare-value type-fn# value# default# fixed#)))))
             ([env#] (if type-name#
                       (elements-of env# n# (env# type-name#))
                       (elements-of env# n# type-fn#))))
@@ -323,22 +326,29 @@
    (defn attrs-of [args]
      (filter (fn [v] (contains? attrs-sub-element (-> v meta :type))) args))
    
+   #_[:a {:code [true "Pig" :base [true "hej"]]} [:b [true "elem"]]] 
+   #_[:a [{:code [true "Pig"], :base [true "hej"]} [(true [:b [true "elem"]])]]]
+  
    (defn complexType [& args]
      `(let [args# (normalize-args [~@args])
+            arg-map# (first args#)
+            n# (:name arg-map#)
             sub-elem# (sub-element-of (rest args#))
             attrs# (attrs-of args#)]
-        (fn
-          ([env# value#]
-            (if (map? (first value#))
-              (let [e# (rest value#)
-                    a# (first value#)]
-                  [(apply merge (map (fn [attr#] (attr# env# a#)) attrs#))
-                  (if (empty? e#) [] [(sub-elem# env# (rest value#))])])
-              [(sub-elem# env# value#)]))
-          ([env#]
-            (if sub-elem#
-              (sub-elem# env#)
-              []))))
+        (add-meta 
+          (fn
+            ([env# value#]
+              (if (map? (first value#))
+                (let [e# (rest value#)
+                      a# (first value#)]
+                    [(apply merge (map (fn [attr#] (attr# env# a#)) attrs#))
+                    (if (empty? e#) [] (sub-elem# env# (rest value#)))])
+                [(sub-elem# env# value#)]))
+            ([env#]
+              (if sub-elem#
+                (sub-elem# env#)
+                [])))
+          :complexType n#))
      )
    
    (defn group [& args]

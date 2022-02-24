@@ -237,7 +237,7 @@
                 ]] :element)]
     
     (is (= [:e [:a :b]] (ct env)))
-    (is (= [:e [[true [:a [true "fiv"]] [:b [true "jiv"]]]]] (ct env [:e [:a "fiv"][:b "jiv"]])))
+    (is (= [:e [true [:a [true "fiv"]] [:b [true "jiv"]]]] (ct env [:e [:a "fiv"][:b "jiv"]])))
   ))
 
 (deftest test-complexType-at-schema-level)
@@ -256,12 +256,13 @@
     (is (= {:code [true nil]} (a env {})))
     ))
 
-(deftest test-attribute-name-at-schema-level 
+(deftest test-attribute-name-at-element-level 
   (let [s (schema-eval 
               [:element {:name "a"}
                [:complexType
                 [:sequence
-                 [:element {:name "b" :type "string"}]]
+                 [:element {:name "b" :type "string"}]
+                 [:element {:name "c" :type "string"}]]
                 [:attribute {:name "code"}
                  [:simpleType
                    [:restriction {:base "string"}
@@ -270,7 +271,8 @@
                 [:attribute {:name "base" :type "string"}]
                ]]
              :element)]
-    #_(is (= [:a {:code [true "Pig"]} [true "Pig"]] (s env [:a {:code "Pig", :base "hej"} [:b "elem"]])))
+    (is (= [:a {:code [true "Pig"], :base [true "hej"]} [true [:b [true "elem"]][:c [true "celem"]]]]
+           (s env [:a {:code "Pig", :base "hej"} [:b "elem"][:c "celem"]])))
     ))
 (deftest test-boolan-element
   (let [e (schema-eval [:element {:name "a" :type "boolean"}] :element)]
