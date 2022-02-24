@@ -90,26 +90,24 @@
        (first value)
        value))
 
-   (defn element 
-     ([arg-map type-fn]
-      `(let [n# (-> ~arg-map :name keyword)]
-         (with-meta 
-           (fn ([env# [tmp# & value#]] 
-             [n# (~type-fn env# (prepare-value ~type-fn value#))])
-             ([env#] (elements-of env# n# ~type-fn))) 
-           {:type :element, :name n#})))
-     ([arg-map]
-       `(let [n# (-> ~arg-map :name keyword)]
-          (if-let [type-name# (:type ~arg-map)]
-            (with-meta 
-              (fn ([env# [tmp# & value#]] 
-                (if-let [t# (env# type-name#)]
-                  [n# (t# env# (prepare-value t# value#))]
-                  (throw (IllegalArgumentException. "Unknown type"))))
-                ([env#] (elements-of env# n# (env# type-name#)))) 
-              {:type :element, :name n#})))))      
+         
    
-   
+   (defn element [& args] 
+     `(let [[arg-map# type-fn#] (normalize-args [~@args])
+            n# (-> arg-map# :name keyword)
+            type-name# (:type arg-map#)]
+        (add-meta
+          (fn ([env# [tmp# & value#]] 
+             (if type-name#   
+               (if-let [t# (env# type-name#)]
+                 [n# (t# env# (prepare-value t# value#))]
+                 (throw (IllegalArgumentException. (format "Unknown type: %s" type-name#))))
+               [n# (type-fn# env# (prepare-value type-fn# value#))]))
+            ([env#] (if type-name#
+                      (elements-of env# n# (env# type-name#))
+                      (elements-of env# n# type-fn#))))
+          :element n#)))
+
    
    
    
