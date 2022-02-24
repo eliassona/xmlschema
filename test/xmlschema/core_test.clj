@@ -253,6 +253,7 @@
             :attribute)]
     (is (= #{"code"} (a env)))
     (is (= {:code [true "Pig"]} (a env {:code "Pig"})))
+    (is (= {:code [true nil]} (a env {})))
     ))
 
 (deftest test-attribute-name-at-schema-level 

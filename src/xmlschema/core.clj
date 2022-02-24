@@ -290,19 +290,18 @@
           :all)))
      
    
- #_  (annotation?,(simpleContent|complexContent|((group|all|
-	 choice|sequence)?,((attribute|attributeGroup)*,anyAttribute?))))
    
    (def complex-type-sub-element #{:simpleContent 
                                    :complexContent 
                                    :group :all 
                                    :choice :sequence}) 
- 
+   (def attrs-sub-element #{:attribute :attributeGroup})
+   
    (defn sub-element-of [args]
      (first (filter (fn [e] (contains? complex-type-sub-element (-> e meta :type))) args)))
    
    (defn attrs-of [args]
-     (filter (fn [v] (= (-> v meta :type) :attribute)) args))
+     (filter (fn [v] (contains? attrs-sub-element (-> v meta :type))) args))
    
    (defn complexType [& args]
      `(let [args# (normalize-args [~@args])
@@ -349,23 +348,40 @@
               ([env# value#]
                 (let [key# (keyword n#)
                       value# (value# key#)]
-                (cond
-                  n#
-                  {key# ((if t# (env# t#) type-fn#) env# [value#])} ;TODO
-                  ref#
-                  (if-let [a# (env# ref#)]
-                    (if (= (-> a# meta :type) :attribute)
-                      (type-fn# env# value#)
-                      (throw (IllegalArgumentException. "ref must point to an attribute")))
-                    (throw (IllegalArgumentException. "invalid ref")))
-                  :else
-                  (throw (IllegalArgumentException. "name or ref must be set"))
-                  )))
+                  (when (and (not value#) (= use# "required"))
+                    (throw (IllegalArgumentException. (format "required attribute %s is missing" key#))))
+                  (when (and value# (= use# "prohibited"))
+                    (throw (IllegalArgumentException. (format "attribute %s is not allowed" key#))))
+                  (cond
+                    n#
+                    {key# (if value#
+                            ((if t# (env# t#) type-fn#) env# [value#])
+                            [true nil])}
+                    ref#
+                    (if-let [a# (env# ref#)]
+                      (if (= (-> a# meta :type) :attribute)
+                        (type-fn# env# value#)
+                        (throw (IllegalArgumentException. "ref must point to an attribute")))
+                      (throw (IllegalArgumentException. "invalid ref")))
+                    :else
+                    (throw (IllegalArgumentException. "name or ref must be set"))
+                    )))
                 
               ([env#]
                 #{n#}
                 ))
           :attribute n#))))
+   
+   (defn attributeGroup [& args]
+     `(let [[arg-map# & type-fn#] (normalize-args [~@args])
+            n# (:name arg-map#)]
+        (add-meta
+          (fn ([env# value#]
+            (apply merge (map (fn [f#] (f# env# value#)) type-fn#))
+            )
+            ([env#]
+              (set (apply concat (map (fn [f#] (f# env#)) type-fn#)))))
+          :attributeGroup n#)))
    
    (def ast->clj-map  
      {
@@ -396,6 +412,7 @@
       :complexType complexType
       :group group
       :attribute attribute
+      :attributeGroup attributeGroup
       })
 
    (defn ast->clj [ast]
