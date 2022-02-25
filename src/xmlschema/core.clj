@@ -149,15 +149,16 @@
             elements# (filter (fn [e#] (= (:type (meta e#)) :element)) root-objects#)
             elem-map# (apply merge (map (fn [e#] {(-> e# meta :name) e#}) elements#))
             env# (merge ~'env (apply merge (map (fn [e#] {(name-of e#) e#}) (only-named-objects root-objects#))))
+            env-key-set# (set (keys env#))
             ]
-        (fn 
-          ([xml#]
-            ((elem-map# (first xml#)) env# xml#))
-          ([]
-            {:elements 
-             (map
-               (fn [e#] (e# env#)) elements#)
-             :env (set (keys env#))}))))
+          (fn 
+            ([xml#]
+              ((elem-map# (first xml#)) env# xml#))
+            ([]
+              {:elements 
+               (map
+                 (fn [e#] (e# env#)) elements#)
+               :env env-key-set#}))))
    
    
    (defn simple-type [& args]
@@ -196,8 +197,10 @@
    (defn selector [& [arg-map]] 
      (assert-req-attrs arg-map :xpath))
    
-   (defn include [& [_ arg-map]] 
-     (assert-req-attrs arg-map :schemaLocation))
+   (defn include [arg-map & args] 
+     (assert-req-attrs arg-map :schemaLocation)
+     (vals arg-map))
+   
 
    (defn xml-schema-list [& args]
      (let [[arg-map] args]
@@ -462,9 +465,36 @@
        ast->clj-map 
        ast))
 
+
+   
+(defn slurp-file [url]
+  (slurp (clojure.java.io/resource url))
+  )
+   
+(declare schema-eval)
+
+(defn filter-includes [elements]
+  (filter (fn [[e]] (not= e :include)) elements)) 
+
+(defn expand-includes ([hiccup]
+  (let [elements (rest hiccup)
+        includes (flatten (map ast->clj (filter (fn [i] (= (first i) :include))  elements)))
+        elements (filter-includes elements)]
+    (if (empty? includes)
+      []
+      (let [hiccups (map (comp hiccup-of slurp-file) includes)
+            child-hiccups (map expand-includes hiccups)]
+            (concat (mapcat rest hiccups) child-hiccups)))))
+  ([hiccup start]
+    (if (= start :schema)
+      (vec (cons :schema (filter-includes (apply conj (rest hiccup) (filter #(not (empty? %)) (expand-includes hiccup))))))
+      hiccup)))
+        
+   
+
 (defn schema->clj [hiccup start]
   (let [p (fn [text] (parser text :start start))]
-    (-> hiccup pr-str p ast->clj)))
+    (-> hiccup (expand-includes start) pr-str p ast->clj)))
 
 (defn schema-eval [hiccup start]
   (eval (schema->clj hiccup start)))

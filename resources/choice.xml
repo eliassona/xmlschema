@@ -4,22 +4,22 @@
     <choice>
       <element name="employee" type="employee"/>
       <element name="member" type="member"/>
-	  <xs:any minOccurs="0"/>
+	  <any minOccurs="0"/>
 	  <sequence>									<!-- ignored during compile-->
-	    <xs:element name="customer" type="xs:string"/>
-	    <xs:element name="orderdetails" type="xs:string"/>
-	    <xs:element name="billto" type="xs:string"/>
-	    <xs:element name="shipto" type="xs:string"/>
+	    <element name="customer" type="string"/>
+	    <element name="orderdetails" type="string"/>
+	    <element name="billto" type="string"/>
+	    <element name="shipto" type="string"/>
 	  </sequence>
       <group>										<!-- ignored during compile-->
-		  <xs:sequence>
-		    <xs:element name="a" type="xs:string"/>
-		    <xs:element name="b" type="xs:string"/>
-		  </xs:sequence>
+		  <sequence>
+		    <element name="a" type="string"/>
+		    <element name="b" type="string"/>
+		  </sequence>
       </group>
       <choice>
-	    <xs:element name="c" type="xs:string"/>
-	    <xs:element name="d" type="xs:string"/>
+	    <element name="c" type="string"/>
+	    <element name="d" type="string"/>
       </choice>
       </choice>
   </complexType>
