@@ -302,5 +302,10 @@
     (is (= [:a [true true]] (e env [:e "true"])))
     (is (= [:a [false "hej"]] (e env [:e "hej"])))))
     
-    
+(deftest test-include
+  (let [s (schema-eval [:schema [:include {:schemaLocation "typed_elements.xml"}]
+                      [:element {:type "string", :name "a"}]
+                      ] :schema)]
+    (is (= [:a [true "hej"]] (s [:a "hej"])))
+  ))
     

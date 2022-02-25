@@ -1,4 +1,5 @@
 <schema>
+<!--  <include schemaLocation="choice.xml"/>  -->
 <element name="employee" type="string"/>
 <element name="student" type="string"/>
 <element name="member" type="string"/>
