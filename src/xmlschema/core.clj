@@ -155,6 +155,10 @@
         t)))
 
    
+   (defn ns-of [arg-map]
+     (when-let [xmlns (first (filter #(.startsWith % "xmlns:") (map name (keys arg-map))))]
+       (ast->clj (parser xmlns :start :xmlns))))
+   
    (defn schema [& elements]
      `(let [[arg-map# & root-objects#] (normalize-args [~@elements])
             elements# (filter (fn [e#] (= (:type (meta e#)) :element)) root-objects#)
@@ -162,14 +166,15 @@
             env# (merge ~'env (apply merge (map (fn [e#] {(name-of e#) e#}) (only-named-objects root-objects#))))
             env-key-set# (set (keys env#))
             ]
-          (fn 
-            ([xml#]
-              ((elem-map# (first xml#)) env# xml#))
-            ([]
-              {:elements 
-               (map
-                 (fn [e#] (e# env#)) elements#)
-               :env env-key-set#}))))
+          (with-meta 
+            (fn 
+              ([xml#]
+                ((elem-map# (first xml#)) env# xml#))
+              ([]
+                {:elements 
+                 (map
+                   (fn [e#] (e# env#)) elements#)
+                 :env env-key-set#})) {:xmlns (ns-of arg-map#)})))
    
    
    (defn simple-type [& args]
@@ -479,7 +484,7 @@
            []
            :import 
          )
-      )
+      ))
    
    (def ast->clj-map  
      {
@@ -516,6 +521,7 @@
       :union union
       :type xs-type
       :import schema-import 
+      :xmlns (fn [ns] ns)
       })
 
    (defn ast->clj [ast]
