@@ -471,8 +471,15 @@
    
            
     (defn schema-import [& args]
-      args
-      args)
+      `(let [[arg-map# & type-fn#] ~args
+             
+             ;ix (.indexOf 
+                  ]
+         (add-meta
+           []
+           :import 
+         )
+      )
    
    (def ast->clj-map  
      {
