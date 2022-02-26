@@ -148,8 +148,15 @@
    (defn only-named-objects [root-objects]
      (filter (fn [o] (contains? named-root-objects (-> o meta :type))) root-objects))
    
+   (defn ns-key-of [t]
+    (let [ix (.indexOf t ":")]
+      (if (> ix 0)
+        (.substring t 0 (inc ix))
+        t)))
+
+   
    (defn schema [& elements]
-     `(let [root-objects# [~@elements]
+     `(let [[arg-map# & root-objects#] (normalize-args [~@elements])
             elements# (filter (fn [e#] (= (:type (meta e#)) :element)) root-objects#)
             elem-map# (apply merge (map (fn [e#] {(-> e# meta :name) e#}) elements#))
             env# (merge ~'env (apply merge (map (fn [e#] {(name-of e#) e#}) (only-named-objects root-objects#))))
@@ -462,6 +469,11 @@
      ([t] t)
      ([ns t] (str ns ":" t)))
    
+           
+    (defn schema-import [& args]
+      args
+      args)
+   
    (def ast->clj-map  
      {
       :ident (fn[& chars] (read-string (apply str chars))) 
@@ -496,6 +508,7 @@
       :memberTypes (fn [& args] (vec args))
       :union union
       :type xs-type
+      :import schema-import 
       })
 
    (defn ast->clj [ast]
