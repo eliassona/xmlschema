@@ -428,6 +428,9 @@
               (set (apply concat (map (fn [f#] (f# env#)) type-fn#)))))
           :attributeGroup n#)))
    
+   
+   (declare ast->clj)
+   
    (defn memberTypes-of [mt]
      (if mt
        (vec (ast->clj (parser mt :start :memberTypes)))
