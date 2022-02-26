@@ -88,3 +88,4 @@ ns-ident = ident? ident
 qName = (letter { letter | decimalDigit | "_" })*
 ident = ':' (letter { letter | decimalDigit | "_" })*
 <xs> = (<'xs:'>)?
+type = (xs qName) / ((qName <':'>)? qName)

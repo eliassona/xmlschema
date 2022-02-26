@@ -455,6 +455,10 @@
           (union-or-of (map #(% env# value#) (concat (map env# memberTypes#) type-fn#))))
     ))
    
+   (defn xs-type 
+     ([t] t)
+     ([ns t] (str ns ":" t)))
+   
    (def ast->clj-map  
      {
       :ident (fn[& chars] (read-string (apply str chars))) 
@@ -488,6 +492,7 @@
       :qName (fn[& chars] (apply str chars))
       :memberTypes (fn [& args] (vec args))
       :union union
+      :type xs-type
       })
 
    (defn ast->clj [ast]
