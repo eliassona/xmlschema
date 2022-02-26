@@ -529,17 +529,17 @@
 
 (defn expand-includes ([hiccup]
   (let [elements (rest hiccup)
-        includes (flatten (map ast->clj (filter (fn [i] (= (first i) :include))  elements)))
-        elements (filter-includes elements)]
+        includes (flatten (map ast->clj (filter (fn [i] (= (first i) :include))  elements)))]
     (if (empty? includes)
       []
       (let [hiccups (map (comp hiccup-of slurp-file) includes)
-            child-hiccups (map expand-includes hiccups)]
+            child-hiccups (map (comp expand-includes #(rest (normalize-args %))) hiccups)]
             (concat (mapcat rest hiccups) child-hiccups)))))
   ([hiccup start]
-    (if (= start :schema)
-      (vec (cons :schema (filter-includes (apply conj (rest hiccup) (filter #(not (empty? %)) (expand-includes hiccup))))))
-      hiccup)))
+    (let [[arg-map & elements] (normalize-args (rest hiccup))]
+      (if (= start :schema)
+        (vec (cons :schema (cons arg-map (filter-includes (apply conj elements (filter #(not (empty? %)) (expand-includes hiccup)))))))
+        hiccup))))
         
    
 
