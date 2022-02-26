@@ -32,7 +32,8 @@ simpleContent = eb <'simpleContent'> attrs-with-sp (annotation?,(extension | sim
 extension = eb <'extension'> attrs-with-sp (annotation?,((group|all|choice|sequence)?, ((attribute|attributeGroup)*,anyAttribute?))) ee 
 all = eb <'all'> attrs-with-sp annotation? element* ee
 sequence = eb <'sequence'> attrs-with-sp annotation?,(element|group|choice|sequence|any)* ee
-union = eb <'union'> attrs-with-sp (annotation?,(simpleType*)) ee 	   
+union = eb <'union'> attrs-with-sp (annotation?,(simpleType*)) ee
+memberTypes = qName (space qName)* 	   
 list = eb <'list'> attrs-with-sp  (annotation?,(simpleType?)) ee 	   
 simpleType-restriction = eb <'restriction'> attrs-with-sp 
                          (annotation?,(simpleType?,(minExclusive|minInclusive|
@@ -84,4 +85,5 @@ octalDigit   = #'[0-7]'
 hexDigit     = #'[0-9a-fA-F]'
 string-literal = <'\"'> (letter | decimalDigit | #'[-_ /.:@\[\]]')* <'\"'>
 ns-ident = ident? ident
+qName = (letter { letter | decimalDigit | "_" })*
 ident = ':' (letter { letter | decimalDigit | "_" })*

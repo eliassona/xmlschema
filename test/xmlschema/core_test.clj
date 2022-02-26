@@ -308,4 +308,15 @@
                       ] :schema)]
     (is (= [:a [true "hej"]] (s [:a "hej"])))
   ))
+
+(deftest test-positiveInteger
+  (let [e (schema-eval [:element {:name "a" :type "positiveInteger"}] :element)]
+    (is (= [:a [true 1]] (e env [:a "1"])))
+  ))
+
+(deftest test-union
+  (let [u (schema-eval [:union {:memberTypes "positiveInteger string"}] :union)]
+    (is (= [true 1] (u env "1")))
+    (is (= [true "-1"] (u env "-1")))
+    ))
     

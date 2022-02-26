@@ -428,6 +428,30 @@
               (set (apply concat (map (fn [f#] (f# env#)) type-fn#)))))
           :attributeGroup n#)))
    
+   (defn memberTypes-of [mt]
+     (if mt
+       (vec (ast->clj (parser mt :start :memberTypes)))
+       []))
+   
+   (defn union-or-of [results]
+     (if (empty? results) 
+       [false nil]
+       (loop [r results]
+         (if (empty? r)
+           (first results)
+           (let [e (first r)]
+             (if (first e)
+               e
+               (recur (rest results))))))))
+              
+   
+   (defn union [& args]
+     `(let [[arg-map# & type-fn#] (normalize-args [~@args])
+            memberTypes# (memberTypes-of (:memberTypes arg-map#))]
+        (fn [env# value#]
+          (union-or-of (map #(% env# value#) (concat (map env# memberTypes#) type-fn#))))
+    ))
+   
    (def ast->clj-map  
      {
       :ident (fn[& chars] (read-string (apply str chars))) 
@@ -458,6 +482,9 @@
       :group group
       :attribute attribute
       :attributeGroup attributeGroup
+      :qName (fn[& chars] (apply str chars))
+      :memberTypes (fn [& args] (vec args))
+      :union union
       })
 
    (defn ast->clj [ast]
