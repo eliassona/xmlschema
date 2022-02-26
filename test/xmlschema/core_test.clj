@@ -67,7 +67,7 @@
 (deftest test-simple-type
   (let [simpleType 
         (schema-eval [:simpleType 
-                       [:restriction {:base "integer"} 
+                       [:restriction {:base "xs:integer"} 
                         [:maxInclusive {:value "10"}]
                         [:minInclusive {:value "0"}]]] :simpleType)]
     (is (= [true 5] (simpleType env "5")))
@@ -75,7 +75,7 @@
     ))
 (deftest test-named-simple-type
   (let [simpleType 
-        (schema-eval [:simpleType {:name "car"} 
+        (schema-eval [:xs:simpleType {:name "car"} 
                        [:restriction {:base "integer"} 
                         [:maxInclusive {:value "10"}]
                         [:minInclusive {:value "0"}]]] :simpleType)]
@@ -113,7 +113,7 @@
   (let [type-fn
         (schema-eval [:choice {} 
                       [:element {:name "hej" :type "string"}]
-                      [:element {:name "satoshi" :type "string"}]
+                      [:element {:name "satoshi" :type "xs:string"}]
                       ] :choice)]
     (is (= [true [:hej [true "asdf"]]] (type-fn env [[:hej "asdf"]])))
     (is (= [false [:hej [true "asdf"]][:hej [true "fsda"]]] 
@@ -298,7 +298,7 @@
     ))
 
 (deftest test-boolan-element
-  (let [e (schema-eval [:element {:name "a" :type "boolean"}] :element)]
+  (let [e (schema-eval [:element {:name "a" :type "xs:boolean"}] :element)]
     (is (= [:a [true true]] (e env [:e "true"])))
     (is (= [:a [false "hej"]] (e env [:e "hej"])))))
     
@@ -315,7 +315,7 @@
   ))
 
 (deftest test-union
-  (let [u (schema-eval [:union {:memberTypes "positiveInteger string"}] :union)]
+  (let [u (schema-eval [:union {:memberTypes "xs:positiveInteger string"}] :union)]
     (is (= [true 1] (u env "1")))
     (is (= [true "-1"] (u env "-1")))
     ))

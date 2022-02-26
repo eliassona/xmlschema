@@ -47,7 +47,7 @@
            base-value (gensym)
            logic-expr (if (empty? conditions) :empty (-> conditions first meta :type))]
      `(fn [~env ~value]
-        (if-let [[~base-result ~base-value] ((~env ~(arg-map :base)) ~env ~value)]
+        (if-let [[~base-result ~base-value] ((~env ~(type-name-of (arg-map :base))) ~env ~value)]
          [(and ~base-result
              ~(condp = logic-expr
                 :empty true
@@ -56,7 +56,11 @@
                 )) ~base-value] 
          (throw (IllegalArgumentException. "Unknown base"))))))
 
+   (declare ast->clj)
 
+   (defn type-name-of [t]
+     (ast->clj (parser t :start :type)))
+   
    (defn enumeration [arg-map]
      (with-meta `(fn [env# value#]
                   (when-let [exp-value# (:value ~arg-map)]
@@ -116,7 +120,7 @@
         (add-meta
           (fn ([env# [tmp# & value#]] 
              (if type-name#   
-               (if-let [t# (env# type-name#)]
+               (if-let [t# (env# (type-name-of type-name#))]
                  (massage-return-value n# t# (t# env# (prepare-value t# value# default# fixed#)))
                  (throw (IllegalArgumentException. (format "Unknown type: %s" type-name#))))
                (massage-return-value n# type-fn# (type-fn# env# (prepare-value type-fn# value# default# fixed#)))))
@@ -429,7 +433,6 @@
           :attributeGroup n#)))
    
    
-   (declare ast->clj)
    
    (defn memberTypes-of [mt]
      (if mt

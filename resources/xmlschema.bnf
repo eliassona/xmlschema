@@ -33,7 +33,7 @@ extension = eb xs <'extension'> attrs-with-sp (annotation?,((group|all|choice|se
 all = eb xs <'all'> attrs-with-sp annotation? element* ee
 sequence = eb xs <'sequence'> attrs-with-sp annotation?,(element|group|choice|sequence|any)* ee
 union = eb xs <'union'> attrs-with-sp (annotation?,(simpleType*)) ee
-memberTypes = qName (space qName)* 	   
+memberTypes = type (space type)* 	   
 list = eb xs <'list'> attrs-with-sp  (annotation?,(simpleType?)) ee 	   
 simpleType-restriction = eb xs <'restriction'> attrs-with-sp 
                          (annotation?,(simpleType?,(minExclusive|minInclusive|
