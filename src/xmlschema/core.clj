@@ -165,11 +165,15 @@
             elem-map# (apply merge (map (fn [e#] {(-> e# meta :name) e#}) elements#))
             env# (merge ~'env (apply merge (map (fn [e#] {(name-of e#) e#}) (only-named-objects root-objects#))))
             env-key-set# (set (keys env#))
+            imports# (filter #(= (-> % meta :type) :import) root-objects#)
+            import-map# (apply merge (map (fn [i#] {(-> i# meta :name) i#}) imports#))
             ]
           (with-meta 
             (fn 
               ([xml#]
-                ((elem-map# (first xml#)) env# xml#))
+                (if (string? xml#)
+                  (do)
+                  ((elem-map# (first xml#)) env# xml#)))
               ([]
                 {:elements 
                  (map
@@ -550,7 +554,7 @@
       []
       (let [hiccups (map (comp (fn [[_ _ e]] e) hiccup-of slurp-file) includes)
             child-hiccups (map expand-includes hiccups)]
-            hiccups))))
+            hiccups)))) ;TODO recursive includes
   ([hiccup start]
     (let [[_ arg-map & elements] hiccup]
       (if (= start :schema)
