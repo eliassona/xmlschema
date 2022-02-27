@@ -303,10 +303,10 @@
     (is (= [:a [false "hej"]] (e env [:e "hej"])))))
     
 (deftest test-include
-  #_(let [s (schema-eval [:schema {:xmlns:lib "myfile"} [:include {:schemaLocation "typed_elements.xml"}]
-                       [:element {:type "string", :name "a"}]
-                       ] :schema)]
-     (is (= [:a [true "hej"]] (s [:a "hej"])))
+  (let [s (schema-eval [:schema {:xmlns:lib "myfile"} [:include {:schemaLocation "typed_elements.xml"}]
+                      [:element {:type "string", :name "a"}]
+                      ] :schema)]
+    (is (= [:a [true "hej"]] (s [:a "hej"])))
   ))
 
 (deftest test-positiveInteger
