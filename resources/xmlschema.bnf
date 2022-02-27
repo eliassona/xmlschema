@@ -3,21 +3,21 @@
   https://www.w3schools.com/xml/schema_elements_ref.asp
 *)
 
-schema = eb xs <'schema'> attrs-with-sp 
+schema = eb xs <'schema'> req-attrs-with-sp 
 		 ((include|import|redefine|annotation)*,(((simpleType|complexType|
 		 group|attributeGroup)|element|attribute|notation),annotation*)*)
 		 ee
-include = eb xs <'include'> attrs-with-sp annotation? ee  
-import = eb xs <'import'> attrs-with-sp annotation? ee 
-redefine = eb xs <'redefine'> attrs-with-sp (annotation?|(simpleType|complexType|group|attributeGroup))* ee 	   
-notation = eb xs <'notation'> attrs-with-sp annotation? ee 	   
+include = eb xs <'include'> req-attrs-with-sp annotation? ee  
+import = eb xs <'import'> req-attrs-with-sp annotation? ee 
+redefine = eb xs <'redefine'> req-attrs-with-sp (annotation?|(simpleType|complexType|group|attributeGroup))* ee 	   
+notation = eb xs <'notation'> req-attrs-with-sp annotation? ee 	   
 choice = eb xs <'choice'> attrs-with-sp (annotation?,(element|group|choice|sequence|any)*) ee
 element = eb xs <'element'> attrs-with-sp annotation?,(simpleType|complexType)?,(unique|key|keyref)* ee 
-unique = eb xs <'unique'> attrs-with-sp (annotation?,(selector,field+)) ee 
-key = eb xs <'key'> attrs-with-sp (annotation?,(selector,field+)) ee
-selector = eb xs <'selector'> attrs-with-sp annotation? ee
-field = eb xs <'field'> attrs-with-sp annotation? ee
-keyref = eb xs <'keyref'> attrs-with-sp (annotation?,(selector,field+)) ee 
+unique = eb xs <'unique'> req-attrs-with-sp (annotation?,(selector,field+)) ee 
+key = eb xs <'key'> req-attrs-with-sp (annotation?,(selector,field+)) ee
+selector = eb xs <'selector'> req-attrs-with-sp annotation? ee
+field = eb xs <'field'> req-attrs-with-sp annotation? ee
+keyref = eb xs <'keyref'> req-attrs-with-sp (annotation?,(selector,field+)) ee 
 complexType = eb xs <'complexType'> attrs-with-sp 
 	(annotation?,(simpleContent|complexContent|((group|all|
 	 choice|sequence)?,((attribute|attributeGroup)*,anyAttribute?))))
@@ -29,24 +29,24 @@ anyAttribute = eb xs <'anyAttribute'> attrs-with-sp annotation? ee
 attributeGroup = eb xs <'attributeGroup'> attrs-with-sp annotation? (attribute|attributeGroup)* anyAttribute? ee
 complexContent = eb xs <'complexContent'> attrs-with-sp (annotation?,(complexContent-restriction|extension)) ee
 simpleContent = eb xs <'simpleContent'> attrs-with-sp (annotation?,(extension | simpleType-restriction)) ee
-extension = eb xs <'extension'> attrs-with-sp (annotation?,((group|all|choice|sequence)?, ((attribute|attributeGroup)*,anyAttribute?))) ee 
+extension = eb xs <'extension'> req-attrs-with-sp (annotation?,((group|all|choice|sequence)?, ((attribute|attributeGroup)*,anyAttribute?))) ee 
 all = eb xs <'all'> attrs-with-sp annotation? element* ee
 sequence = eb xs <'sequence'> attrs-with-sp annotation?,(element|group|choice|sequence|any)* ee
 union = eb xs <'union'> attrs-with-sp (annotation?,(simpleType*)) ee
 memberTypes = type (space type)* 	   
 list = eb xs <'list'> attrs-with-sp  (annotation?,(simpleType?)) ee 	   
-simpleType-restriction = eb xs <'restriction'> attrs-with-sp 
+simpleType-restriction = eb xs <'restriction'> req-attrs-with-sp 
                          (annotation?,(simpleType?,(minExclusive|minInclusive|
 						  maxExclusive|maxInclusive|totalDigits|fractionDigits|
 						  length|minLength|maxLength|enumeration|whiteSpace|pattern)*)) 
 						  ee
-simpleContent-restriction = eb xs <'restriction'> attrs-with-sp 
+simpleContent-restriction = eb xs <'restriction'> req-attrs-with-sp 
 						(annotation?,(simpleType?,(minExclusive |minInclusive|
 						maxExclusive|maxInclusive|totalDigits|fractionDigits|
 						length|minLength|maxLength|enumeration|whiteSpace|pattern)*)?,
 						((attribute|attributeGroup)*,anyAttribute?))
                         ee
-complexContent-restriction = eb xs <'restriction'> attrs-with-sp
+complexContent-restriction = eb xs <'restriction'> req-attrs-with-sp
 							 (annotation?,(group|all|choice|sequence)?,
 							 ((attribute|attributeGroup)*,anyAttribute?))
 							 ee                         

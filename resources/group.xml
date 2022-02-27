@@ -1,4 +1,4 @@
-<schema>
+<schema xmlns:lib="myfile">
 <xs:group name="custGroup">
   <xs:sequence>
     <xs:element name="customer" type="xs:string"/>

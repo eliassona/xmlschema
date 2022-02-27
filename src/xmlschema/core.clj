@@ -494,6 +494,7 @@
       :ident (fn[& chars] (read-string (apply str chars))) 
       :string-literal (fn [& chars] (apply str chars)) 
       :attrs (fn [& args] (apply hash-map args))
+      :req-attrs (fn [& args] (apply hash-map args))
       :enumeration enumeration
       :simpleType-restriction simple-type-restriction
       :maxInclusive max-inclusive

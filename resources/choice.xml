@@ -1,4 +1,4 @@
-<schema>
+<schema xmlns:lib="myfile">
 <element name="person">
   <complexType>
     <choice>
