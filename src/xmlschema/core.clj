@@ -172,13 +172,7 @@
           (with-meta 
             (fn 
               ([xml#]
-                (if (string? xml#)
-                  (if-let [ix# (inc (.indexOf xml# ":"))]
-                    (let [n# (.substring xml# ix#)
-                          ns# (.substring xml# 0 ix#)]
-                      ((dbg import-map#) ns#))
-                    (throw (IllegalArgumentException.)))
-                  ((elem-map# (first xml#)) env# xml#)))
+                  ((elem-map# (first xml#)) env# xml#))
               ([]
                 {:elements 
                  (map
@@ -486,18 +480,22 @@
      ([ns t] (str ns ":" t)))
    
            
-        (defn schema-import [& args]
-      `(let [[arg-map# & type-fn#] [~@args]
-             f# (:schemaLocation arg-map#)
-             schema# (-> f# slurp-file hiccup-of (schema-eval :schema))
-             xmlns# (str (-> schema# meta :xmlns) ":") 
-             l# (count xmlns#)]
-         (with-meta
-           (fn [type-name#]
-             (if (.startsWith type-name# xmlns#)
-               (schema# (.substring type-name# l#))
-               (throw (IllegalArgumentException. "Invald namespace")))) 
-           {:type :import, :xmlns xmlns#})))
+   (defn schema-import [& args]
+   `(let [[arg-map# & type-fn#] [~@args]
+          f# (:schemaLocation arg-map#)
+          schema# (-> f# slurp-file hiccup-of (schema-eval :schema))
+          xmlns# (str (-> schema# meta :xmlns) ":") 
+          l# (count xmlns#)]
+      (with-meta
+        (fn ([type-name#]
+          (if (.startsWith type-name# xmlns#)
+            (schema# (.substring type-name# l#))
+            (throw (IllegalArgumentException. "Invald namespace"))))
+          ([]
+            (let [s# (:env (schema#))]
+              (set (map (partial str xmlns#) s#)))
+            ))
+        {:type :import, :xmlns xmlns#})))
 
    
    (def ast->clj-map  
