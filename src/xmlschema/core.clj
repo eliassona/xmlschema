@@ -166,19 +166,26 @@
             env# (merge ~'env (apply merge (map (fn [e#] {(name-of e#) e#}) (only-named-objects root-objects#))))
             env-key-set# (set (keys env#))
             imports# (filter #(= (-> % meta :type) :import) root-objects#)
-            import-map# (apply merge (map (fn [i#] {(-> i# meta :name) i#}) imports#))
+            import-map# (apply merge (map (fn [i#] {(str (-> i# meta :name) ":") i#}) imports#))
+            import-map# (if import-map# import-map# {})
             ]
           (with-meta 
             (fn 
               ([xml#]
                 (if (string? xml#)
-                  (do)
+                  (if-let [ix# (inc (.indexOf xml# ":"))]
+                    (let [n# (.substring xml# ix#)
+                          ns# (.substring xml# 0 ix#)]
+                      (import-map# ns#))
+                    (throw (IllegalArgumentException.)))
                   ((elem-map# (first xml#)) env# xml#)))
               ([]
                 {:elements 
                  (map
                    (fn [e#] (e# env#)) elements#)
                  :env env-key-set#})) {:xmlns (ns-of arg-map#)})))
+
+
    
    
    (defn simple-type [& args]
