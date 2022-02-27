@@ -475,16 +475,19 @@
      ([ns t] (str ns ":" t)))
    
            
-    (defn schema-import [& args]
-      `(let [[arg-map# & type-fn#] ~args
-             
-             ;ix (.indexOf 
-                  ]
-         (add-meta
-           []
-           :import 
-         )
-      ))
+        (defn schema-import [& args]
+      `(let [[arg-map# & type-fn#] [~@args]
+             f# (:schemaLocation arg-map#)
+             schema# (-> f# slurp-file hiccup-of (schema-eval :schema))
+             xmlns# (str (-> schema# meta :xmlns) ":") 
+             l# (count xmlns#)]
+         (with-meta
+           (fn [type-name#]
+             (if (.startsWith type-name# xmlns#)
+               (schema# (.substring type-name# l#))
+               (throw (IllegalArgumentException. "Invald namespace")))) 
+           {:type :import, :xmlns xmlns#})))
+
    
    (def ast->clj-map  
      {
