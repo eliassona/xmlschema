@@ -162,17 +162,25 @@
    (defn name-spaces-of [xmlns imports]
      imports)
    
+   (defn import-map-of [imports]
+     (if-let [m (apply merge (map (fn [i] {(-> i meta :xmlns) i}) imports))]
+       (mapcat 
+         (fn [e]
+           (let [v (val e)]
+             (map (fn [type] {(str (key e) ":" type ) v}) (v)))) m)
+       {}))
+   
    (defn schema [& elements]
      `(let [[arg-map# & root-objects#] (normalize-args [~@elements])
             elements# (filter (fn [e#] (= (:type (meta e#)) :element)) root-objects#)
             elem-map# (apply merge (map (fn [e#] {(-> e# meta :name) e#}) elements#))
             env# (merge ~'env (apply merge (map (fn [e#] {(name-of e#) e#}) (only-named-objects root-objects#))))
-            env-key-set# (set (keys env#))
             imports# (filter #(= (-> % meta :type) :import) root-objects#)
-            import-map# (apply merge (map (fn [i#] {(-> i# meta :xmlns) i#}) imports#))
-            import-map# (if import-map# import-map# {})
-            import-set# (set (keys import-map#))
+            import-map# (import-map-of imports#)
+            
+            env-key-set# (set (keys env#))
             ]
+        (dbg import-map#)
           (with-meta 
             (fn 
               ([xml#]
@@ -184,45 +192,7 @@
                  :env env-key-set#})) {:xmlns (ns-of arg-map#)})))
 
 
-(def i 
-  (clojure.core/let
-   [[arg-map__316243__auto__ & type-fn__316244__auto__]
-    [{:schemaLocation "typed_elements.xml"}]
-    f__316245__auto__
-    (:schemaLocation arg-map__316243__auto__)
-    schema__316246__auto__
-    (clojure.core/->
-     f__316245__auto__
-     xmlschema.core/slurp-file
-     xmlschema.core/hiccup-of
-     (xmlschema.core/schema-eval :schema))
-    xmlns__316247__auto__
-    (clojure.core/str
-     (clojure.core/-> schema__316246__auto__ clojure.core/meta :xmlns)
-     ":")
-    l__316248__auto__
-    (clojure.core/count xmlns__316247__auto__)]
-   (clojure.core/with-meta
-    (clojure.core/fn
-     ([type-name__316249__auto__]
-      (if
-       (.startsWith type-name__316249__auto__ xmlns__316247__auto__)
-       (schema__316246__auto__
-        (.substring type-name__316249__auto__ l__316248__auto__))
-       (throw (java.lang.IllegalArgumentException. "Invald namespace"))))
-     ([]
-      (clojure.core/let
-       [s__316250__auto__ (:env (schema__316246__auto__))]
-       (clojure.core/set
-        (clojure.core/map
-         (clojure.core/partial clojure.core/str xmlns__316247__auto__)
-         s__316250__auto__)))))
-    {:type :import,
-     :xmlns
-     (.substring
-      xmlns__316247__auto__
-      0
-      (clojure.core/dec (clojure.core/count xmlns__316247__auto__)))})))   
+   
    
    (defn simple-type [& args]
      `(let [[arg-map# type-fn#] (normalize-args [~@args])
