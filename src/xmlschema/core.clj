@@ -165,9 +165,10 @@
    (defn import-map-of [imports]
      (if-let [m (apply merge (map (fn [i] {(-> i meta :xmlns) i}) imports))]
        (mapcat 
-         (fn [e]
-           (let [v (val e)]
-             (map (fn [type] {(str (key e) ":" type ) v}) (v)))) m)
+        (fn [e]
+          (let [k (key e)
+                v (val e)]
+            (map (fn [type] {type v}) (dbg (v))))) m)
        {}))
    
    (defn schema [& elements]
@@ -177,10 +178,9 @@
             env# (merge ~'env (apply merge (map (fn [e#] {(name-of e#) e#}) (only-named-objects root-objects#))))
             imports# (filter #(= (-> % meta :type) :import) root-objects#)
             import-map# (import-map-of imports#)
-            
+            env# (apply merge env# import-map#)
             env-key-set# (set (keys env#))
             ]
-        (dbg import-map#)
           (with-meta 
             (fn 
               ([xml#]
