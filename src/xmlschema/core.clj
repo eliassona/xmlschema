@@ -159,6 +159,9 @@
      (when-let [xmlns (first (filter #(.startsWith % "xmlns:") (map name (keys arg-map))))]
        (ast->clj (parser xmlns :start :xmlns))))
    
+   (defn name-spaces-of [xmlns imports]
+     imports)
+   
    (defn schema [& elements]
      `(let [[arg-map# & root-objects#] (normalize-args [~@elements])
             elements# (filter (fn [e#] (= (:type (meta e#)) :element)) root-objects#)
@@ -168,6 +171,7 @@
             imports# (filter #(= (-> % meta :type) :import) root-objects#)
             import-map# (apply merge (map (fn [i#] {(-> i# meta :xmlns) i#}) imports#))
             import-map# (if import-map# import-map# {})
+            import-set# (set (keys import-map#))
             ]
           (with-meta 
             (fn 
@@ -180,7 +184,45 @@
                  :env env-key-set#})) {:xmlns (ns-of arg-map#)})))
 
 
-   
+(def i 
+  (clojure.core/let
+   [[arg-map__316243__auto__ & type-fn__316244__auto__]
+    [{:schemaLocation "typed_elements.xml"}]
+    f__316245__auto__
+    (:schemaLocation arg-map__316243__auto__)
+    schema__316246__auto__
+    (clojure.core/->
+     f__316245__auto__
+     xmlschema.core/slurp-file
+     xmlschema.core/hiccup-of
+     (xmlschema.core/schema-eval :schema))
+    xmlns__316247__auto__
+    (clojure.core/str
+     (clojure.core/-> schema__316246__auto__ clojure.core/meta :xmlns)
+     ":")
+    l__316248__auto__
+    (clojure.core/count xmlns__316247__auto__)]
+   (clojure.core/with-meta
+    (clojure.core/fn
+     ([type-name__316249__auto__]
+      (if
+       (.startsWith type-name__316249__auto__ xmlns__316247__auto__)
+       (schema__316246__auto__
+        (.substring type-name__316249__auto__ l__316248__auto__))
+       (throw (java.lang.IllegalArgumentException. "Invald namespace"))))
+     ([]
+      (clojure.core/let
+       [s__316250__auto__ (:env (schema__316246__auto__))]
+       (clojure.core/set
+        (clojure.core/map
+         (clojure.core/partial clojure.core/str xmlns__316247__auto__)
+         s__316250__auto__)))))
+    {:type :import,
+     :xmlns
+     (.substring
+      xmlns__316247__auto__
+      0
+      (clojure.core/dec (clojure.core/count xmlns__316247__auto__)))})))   
    
    (defn simple-type [& args]
      `(let [[arg-map# type-fn#] (normalize-args [~@args])
@@ -495,7 +537,7 @@
             (let [s# (:env (schema#))]
               (set (map (partial str xmlns#) s#)))
             ))
-        {:type :import, :xmlns xmlns#})))
+        {:type :import, :xmlns (.substring xmlns# 0 (dec (count xmlns#)))})))
 
    
    (def ast->clj-map  
