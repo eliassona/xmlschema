@@ -564,18 +564,20 @@
 (defn filter-includes [elements]
   (filter (fn [[e]] (not= e :include)) elements)) 
 
-(defn expand-includes ([elements]
+(defn expand-includes ([elements] ;TODO do recursion with loop recur
   (let [includes (flatten (map ast->clj (filter (fn [i] (= (first i) :include))  elements)))]
     (if (empty? includes)
       []
       (let [hiccups (mapcat (comp (fn [[_ _ & e]] e) hiccup-of slurp-file) includes)
-            ;child-hiccups (dbg (mapcat expand-includes (dbg hiccups)))
+            child-hiccups (expand-includes hiccups)
             ]
-            (dbg hiccups))))) ;TODO recursive includes
+            (concat hiccups child-hiccups))))) 
   ([hiccup start]
     (let [[_ arg-map & elements] hiccup]
       (if (= start :schema)
-        (vec (cons :schema (cons arg-map (filter-includes (apply conj elements (filter #(not (empty? %)) (expand-includes elements)))))))
+        (let [expanded-elements (expand-includes elements)]
+          #_(pprint expanded-elements)
+          (vec (cons :schema (cons arg-map (filter-includes (apply conj elements (filter #(not (empty? %)) expanded-elements)))))))
         hiccup))))
         
    

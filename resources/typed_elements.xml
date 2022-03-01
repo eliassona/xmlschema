@@ -1,5 +1,5 @@
 <schema xmlns:lib="myfile">
-<!--  <include schemaLocation="choice.xml"/>  -->
+<!-- <include schemaLocation="union.xml"/>  --> 
 <element name="employee" type="string"/>
 <element name="student" type="string"/>
 <element name="member" type="string"/>
