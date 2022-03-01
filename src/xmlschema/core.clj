@@ -125,7 +125,7 @@
                  (throw (IllegalArgumentException. (format "Unknown type: %s" type-name#))))
                (massage-return-value n# type-fn# (type-fn# env# (prepare-value type-fn# value# default# fixed#)))))
             ([env#] (if type-name#
-                      (elements-of env# n# (env# type-name#))
+                      (elements-of env# n# (dbg (env# type-name#)))
                       (elements-of env# n# type-fn#))))
           :element n#)))
 
@@ -168,7 +168,7 @@
         (fn [e]
           (let [k (key e)
                 v (val e)]
-            (map (fn [type] {type v}) (dbg (v))))) m)
+            (map (fn [type] {type v}) (v nil)))) m)
        {}))
    
    (defn schema [& elements]
@@ -499,14 +499,10 @@
           xmlns# (str (-> schema# meta :xmlns) ":") 
           l# (count xmlns#)]
       (with-meta
-        (fn ([type-name#]
-          (if (.startsWith type-name# xmlns#)
-            (schema# (.substring type-name# l#))
-            (throw (IllegalArgumentException. "Invald namespace"))))
-          ([]
+        (fn [env#]
             (let [s# (:env (schema#))]
-              (set (map (partial str xmlns#) s#)))
-            ))
+              (set (map (partial str xmlns#) s#))))
+            
         {:type :import, :xmlns (.substring xmlns# 0 (dec (count xmlns#)))})))
 
    

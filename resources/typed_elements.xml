@@ -3,4 +3,11 @@
 <element name="employee" type="string"/>
 <element name="student" type="string"/>
 <element name="member" type="string"/>
+
+<simpleType name="club">
+	    <restriction base="integer">
+	        <minInclusive value="1"/>
+	        <maxInclusive value="9999"/>
+	    </restriction>
+</simpleType>
 </schema>
