@@ -568,9 +568,10 @@
   (let [includes (flatten (map ast->clj (filter (fn [i] (= (first i) :include))  elements)))]
     (if (empty? includes)
       []
-      (let [hiccups (map (comp (fn [[_ _ e]] e) hiccup-of slurp-file) includes)
-            child-hiccups (map expand-includes hiccups)]
-            hiccups)))) ;TODO recursive includes
+      (let [hiccups (mapcat (comp (fn [[_ _ & e]] e) hiccup-of slurp-file) includes)
+            ;child-hiccups (dbg (mapcat expand-includes (dbg hiccups)))
+            ]
+            (dbg hiccups))))) ;TODO recursive includes
   ([hiccup start]
     (let [[_ arg-map & elements] hiccup]
       (if (= start :schema)

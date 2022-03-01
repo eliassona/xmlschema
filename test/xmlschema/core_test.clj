@@ -306,7 +306,13 @@
   (let [s (schema-eval [:schema {:xmlns:lib "myfile"} [:include {:schemaLocation "typed_elements.xml"}]
                       [:element {:type "string", :name "a"}]
                       ] :schema)]
-    (is (= [:a [true "hej"]] (s [:a "hej"])))
+    (is (= {:env #{"boolean" "string" "hexBinary" "student" "member" "club"
+                   "negativeInteger" "short" "unsignedByte" 
+                   "employee" "a" "integer" "nonNegativeInteger" 
+                   "anyURI" "nonPositiveInteger" "date" 
+                   "base64Binary" "unsignedShort" "byte" 
+                   "positiveInteger" "decimal"}, :elements [:member :student :employee :a]} (s)))
+    (is (= [:student [true "hej"]] (s [:student "hej"])))
   ))
 
 (deftest test-positiveInteger

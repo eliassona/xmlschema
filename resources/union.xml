@@ -1,4 +1,4 @@
-<schema xmlns:lib="myfile">
+<schema xmlns:union="myfile">
 	<simpleType name="car">
 		<union>
           <simpleType>
