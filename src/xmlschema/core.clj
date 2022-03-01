@@ -502,9 +502,8 @@
           l# (count xmlns#)]
       (with-meta
         (fn [env#]
-          nil
-            #_(let [s# (:env (schema#))]
-               (set (map (partial str xmlns#) s#))))
+            (let [s# (:env (schema#))]
+              (set (map (partial str xmlns#) s#))))
             
         {:type :import, :xmlns (.substring xmlns# 0 (dec (count xmlns#)))})))
 
