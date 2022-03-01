@@ -125,12 +125,13 @@
                  (throw (IllegalArgumentException. (format "Unknown type: %s" type-name#))))
                (massage-return-value n# type-fn# (type-fn# env# (prepare-value type-fn# value# default# fixed#)))))
             ([env#] (if type-name#
-                      (elements-of env# n# (dbg (env# type-name#)))
+                      (elements-of env# n# (env# type-name#))
                       (elements-of env# n# type-fn#))))
           :element n#)))
 
    
-   
+(= "39yBGZvcXnSU2yQA8ApM2n6mqBp2qYkzXi" "39yBGZvcXnSU2yQA8ApM2n6mqBp2qYkzXi")
+
    
    (defn type? [expected-type o]
      (= expected-type (-> o meta :type)))
@@ -187,8 +188,9 @@
                   ((elem-map# (first xml#)) env# xml#))
               ([]
                 {:elements 
-                 (map
-                   (fn [e#] (e# env#)) elements#)
+                 (filter identity
+                         (map
+                           (fn [e#] (e# env#)) elements#))
                  :env env-key-set#})) {:xmlns (ns-of arg-map#)})))
 
 
@@ -500,8 +502,9 @@
           l# (count xmlns#)]
       (with-meta
         (fn [env#]
-            (let [s# (:env (schema#))]
-              (set (map (partial str xmlns#) s#))))
+          nil
+            #_(let [s# (:env (schema#))]
+               (set (map (partial str xmlns#) s#))))
             
         {:type :import, :xmlns (.substring xmlns# 0 (dec (count xmlns#)))})))
 
