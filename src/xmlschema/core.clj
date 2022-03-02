@@ -162,14 +162,6 @@
    (defn name-spaces-of [xmlns imports]
      imports)
    
-   (defn import-map-of [imports]
-     (if-let [m (apply merge (map (fn [i] {(-> i meta :xmlns) i}) imports))]
-       (mapcat 
-        (fn [e]
-          (let [k (key e)
-                v (val e)]
-            (map (fn [type] {type v}) (v nil)))) m)
-       {}))
    
    (defn schema [& elements]
      `(let [[arg-map# & root-objects#] (normalize-args [~@elements])
@@ -177,8 +169,8 @@
             elem-map# (apply merge (map (fn [e#] {(-> e# meta :name) e#}) elements#))
             env# (merge ~'env (apply merge (map (fn [e#] {(name-of e#) e#}) (only-named-objects root-objects#))))
             imports# (filter #(= (-> % meta :type) :import) root-objects#)
-            import-map# (import-map-of imports#)
-            env# (apply merge env# import-map#)
+            import-env# (apply merge (map #(-> % meta :env)  imports#))
+            env# (apply merge env# import-env#)
             env-key-set# (set (keys env#))
             ]
           (with-meta 
@@ -492,19 +484,26 @@
      ([t] t)
      ([ns t] (str ns ":" t)))
    
-           
+   (defn qName-of [xmlns e]
+     {(let [k (key e)]
+        (if (> (.indexOf k ":") 0)
+          k
+          (xs-type xmlns k)))
+        (val e)})
+   
    (defn schema-import [& args]
    `(let [[arg-map# & type-fn#] [~@args]
           f# (:schemaLocation arg-map#)
           schema# (-> f# slurp-file hiccup-of (schema-eval :schema))
-          xmlns# (str (-> schema# meta :xmlns) ":") 
+          xmlns# (str (-> schema# meta :xmlns))
+          schema-env# (apply merge (map (partial qName-of xmlns#) (-> schema# meta :env)))
           l# (count xmlns#)]
       (with-meta
         (fn [env#]
             (let [s# (:env (schema#))]
               (set (map (partial str xmlns#) s#))))
             
-        {:type :import, :xmlns (.substring xmlns# 0 (dec (count xmlns#)))})))
+        {:type :import, :env schema-env#})))
 
    
    (def ast->clj-map  
