@@ -326,3 +326,10 @@
     (is (= [true "-1"] (u env "-1")))
     ))
     
+(deftest test-import 
+  (let [s (schema-eval [:schema {:xmlns:hej "adsf"} 
+                      [:import {:schemaLocation "typed_elements.xml"}]
+                      [:element {:name "a" :type "lib:string"}]] :schema)]
+    (is (= [:a [true "hej"]] (s [:a "hej"])))
+    ))
+
