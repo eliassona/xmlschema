@@ -190,7 +190,7 @@
                  (filter identity
                          (map
                            (fn [e#] (e# env#)) elements#))
-                 :env env-key-set#})) {:xmlns (ns-of arg-map#)})))
+                 :env env-key-set#})) {:type :schema, :xmlns (ns-of arg-map#), :env env#})))
 
 
    
