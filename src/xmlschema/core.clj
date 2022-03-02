@@ -130,7 +130,6 @@
           :element n#)))
 
    
-(= "39yBGZvcXnSU2yQA8ApM2n6mqBp2qYkzXi" "39yBGZvcXnSU2yQA8ApM2n6mqBp2qYkzXi")
 
    
    (defn type? [expected-type o]
