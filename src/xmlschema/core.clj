@@ -632,13 +632,9 @@
    
    ])
 
-(defn insert-xs [[schema args & elements]]
-  `[~schema ~args ~@(conj elements [:import {:schemaLocation "xs.xml"}])])
-
-
 (defn schema->clj [hiccup start]
   (let [p (fn [text] (parser text :start start))]
-    (-> hiccup #_insert-xs (expand-includes start) pr-str p ast->clj)))
+    (-> hiccup  (expand-includes start) pr-str p ast->clj)))
 
 (defn schema-eval [hiccup start]
   (eval (schema->clj hiccup start)))
@@ -704,4 +700,7 @@
    (map 
      (comp (fn [f] {(-> f meta :name) f}) eval parse-predef) 
      predefs)))
+
+
+
 
