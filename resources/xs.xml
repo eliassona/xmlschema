@@ -1,0 +1,75 @@
+<schema xmlns:xs="www.w3.org"> 
+   <simpleType name="string"> 
+    	<restriction base=""/>
+   </simpleType>  
+   <simpleType name="integer"> 
+    	<restriction base=""/>
+   </simpleType> 
+   <simpleType name="boolean"> 
+    <restriction base=""/> 
+   </simpleType> 
+   <simpleType name="byte"> 
+    <restriction base="integer"> 
+	    <minInclusive value="-128"/> 
+	    <maxInclusive value="127"/>
+	</restriction>    
+   </simpleType> 
+   <simpleType name="short"> 
+    <restriction base="integer"> 
+	    <minInclusive value="-32768"/> 
+	    <maxInclusive value="32767"/>
+	</restriction>
+   </simpleType>
+   <simpleType name="unsignedByte"> 
+	   <restriction base="integer"> 
+		   <minInclusive value="0"/> 
+		   <maxInclusive value="255"/>
+	   </restriction> 
+   </simpleType>
+   <simpleType name="unsignedShort"> 
+	   <restriction base="integer"> 
+		   <minInclusive value="0"/> 
+		   <maxInclusive value="65535"/> 
+	   </restriction>
+   </simpleType>
+   <simpleType name="nonPositiveInteger"> 
+	   <restriction base="integer"> 
+		   <maxInclusive value="0"/> 
+	   </restriction>
+   </simpleType>
+   <simpleType name="nonNegativeInteger"> 
+	   <restriction base="integer"> 
+		   <minInclusive value="0"/> 
+	   </restriction>
+   </simpleType>
+   <simpleType name="positiveInteger"> 
+	   <restriction base="integer"> 
+		   <minExclusive value="0"/> 
+	   </restriction>
+   </simpleType>
+   <simpleType name="negativeInteger"> 
+	   <restriction base="integer"> 
+		   <maxExclusive value="0"/>
+	   </restriction>
+   </simpleType>
+   <simpleType name="anyURI"> 
+	   <restriction base="string"> 
+	   </restriction>
+   </simpleType>
+   <simpleType name="base64Binary"> 
+	   <restriction base="string"> 
+	   </restriction>
+   </simpleType>
+   <simpleType name="hexBinary"> 
+	   <restriction base="string"> 
+	   </restriction>
+   </simpleType>
+   <simpleType name="date"> 
+	   <restriction base="string"> 
+	   </restriction>
+   </simpleType>
+   <simpleType name="decimal"> 
+	   <restriction base="string"> 
+	   </restriction>
+   </simpleType>
+</schema>   

@@ -37,6 +37,11 @@
    (defn same-elements? [c]
      (= (count (set c))) 1)
 
+   (declare ast->clj)
+
+   (defn type-name-of [t]
+     (ast->clj (parser t :start :type)))
+
    (defn simple-type-restriction [arg-map & conditions]
      (assert-req-attrs arg-map :base)
      (when (not (same-elements? (map (fn [c] (-> c meta :type)) conditions)))
@@ -56,10 +61,7 @@
                 )) ~base-value] 
          (throw (IllegalArgumentException. "Unknown base"))))))
 
-   (declare ast->clj)
 
-   (defn type-name-of [t]
-     (ast->clj (parser t :start :type)))
    
    (defn enumeration [arg-map]
      (with-meta `(fn [env# value#]
@@ -577,11 +579,66 @@
           (vec (cons :schema (cons arg-map (filter-includes (apply conj elements (filter #(not (empty? %)) expanded-elements)))))))
         hiccup))))
         
+
+(def xs
+  [:schema {:xmlns:xs "www.w3.org"} 
+   [:simpleType {:name "string"} 
+    [:restriction {:base ""} 
+	     ]]
+   [:simpleType {:name "integer"} 
+    [:restriction {:base ""} 
+	     ]]
+   [:simpleType {:name "boolean"} 
+    [:restriction {:base ""} 
+	     ]]
+   [:simpleType {:name "byte"} 
+    [:restriction {:base "integer"} 
+	    [:minInclusive {:value "-128"}] 
+	    [:maxInclusive {:value "127"}]]]
+   [:simpleType {:name "short"} 
+    [:restriction {:base "integer"} 
+	    [:minInclusive {:value "-32768"}] 
+	    [:maxInclusive {:value "32767"}]]] 
+   [:simpleType {:name "unsignedByte"} 
+	   [:restriction {:base "integer"} 
+		   [:minInclusive {:value "0"}] 
+		   [:maxInclusive {:value "255"}]]] 
+   [:simpleType {:name "unsignedShort"} 
+	   [:restriction {:base "integer"} 
+		   [:minInclusive {:value "0"}] 
+		   [:maxInclusive {:value "65535"}]]] 
+   [:simpleType {:name "nonPositiveInteger"} 
+	   [:restriction {:base "integer"} 
+		   [:maxInclusive {:value "0"}]]] 
+   [:simpleType {:name "nonNegativeInteger"} 
+	   [:restriction {:base "integer"} 
+		   [:minInclusive {:value "0"}]]] 
+   [:simpleType {:name "positiveInteger"} 
+	   [:restriction {:base "integer"} 
+		   [:minExclusive {:value "0"}]]] 
+   [:simpleType {:name "negativeInteger"} 
+	   [:restriction {:base "integer"} 
+		   [:maxExclusive {:value "0"}]]]
+   [:simpleType {:name "anyURI"} 
+	   [:restriction {:base "string"}]] ;TODO
+   [:simpleType {:name "base64Binary"} 
+	   [:restriction {:base "string"}]] ;TODO
+   [:simpleType {:name "hexBinary"} 
+	   [:restriction {:base "string"}]] ;TODO
+   [:simpleType {:name "date"} 
+	   [:restriction {:base "string"}]] ;TODO
+   [:simpleType {:name "decimal"} 
+	   [:restriction {:base "string"}]];TODO 
    
+   ])
+
+(defn insert-xs [[schema args & elements]]
+  `[~schema ~args ~@(conj elements [:import {:schemaLocation "xs.xml"}])])
+
 
 (defn schema->clj [hiccup start]
   (let [p (fn [text] (parser text :start start))]
-    (-> hiccup (expand-includes start) pr-str p ast->clj)))
+    (-> hiccup #_insert-xs (expand-includes start) pr-str p ast->clj)))
 
 (defn schema-eval [hiccup start]
   (eval (schema->clj hiccup start)))
