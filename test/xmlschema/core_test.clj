@@ -333,6 +333,12 @@
     (is (= [:a [true "hej"]] (s [:a "hej"])))
     ))
 
-(deftest test_simpleContent 
-  )
+(deftest test-simple-extension
+  (let [e (schema-eval [:extension {:base "integer"}] :simpleContent-extension)]
+    (is (= [{} [true 10]] (e env [{} "10"])))
+  (let [e (schema-eval [:extension {:base "integer"}
+                        [:attribute {:name "attr1", :type "integer"}]
+                        [:attribute {:name "attr2", :type "integer"}]] :simpleContent-extension)]
+    (is (= [{:attr1 [true 10], :attr2 [true 20]}  [true 11]] (e env [{:attr1  "10", :attr2 "20"} "11"]))))
+  ))
 

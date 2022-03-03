@@ -507,6 +507,19 @@
             
         {:type :import, :env schema-env#})))
 
+   (defn attr-map-of [env attrs attr-value-map]
+     (if (empty? attrs)
+       {}
+       (apply merge (map #(% env attr-value-map) attrs))))
+     
+   
+   (defn simpleContent-extension [arg-map & attrs]
+     `(let [type-name# (:base ~arg-map)
+            ]
+        (fn [env# [attr-value-map# value#]]
+          (let [v# ((env# type-name#) env# value#)]
+              [(attr-map-of env# ~(vec attrs) attr-value-map#) v#])
+            )))
    
    (def ast->clj-map  
      {
@@ -545,6 +558,7 @@
       :type xs-type
       :import schema-import 
       :xmlns (fn [ns] ns)
+      :simpleContent-extension simpleContent-extension
       })
 
    (defn ast->clj [ast]
