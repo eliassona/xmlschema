@@ -333,3 +333,6 @@
     (is (= [:a [true "hej"]] (s [:a "hej"])))
     ))
 
+(deftest test_simpleContent 
+  )
+
