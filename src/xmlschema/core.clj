@@ -516,10 +516,19 @@
    (defn simpleContent-extension [arg-map & attrs]
      `(let [type-name# (:base ~arg-map)
             ]
-        (fn [env# [attr-value-map# value#]]
-          (let [v# ((env# type-name#) env# value#)]
-              [(attr-map-of env# ~(vec attrs) attr-value-map#) v#])
-            )))
+        (add-meta 
+          (fn [env# [attr-value-map# value#]]
+            (let [v# ((env# type-name#) env# value#)]
+                [(attr-map-of env# ~(vec attrs) attr-value-map#) v#])
+              ) :simpleContent-restriction nil)))
+   
+   (defn simpleContent [& args]
+     `(let [[arg-map# type-fn#] (normalize-args [~@args])]
+        (add-meta 
+          (fn [env# value#]
+            (type-fn# env# value#))
+          :simpleContent nil)))
+            
    
    (def ast->clj-map  
      {
@@ -559,6 +568,7 @@
       :import schema-import 
       :xmlns (fn [ns] ns)
       :simpleContent-extension simpleContent-extension
+      :simpleContent simpleContent
       })
 
    (defn ast->clj [ast]
