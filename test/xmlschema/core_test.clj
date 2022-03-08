@@ -342,14 +342,29 @@
     (is (= [{:attr1 [true 10], :attr2 [true 20]}  [true 11]] (e env [{:attr1  "10", :attr2 "20"} "11"]))))
   ))
 
-(deftest test-simple-from-simple_content
+(deftest test-simple_content
   (let [e (schema-eval [:simpleContent [:extension {:base "integer"}]] :simpleContent)]
     (is (= (-> e meta :type) :simpleContent))
     (is (= [{} [true 10]] (e env [{} "10"])))
-  (let [e (schema-eval [:extension {:base "integer"}
-                        [:attribute {:name "attr1", :type "integer"}]
-                        [:attribute {:name "attr2", :type "integer"}]] :simpleContent-extension)]
+  (let [e (schema-eval [:simpleContent 
+                        [:extension {:base "integer"}
+                         [:attribute {:name "attr1", :type "integer"}]
+                         [:attribute {:name "attr2", :type "integer"}]]] :simpleContent)]
     (is (= [{:attr1 [true 10], :attr2 [true 20]}  [true 11]] (e env [{:attr1  "10", :attr2 "20"} "11"]))))
+  ))
+
+(deftest test-simple-content_from-element
+  (let [e (schema-eval [:element {:name "a"} 
+                        [:complexType [:simpleContent [:extension {:base "integer"}]]]] :element)]
+    (is (= [:a {} [true 10]] (e env [:a {} "10"])))
+  (let [e (schema-eval [:element {:name "a"}
+                        [:complexType 
+                         [:simpleContent 
+                          [:extension {:base "integer"}
+                          [:attribute {:name "attr1", :type "integer"}]
+                          [:attribute {:name "attr2", :type "integer"}]]]]] :element)]
+    (is (= [:a {:attr1 [true 10], :attr2 [true 20]}  [true 11]] 
+           (e env [:a {:attr1  "10", :attr2 "20"} "11"]))))
   ))
 
 

@@ -358,6 +358,7 @@
      (filter (fn [v] (contains? attrs-sub-element (-> v meta :type))) args))
    
    
+   
    (defn complexType [& args]
      `(let [args# (normalize-args [~@args])
             arg-map# (first args#)
@@ -367,12 +368,22 @@
         (add-meta 
           (fn
             ([env# value#]
-              (if (map? (first value#))
-                (let [e# (rest value#)
+              (cond (= (-> sub-elem# meta :type) :simpleContent)
+                    (sub-elem# env# value#)
+                    (map? (first value#))
+                    (let [e# (rest value#)
                       a# (first value#)]
                     [(apply merge (map (fn [attr#] (attr# env# a#)) attrs#))
-                    (if (empty? e#) [] (sub-elem# env# (rest value#)))])
-                [(sub-elem# env# value#)]))
+                    (if (empty? e#) [] (sub-elem# env# e#))])
+                    :else
+                    [(sub-elem# env# value#)])
+              #_(if (and (not= (-> sub-elem# meta :type) :simpleContent) 
+                        (map? (first value#)))
+                 (let [e# (rest value#)
+                       a# (first value#)]
+                     [(apply merge (map (fn [attr#] (attr# env# a#)) attrs#))
+                     (if (empty? e#) [] (sub-elem# env# e#))])
+                 [(sub-elem# env# value#)]))
             ([env#]
               (if sub-elem#
                 (sub-elem# env#)
