@@ -351,8 +351,11 @@
 (deftest test-import 
   (let [s (schema-eval [:schema {:xmlns:hej "adsf"} 
                       [:import {:schemaLocation "typed_elements.xml"}]
-                      [:element {:name "a" :type "lib:string"}]] :schema)]
-    (is (= [:a [true "hej"]] (s [:a "hej"])))
+                      [:element {:name "a" :type "lib:club"}]] :schema)]
+    (is (= [:a [true 1]] (s [:a "1"])))
+    (is (= [:a [false 0]] (s [:a "0"])))
+    (is (= [:a [false 10000]] (s [:a "10000"])))
+    (is (= [:a [true 9999]] (s [:a "9999"])))
     ))
 
 (deftest test-simple-extension
