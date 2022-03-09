@@ -8,6 +8,10 @@
      (println "dbg:" '~body "=" x#)
      x#))
 
+(defmacro do-throw [condition msg]
+  `(when ~condition
+     (throw (IllegalArgumentException. ~msg))))
+
 (defn xml->hiccup
    [xml]
    (if-not (string? xml)
@@ -44,8 +48,7 @@
 
    (defn simple-type-restriction [arg-map & conditions]
      (assert-req-attrs arg-map :base)
-     (when (not (same-elements? (map (fn [c] (-> c meta :type)) conditions)))
-       (throw (IllegalArgumentException.)))
+     (do-throw (not (same-elements? (map (fn [c] (-> c meta :type)) conditions))) "not the same type") 
      (let [env (gensym)
            value (gensym)
            base-result (gensym)
@@ -95,8 +98,7 @@
    
    (defn prepare-value [type-fn value default fixed]
      (let [st (= (-> type-fn meta :type) :simpleType)]
-       (when (and (or default fixed) (not st))
-          (throw (IllegalArgumentException. "default and fixed can only be used for simpleType")))
+       (do-throw (and (or default fixed) (not st)) "default and fixed can only be used for simpleType")
        (if st
          (let [v (first value)]
            (cond 
@@ -118,10 +120,8 @@
             type-name# (:type arg-map#)
             default# (:default arg-map#)
             fixed# (:fixed arg-map#)]
-        (when (and ref# (or n# type-name#))
-          (throw (IllegalArgumentException. "ref and name type cannot be used at the same time")))
-        (when (and default# fixed#)
-          (throw (IllegalArgumentException. "default and fixed cannot be used at the same time")))
+        (do-throw (and ref# (or n# type-name#)) "ref and name type cannot be used at the same time")
+        (do-throw (and default# fixed#) "default and fixed cannot be used at the same time")
         (add-meta
           (fn ([env# [tmp# & value# :as all#]]
              (cond 
@@ -420,20 +420,16 @@
             default# (:default arg-map#)
             fixed# (:fixed arg-map#)
             ]
-        (when (and n# ref#)
-          (throw (IllegalArgumentException. "name and ref cannot be used at the same time")))
-        (when (and default# fixed#)
-          (throw (IllegalArgumentException. "default and fixed cannot be used at the same time")))
+        (do-throw (and n# ref#) "name and ref cannot be used at the same time")
+        (do-throw (and default# fixed#) "default and fixed cannot be used at the same time")
         (add-meta
           (fn 
             ([env# value#]
               (let [key# (keyword n#)
                     value# (value# key#)
                     value# (if value# value# default#)]
-                (when (and (not value#) (= use# "required"))
-                  (throw (IllegalArgumentException. (format "required attribute %s is missing" key#))))
-                (when (and value# (= use# "prohibited"))
-                  (throw (IllegalArgumentException. (format "attribute %s is not allowed" key#))))
+                (do-throw (and (not value#) (= use# "required")) (format "required attribute %s is missing" key#))
+                (do-throw (and value# (= use# "prohibited")) (format "attribute %s is not allowed" key#))
                 (cond
                   n#
                   {key# (if value#
@@ -454,14 +450,14 @@
               ))
         :attribute n#)))
    
+     
+   
    (defn attributeGroup [& args]
      `(let [[arg-map# & type-fn#] (normalize-args [~@args])
             n# (:name arg-map#)
             ref# (:ref arg-map#)]
-        (when (and n# ref#)
-          (throw (IllegalArgumentException. "name and ref cannot be used at the same time")))
-        (when (and ref# (not (empty? type-fn#)))
-          (throw (IllegalArgumentException. "ref and attributes cannot be used at the same time")))
+        (do-throw (and n# ref#) "name and ref cannot be used at the same time")
+        (do-throw (and ref# (not (empty? type-fn#)))  "ref and attributes cannot be used at the same time")
         (add-meta
           (fn ([env# value#]
             (if ref#
@@ -621,58 +617,6 @@
           (vec (cons :schema (cons arg-map (filter-includes (apply conj elements (filter #(not (empty? %)) expanded-elements)))))))
         hiccup))))
         
-
-(def xs
-  [:schema {:xmlns:xs "www.w3.org"} 
-   [:simpleType {:name "string"} 
-    [:restriction {:base ""} 
-	     ]]
-   [:simpleType {:name "integer"} 
-    [:restriction {:base ""} 
-	     ]]
-   [:simpleType {:name "boolean"} 
-    [:restriction {:base ""} 
-	     ]]
-   [:simpleType {:name "byte"} 
-    [:restriction {:base "integer"} 
-	    [:minInclusive {:value "-128"}] 
-	    [:maxInclusive {:value "127"}]]]
-   [:simpleType {:name "short"} 
-    [:restriction {:base "integer"} 
-	    [:minInclusive {:value "-32768"}] 
-	    [:maxInclusive {:value "32767"}]]] 
-   [:simpleType {:name "unsignedByte"} 
-	   [:restriction {:base "integer"} 
-		   [:minInclusive {:value "0"}] 
-		   [:maxInclusive {:value "255"}]]] 
-   [:simpleType {:name "unsignedShort"} 
-	   [:restriction {:base "integer"} 
-		   [:minInclusive {:value "0"}] 
-		   [:maxInclusive {:value "65535"}]]] 
-   [:simpleType {:name "nonPositiveInteger"} 
-	   [:restriction {:base "integer"} 
-		   [:maxInclusive {:value "0"}]]] 
-   [:simpleType {:name "nonNegativeInteger"} 
-	   [:restriction {:base "integer"} 
-		   [:minInclusive {:value "0"}]]] 
-   [:simpleType {:name "positiveInteger"} 
-	   [:restriction {:base "integer"} 
-		   [:minExclusive {:value "0"}]]] 
-   [:simpleType {:name "negativeInteger"} 
-	   [:restriction {:base "integer"} 
-		   [:maxExclusive {:value "0"}]]]
-   [:simpleType {:name "anyURI"} 
-	   [:restriction {:base "string"}]] ;TODO
-   [:simpleType {:name "base64Binary"} 
-	   [:restriction {:base "string"}]] ;TODO
-   [:simpleType {:name "hexBinary"} 
-	   [:restriction {:base "string"}]] ;TODO
-   [:simpleType {:name "date"} 
-	   [:restriction {:base "string"}]] ;TODO
-   [:simpleType {:name "decimal"} 
-	   [:restriction {:base "string"}]];TODO 
-   
-   ])
 
 (defn schema->clj [hiccup start]
   (let [p (fn [text] (parser text :start start))]
