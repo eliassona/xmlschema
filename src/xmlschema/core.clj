@@ -126,7 +126,8 @@
           (fn ([env# [tmp# & value# :as all#]]
              (cond 
                ref#
-               (do)
+               (let [r# (env# ref#)]
+                 (r# env# all#))
                type-name#   
                (if-let [t# (env# (type-name-of type-name#))]
                  (massage-return-value n# t# (t# env# (prepare-value t# value# default# fixed#)))

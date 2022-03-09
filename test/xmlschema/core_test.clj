@@ -405,14 +405,13 @@
 
 (deftest test-element-ref
   
-  #_(let [e (schema-eval [:schema {:xmlns:hej "adsf"}
-                         [:element {:name "intvalues"}
-                          [:simpleType
-                           [:list {:itemType "positiveInteger"}]]]
-                         [:element {:name "a"}
-                          [:complexType
-                           [:sequence
-                            [:element {:ref "intvalues"}]]]]] :schema)]
-     (is (= [:a [:intvalues [true [true 1][true 2][true 3]]]] 
-            (e [:a [:invalues "1 2 3"]])))
-  ))
+  (let [r (schema-eval 
+            [:schema {:xmlns:hej "adsf"}
+                                  [:element {:name "intvalues"}
+                                   [:simpleType
+                                    [:list {:itemType "positiveInteger"}]]]] :schema)
+        ref-env (-> r meta :env)
+    e (schema-eval [:element {:ref "intvalues"}] :element)]
+      (is (= [:intvalues [true [true 1][true 2][true 3]]] 
+             (e ref-env [:invalues "1 2 3"])))
+    ))
