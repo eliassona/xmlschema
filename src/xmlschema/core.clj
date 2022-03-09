@@ -400,11 +400,15 @@
    
    (defn group [& args]
      `(let [[arg-map# type-fn#] (normalize-args [~@args])
-            n# (:name arg-map#)]
+            n# (:name arg-map#)
+            ref# (:ref arg-map#)]
+        (do-throw (and n# ref#) "name and ref cannot be used at the same time")
         (add-meta 
           (fn 
             ([env# value#]
-              (type-fn# env# value#))
+              (if ref#
+                ((env# ref#) env# value#)
+                (type-fn# env# value#)))
             ([env#]
               (type-fn# env#)
               ))
