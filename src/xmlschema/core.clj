@@ -114,17 +114,24 @@
    (defn element [& args] 
      `(let [[arg-map# type-fn#] (normalize-args [~@args])
             n# (-> arg-map# :name keyword)
+            ref# (:ref arg-map#)
             type-name# (:type arg-map#)
             default# (:default arg-map#)
             fixed# (:fixed arg-map#)]
+        (when (and ref# (or n# type-name#))
+          (throw (IllegalArgumentException. "ref and name type cannot be used at the same time")))
         (when (and default# fixed#)
           (throw (IllegalArgumentException. "default and fixed cannot be used at the same time")))
         (add-meta
-          (fn ([env# [tmp# & value#]] 
-             (if type-name#   
+          (fn ([env# [tmp# & value# :as all#]]
+             (cond 
+               ref#
+               (do)
+               type-name#   
                (if-let [t# (env# (type-name-of type-name#))]
                  (massage-return-value n# t# (t# env# (prepare-value t# value# default# fixed#)))
                  (throw (IllegalArgumentException. (format "Unknown type: %s" type-name#))))
+               :else
                (massage-return-value n# type-fn# (type-fn# env# (prepare-value type-fn# value# default# fixed#)))))
             ([env#] (if type-name#
                       (elements-of env# n# (env# type-name#))

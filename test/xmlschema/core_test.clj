@@ -402,3 +402,17 @@
     (is (= [:intvalues [true [true 1] [false -2] [false "3.0"]]] (e [:intvalues "1 -2 3.0"])))
   ))
 
+
+(deftest test-element-ref
+  
+  #_(let [e (schema-eval [:schema {:xmlns:hej "adsf"}
+                         [:element {:name "intvalues"}
+                          [:simpleType
+                           [:list {:itemType "positiveInteger"}]]]
+                         [:element {:name "a"}
+                          [:complexType
+                           [:sequence
+                            [:element {:ref "intvalues"}]]]]] :schema)]
+     (is (= [:a [:intvalues [true [true 1][true 2][true 3]]]] 
+            (e [:a [:invalues "1 2 3"]])))
+  ))
