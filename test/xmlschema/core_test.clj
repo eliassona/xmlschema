@@ -137,6 +137,28 @@
     
     )
   )
+
+(deftest test-complex-content-extension
+  (let [type-fn
+        (schema->clj 
+          [:schema {:xmlns:person "myfile"}
+           [:complexType {:name "personInfo"}
+            [:sequence {} 
+             [:element {:name "firstname" :type "string"}]
+             [:element {:name "lastname" :type "string"}]]]
+            
+           [:complexType {:name "fullPersonInfo"}
+            [:complexContent
+             [:extension {:base "personInfo"}
+              [:sequence {} 
+               [:element {:name "address" :type "string"}]
+               [:element {:name "city" :type "string"}]
+               [:element {:name "country" :type "string"}]
+               ]]]]
+           [:element {:name "employee" :type "fullPersonInfo"}]] :schema)]
+    type-fn
+  ))
+
 (deftest test-all-type
   (let [type-fn
         (schema-eval [:all {} 
@@ -367,5 +389,13 @@
            (e env [:a {:attr1  "10", :attr2 "20"} "11"]))))
   ))
 
-
+(deftest test-list
+  (let [e (schema-eval [:schema {:xmlns:hej "adsf"}
+                        [:element {:name "intvalues"}
+                         [:simpleType
+                          [:list {:itemType "positiveInteger"}]]]] :schema)]
+    (is (= [:intvalues [true [true 1] [true 2] [true 3]]] (e [:intvalues "1 2 3"])))
+    (is (= [:intvalues [true [true 1] [true 2] [false "3.0"]]] (e [:intvalues "1 2 3.0"])))
+    (is (= [:intvalues [true [true 1] [false -2] [false "3.0"]]] (e [:intvalues "1 -2 3.0"])))
+  ))
 

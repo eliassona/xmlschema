@@ -230,12 +230,18 @@
      (vals arg-map))
    
 
+   
    (defn xml-schema-list [& args]
-     (let [[arg-map] args]
-       (if (= (count args) 1)
-         (assert-req-attrs arg-map :itemType)
-         (comment "TODO")
-         )))
+     `(let [[arg-map# & elements#] (normalize-args [~@args])
+            itemType# (:itemType arg-map#)
+            ]
+        (assert-req-attrs arg-map# :itemType)
+        (add-meta 
+          (fn [env# value#]
+            (let [e# (env# itemType#)]
+              (cons true (map #(e# env# %) (.split value# " ")))))
+          :list nil)
+        ))
 
    (defn notation [& [arg-map]] 
      (assert-req-attrs arg-map :name :public))
@@ -376,14 +382,7 @@
                     [(apply merge (map (fn [attr#] (attr# env# a#)) attrs#))
                     (if (empty? e#) [] (sub-elem# env# e#))])
                     :else
-                    [(sub-elem# env# value#)])
-              #_(if (and (not= (-> sub-elem# meta :type) :simpleContent) 
-                        (map? (first value#)))
-                 (let [e# (rest value#)
-                       a# (first value#)]
-                     [(apply merge (map (fn [attr#] (attr# env# a#)) attrs#))
-                     (if (empty? e#) [] (sub-elem# env# e#))])
-                 [(sub-elem# env# value#)]))
+                    [(sub-elem# env# value#)]))
             ([env#]
               (if sub-elem#
                 (sub-elem# env#)
