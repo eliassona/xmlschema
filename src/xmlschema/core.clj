@@ -8,9 +8,12 @@
      (println "dbg:" '~body "=" x#)
      x#))
 
-(defmacro do-throw [condition msg]
+(defmacro do-throw! [condition msg]
   `(when ~condition
      (throw (IllegalArgumentException. ~msg))))
+
+(defn arg-exception! [msg]
+  (throw (IllegalArgumentException. msg)))
 
 (defn xml->hiccup
    [xml]
@@ -48,7 +51,7 @@
 
    (defn simpleType-restriction [arg-map & conditions]
      (assert-req-attrs arg-map :base)
-     (do-throw (not (same-elements? (map (fn [c] (-> c meta :type)) conditions))) "not the same type") 
+     (do-throw! (not (same-elements? (map (fn [c] (-> c meta :type)) conditions))) "not the same type") 
      (let [env (gensym)
            value (gensym)
            base-result (gensym)
@@ -62,7 +65,7 @@
                 :or `(or ~@(map (fn [c] `(~c ~env ~base-value)) conditions))
                 :and `(and ~@(map (fn [c] `(~c ~env ~base-value)) conditions))
                 )) ~base-value] 
-         (throw (IllegalArgumentException. "Unknown base"))))
+         (arg-exception! "Unknown base")))
         ([~env] (~arg-map :base)))))
 
 
@@ -99,12 +102,12 @@
    
    (defn prepare-value [type-fn value default fixed]
      (let [st (= (-> type-fn meta :type) :simpleType)]
-       (do-throw (and (or default fixed) (not st)) "default and fixed can only be used for simpleType")
+       (do-throw! (and (or default fixed) (not st)) "default and fixed can only be used for simpleType")
        (if st
          (let [v (first value)]
            (cond 
              default (if v v default)
-             fixed (if (= v fixed) v (throw (IllegalArgumentException. (format "is fixed")))) ;TODO better error text
+             fixed (if (= v fixed) v (arg-exception! (format "is fixed"))) ;TODO better error text
              :else v
              ))
          value)))
@@ -121,8 +124,8 @@
             type-name# (:type arg-map#)
             default# (:default arg-map#)
             fixed# (:fixed arg-map#)]
-        (do-throw (and ref# (or n# type-name#)) "ref and name type cannot be used at the same time")
-        (do-throw (and default# fixed#) "default and fixed cannot be used at the same time")
+        (do-throw! (and ref# (or n# type-name#)) "ref and name type cannot be used at the same time")
+        (do-throw! (and default# fixed#) "default and fixed cannot be used at the same time")
         (add-meta
           (fn ([env# [tmp# & value# :as all#]]
              (cond 
@@ -132,7 +135,7 @@
                type-name#   
                (if-let [t# (env# (type-name-of type-name#))]
                  (massage-return-value n# t# (t# env# (prepare-value t# value# default# fixed#)))
-                 (throw (IllegalArgumentException. (format "Unknown type: %s" type-name#))))
+                 (arg-exception! (format "Unknown type: %s" type-name#)))
                :else
                (massage-return-value n# type-fn# (type-fn# env# (prepare-value type-fn# value# default# fixed#)))))
             ([env#]
@@ -154,7 +157,7 @@
    (defn name-of [o]
      (if-let [n (-> o meta :name)]
        (name n)
-       (throw (IllegalArgumentException. "Name attribute missing"))))
+       (arg-exception! "Name attribute missing")))
 
    (def named-root-objects #{:simpleType :complexType 
                              :group :attributeGroup
@@ -410,7 +413,7 @@
      `(let [[arg-map# type-fn#] (normalize-args [~@args])
             n# (:name arg-map#)
             ref# (:ref arg-map#)]
-        (do-throw (and n# ref#) "name and ref cannot be used at the same time")
+        (do-throw! (and n# ref#) "name and ref cannot be used at the same time")
         (add-meta 
           (fn 
             ([env# value#]
@@ -432,16 +435,16 @@
             default# (:default arg-map#)
             fixed# (:fixed arg-map#)
             ]
-        (do-throw (and n# ref#) "name and ref cannot be used at the same time")
-        (do-throw (and default# fixed#) "default and fixed cannot be used at the same time")
+        (do-throw! (and n# ref#) "name and ref cannot be used at the same time")
+        (do-throw! (and default# fixed#) "default and fixed cannot be used at the same time")
         (add-meta
           (fn 
             ([env# value#]
               (let [key# (keyword n#)
                     value# (value# key#)
                     value# (if value# value# default#)]
-                (do-throw (and (not value#) (= use# "required")) (format "required attribute %s is missing" key#))
-                (do-throw (and value# (= use# "prohibited")) (format "attribute %s is not allowed" key#))
+                (do-throw! (and (not value#) (= use# "required")) (format "required attribute %s is missing" key#))
+                (do-throw! (and value# (= use# "prohibited")) (format "attribute %s is not allowed" key#))
                 (cond
                   n#
                   {key# (if value#
@@ -451,10 +454,10 @@
                   (if-let [a# (env# ref#)]
                     (if (= (-> a# meta :type) :attribute)
                       (type-fn# env# value#)
-                      (throw (IllegalArgumentException. "ref must point to an attribute")))
-                    (throw (IllegalArgumentException. "invalid ref")))
+                      (arg-exception! "ref must point to an attribute"))
+                    (arg-exception! "invalid ref"))
                   :else
-                  (throw (IllegalArgumentException. "name or ref must be set"))
+                  (arg-exception! "name or ref must be set")
                   )))
                 
             ([env#]
@@ -470,15 +473,15 @@
      `(let [[arg-map# & type-fn#] (normalize-args [~@args])
             n# (:name arg-map#)
             ref# (:ref arg-map#)]
-        (do-throw (and n# ref#) "name and ref cannot be used at the same time")
-        (do-throw (and ref# (not (empty? type-fn#)))  "ref and attributes cannot be used at the same time")
+        (do-throw! (and n# ref#) "name and ref cannot be used at the same time")
+        (do-throw! (and ref# (not (empty? type-fn#)))  "ref and attributes cannot be used at the same time")
         (add-meta
           (fn ([env# value#]
             (if ref#
               (let [rf# (env# ref#)]
                 (if (= (-> rt# meta :type) :attributeGroup)
                   (rf# env# value#)
-                  (throw (IllegalArgumentException. "ref does not point to an attributeGroup"))))
+                  (arg-exception! "ref does not point to an attributeGroup")))
               (apply merge (map (fn [f#] (f# env# value#)) type-fn#))))
             ([env#]
               (set (apply concat (map (fn [f#] (f# env#)) type-fn#)))))
