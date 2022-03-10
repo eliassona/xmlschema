@@ -46,7 +46,7 @@
    (defn type-name-of [t]
      (ast->clj (parser t :start :type)))
 
-   (defn simple-type-restriction [arg-map & conditions]
+   (defn simpleType-restriction [arg-map & conditions]
      (assert-req-attrs arg-map :base)
      (do-throw (not (same-elements? (map (fn [c] (-> c meta :type)) conditions))) "not the same type") 
      (let [env (gensym)
@@ -201,15 +201,14 @@
 
 
    
-   
-   (defn simple-type [& args]
+   (defn simpleType [& args]
      `(let [[arg-map# type-fn#] (normalize-args [~@args])
             n# (:name arg-map#)]
         (add-meta
           (condp = n# 
             "string"
             (fn ([env# value#] [true value#])
-               ([env#] nil))
+               ([env#] "string"))
             "integer"
             (fn ([env# value#]
               (try 
@@ -217,13 +216,15 @@
                   [true v#])
                 (catch NumberFormatException e#
                   [false value#])))
-                ([env#] nil))
+                ([env#] "integer"))
             "boolean"
             (fn ([env# value#] 
                   (let [v# (read-string value#)]
                     (if (boolean? v#) [true v#] [false value#])))
-               ([env#] nil))
-            (fn [env# value#] (type-fn# env# value#))) 
+               ([env#] "boolean"))
+            (fn 
+              ([env# value#] (type-fn# env# value#))
+              ([env#] (if n# n# (type-fn# env#))))) 
           :simpleType n#)))
      
 
@@ -561,12 +562,12 @@
       :attrs (fn [& args] (apply hash-map args))
       :req-attrs (fn [& args] (apply hash-map args))
       :enumeration enumeration
-      :simpleType-restriction simple-type-restriction
+      :simpleType-restriction simpleType-restriction
       :maxInclusive max-inclusive
       :minInclusive min-inclusive
       :maxExclusive max-exclusive
       :minExclusive min-exclusive
-      :simpleType simple-type
+      :simpleType simpleType
       :element element
       :schema schema
       :keyref keyref

@@ -213,7 +213,7 @@
 
 
 (deftest schema-layout
-  (is (= {:elements [:a :b]
+  (is (= {:elements [[:a "string"] [:b "string"]]
           :env 
           #{"date" "hexBinary" "decimal" 
             "base64Binary" "anyURI" 
@@ -333,7 +333,7 @@
                    "employee" "a" "integer" "nonNegativeInteger" 
                    "anyURI" "nonPositiveInteger" "date" 
                    "base64Binary" "unsignedShort" "byte" 
-                   "positiveInteger" "decimal"}, :elements [:member :student :employee :a]} (s)))
+                   "positiveInteger" "decimal"}, :elements [[:member "string"] [:student "string"] [:employee "string"] [:a "string"]]} (s)))
     (is (= [:student [true "hej"]] (s [:student "hej"])))
   ))
 
@@ -411,6 +411,6 @@
         e (schema-eval [:element {:ref "intvalues"}] :element)]
     (is (= [:intvalues [true "1 2 3"]] 
            (e ref-env [:invalues "1 2 3"])))
-    (is (= :intvalues (e ref-env)))
+    (is (= [:intvalues "string"] (e ref-env)))
     
     ))
