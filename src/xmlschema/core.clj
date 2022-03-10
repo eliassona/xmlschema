@@ -134,9 +134,14 @@
                  (throw (IllegalArgumentException. (format "Unknown type: %s" type-name#))))
                :else
                (massage-return-value n# type-fn# (type-fn# env# (prepare-value type-fn# value# default# fixed#)))))
-            ([env#] (if type-name#
-                      (elements-of env# n# (env# type-name#))
-                      (elements-of env# n# type-fn#))))
+            ([env#]
+              (cond 
+                ref#
+                ((env# ref#) env#)
+                type-name#
+                (elements-of env# n# (env# type-name#))
+                :else
+                (elements-of env# n# type-fn#))))
           :element n#)))
 
    
@@ -245,9 +250,10 @@
             ]
         (assert-req-attrs arg-map# :itemType)
         (add-meta 
-          (fn [env# value#]
+          (fn ([env# value#]
             (let [e# (env# itemType#)]
               (cons true (map #(e# env# %) (.split value# " ")))))
+            ([env#] itemType#))
           :list nil)
         ))
 

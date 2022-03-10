@@ -406,10 +406,11 @@
 (deftest test-element-ref
   (let [r (schema-eval 
             [:schema {:xmlns:hej "adsf"}
-                                  [:element {:name "intvalues"}
-                                   [:simpleType
-                                    [:list {:itemType "positiveInteger"}]]]] :schema)
+                                  [:element {:name "intvalues" :type "string"}]] :schema)
         ref-env (-> r meta :env)
         e (schema-eval [:element {:ref "intvalues"}] :element)]
-    (is (= [:intvalues [true [true 1][true 2][true 3]]] 
-           (e ref-env [:invalues "1 2 3"])))))
+    (is (= [:intvalues [true "1 2 3"]] 
+           (e ref-env [:invalues "1 2 3"])))
+    (is (= :intvalues (e ref-env)))
+    
+    ))
