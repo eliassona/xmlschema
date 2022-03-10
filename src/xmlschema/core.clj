@@ -183,7 +183,7 @@
      `(let [[arg-map# & root-objects#] (normalize-args [~@elements])
             elements# (filter (fn [e#] (= (:type (meta e#)) :element)) root-objects#)
             elem-map# (apply merge (map (fn [e#] {(-> e# meta :name) e#}) elements#))
-            env# (merge ~'env (apply merge (map (fn [e#] {(name-of e#) e#}) (only-named-objects root-objects#))))
+            env# (merge ~`env (apply merge (map (fn [e#] {(name-of e#) e#}) (only-named-objects root-objects#))))
             imports# (filter #(= (-> % meta :type) :import) root-objects#)
             import-env# (apply merge (map #(-> % meta :env)  imports#))
             env# (apply merge env# import-env#)
