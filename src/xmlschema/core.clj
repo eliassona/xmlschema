@@ -54,7 +54,7 @@
            base-result (gensym)
            base-value (gensym)
            logic-expr (if (empty? conditions) :empty (-> conditions first meta :type))]
-     `(fn [~env ~value]
+     `(fn ([~env ~value]
         (if-let [[~base-result ~base-value] ((~env ~(type-name-of (arg-map :base))) ~env ~value)]
          [(and ~base-result
              ~(condp = logic-expr
@@ -62,7 +62,8 @@
                 :or `(or ~@(map (fn [c] `(~c ~env ~base-value)) conditions))
                 :and `(and ~@(map (fn [c] `(~c ~env ~base-value)) conditions))
                 )) ~base-value] 
-         (throw (IllegalArgumentException. "Unknown base"))))))
+         (throw (IllegalArgumentException. "Unknown base"))))
+        ([~env] (~arg-map :base)))))
 
 
    
@@ -457,7 +458,9 @@
                   )))
                 
             ([env#]
-              #{n#}
+              (cond
+                ref# ((env# ref#) env#)
+                n# [n# (if t# t# (type-fn# env#))])
               ))
         :attribute n#)))
    

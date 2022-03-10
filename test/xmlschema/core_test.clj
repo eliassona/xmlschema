@@ -275,7 +275,7 @@
                  [:enumeration {:value "Pig"}]
                  [:enumeration {:value "Horse"}]]]]
             :attribute)]
-    (is (= #{"code"} (a env)))
+    (is (= ["code" "string"] (a env)))
     (is (= {:code [true "Pig"]} (a env {:code "Pig"})))
     (is (= {:code [true nil]} (a env {})))
     ))
@@ -333,7 +333,8 @@
                    "employee" "a" "integer" "nonNegativeInteger" 
                    "anyURI" "nonPositiveInteger" "date" 
                    "base64Binary" "unsignedShort" "byte" 
-                   "positiveInteger" "decimal"}, :elements [[:member "string"] [:student "string"] [:employee "string"] [:a "string"]]} (s)))
+                   "positiveInteger" "decimal"}, :elements [[:member "string"] [:student "string"] [:employee "string"] [:a "string"]]} 
+           (s)))
     (is (= [:student [true "hej"]] (s [:student "hej"])))
   ))
 
