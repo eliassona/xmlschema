@@ -99,7 +99,6 @@
        [n t]
        n))
    
-   
    (defn prepare-value [type-fn value default fixed]
      (let [st (= (-> type-fn meta :type) :simpleType)]
        (do-throw! (and (or default fixed) (not st)) "default and fixed can only be used for simpleType")
@@ -148,9 +147,6 @@
                 (elements-of env# n# type-fn#))))
           :element n#)))
 
-   
-
-   
    (defn type? [expected-type o]
      (= expected-type (-> o meta :type)))
    
@@ -172,7 +168,6 @@
       (if (> ix 0)
         (.substring t 0 (inc ix))
         t)))
-
    
    (defn ns-of [arg-map]
      (when-let [xmlns (first (filter #(.startsWith % "xmlns:") (map name (keys arg-map))))]
@@ -203,8 +198,6 @@
                            (fn [e#] (e# env#)) elements#))
                  :env env-key-set#})) {:type :schema, :xmlns (ns-of arg-map#), :env env#})))
 
-
-   
    (defn simpleType [& args]
      `(let [[arg-map# type-fn#] (normalize-args [~@args])
             n# (:name arg-map#)]
@@ -230,7 +223,6 @@
               ([env# value#] (type-fn# env# value#))
               ([env#] (if n# n# (type-fn# env#))))) 
           :simpleType n#)))
-     
 
    (defn keyref [& [arg-map]] 
      (assert-req-attrs arg-map :name :refer))
@@ -246,8 +238,6 @@
    (defn include [arg-map & args] 
      (assert-req-attrs arg-map :schemaLocation)
      (vals arg-map))
-   
-
    
    (defn xml-schema-list [& args]
      `(let [[arg-map# & elements#] (normalize-args [~@args])
@@ -306,7 +296,6 @@
        (fn [v] 
          (let [n (first v)]
            ((n m) env v))) value))
-   
    
    (defn extract-name [env arg]
      (let [t (-> arg meta :type)]
@@ -367,8 +356,6 @@
                          true)))
             ([env#] (flatten (all-sequence-items env# (rest args#)))))
           :all)))
-     
-   
    
    (def complex-type-sub-element #{:simpleContent 
                                    :complexContent 
@@ -381,8 +368,6 @@
    
    (defn attrs-of [args]
      (filter (fn [v] (contains? attrs-sub-element (-> v meta :type))) args))
-   
-   
    
    (defn complexType [& args]
      `(let [args# (normalize-args [~@args])
@@ -406,8 +391,7 @@
               (if sub-elem#
                 (sub-elem# env#)
                 [])))
-          :complexType n#))
-     )
+          :complexType n#)))
    
    (defn group [& args]
      `(let [[arg-map# type-fn#] (normalize-args [~@args])
@@ -424,7 +408,6 @@
               (type-fn# env#)
               ))
         :group n#)))
-    
    
    (defn attribute [& args]
      `(let [[arg-map# type-fn#] (normalize-args [~@args])
@@ -467,8 +450,6 @@
               ))
         :attribute n#)))
    
-     
-   
    (defn attributeGroup [& args]
      `(let [[arg-map# & type-fn#] (normalize-args [~@args])
             n# (:name arg-map#)
@@ -487,8 +468,6 @@
               (set (apply concat (map (fn [f#] (f# env#)) type-fn#)))))
           :attributeGroup n#)))
    
-   
-   
    (defn memberTypes-of [mt]
      (if mt
        (vec (ast->clj (parser mt :start :memberTypes)))
@@ -504,14 +483,12 @@
              (if (first e)
                e
                (recur (rest results))))))))
-              
    
    (defn union [& args]
      `(let [[arg-map# & type-fn#] (normalize-args [~@args])
             memberTypes# (memberTypes-of (:memberTypes arg-map#))]
         (fn [env# value#]
-          (union-or-of (map #(% env# value#) (concat (map env# memberTypes#) type-fn#))))
-    ))
+          (union-or-of (map #(% env# value#) (concat (map env# memberTypes#) type-fn#))))))
    
    (defn xs-type 
      ([t] t)
@@ -535,14 +512,12 @@
         (fn [env#]
             (let [s# (:env (schema#))]
               (set (map (partial str xmlns#) s#))))
-            
         {:type :import, :env schema-env#})))
 
    (defn attr-map-of [env attrs attr-value-map]
      (if (empty? attrs)
        {}
        (apply merge (map #(% env attr-value-map) attrs))))
-     
    
    (defn simpleContent-extension [arg-map & attrs]
      `(let [type-name# (:base ~arg-map)
@@ -559,7 +534,6 @@
           (fn [env# value#]
             (type-fn# env# value#))
           :simpleContent nil)))
-            
    
    (def ast->clj-map  
      {
@@ -606,12 +580,9 @@
        (insta/transform
        ast->clj-map 
        ast))
-
-
    
 (defn slurp-file [url]
-  (slurp (clojure.java.io/resource url))
-  )
+  (slurp (clojure.java.io/resource url)))
    
 (declare schema-eval)
 
@@ -623,8 +594,7 @@
     (if (empty? includes)
       []
       (let [hiccups (mapcat (comp (fn [[_ _ & e]] e) hiccup-of slurp-file) includes)
-            child-hiccups (expand-includes hiccups)
-            ]
+            child-hiccups (expand-includes hiccups)]
             (concat hiccups child-hiccups))))) 
   ([hiccup start]
     (let [[_ arg-map & elements] hiccup]
@@ -651,15 +621,14 @@
 
 
 (def predefs
-  [[:simpleType {:name "string"} 
-    [:restriction {:base ""} 
-	     ]]
-   [:simpleType {:name "integer"} 
-    [:restriction {:base ""} 
-	     ]]
-   [:simpleType {:name "boolean"} 
-    [:restriction {:base ""} 
-	     ]]
+  [[:simpleType {:name "string"} [:restriction {:base ""}]]
+   [:simpleType {:name "integer"} [:restriction {:base ""}]]
+   [:simpleType {:name "boolean"} [:restriction {:base ""}]]
+   [:simpleType {:name "anyURI"} [:restriction {:base "string"}]] ;TODO
+   [:simpleType {:name "base64Binary"} [:restriction {:base "string"}]] ;TODO
+   [:simpleType {:name "hexBinary"} [:restriction {:base "string"}]] ;TODO
+   [:simpleType {:name "date"} [:restriction {:base "string"}]] ;TODO
+   [:simpleType {:name "decimal"} [:restriction {:base "string"}]];TODO 
    [:simpleType {:name "byte"} 
     [:restriction {:base "integer"} 
 	    [:minInclusive {:value "-128"}] 
@@ -688,17 +657,6 @@
    [:simpleType {:name "negativeInteger"} 
 	   [:restriction {:base "integer"} 
 		   [:maxExclusive {:value "0"}]]]
-   [:simpleType {:name "anyURI"} 
-	   [:restriction {:base "string"}]] ;TODO
-   [:simpleType {:name "base64Binary"} 
-	   [:restriction {:base "string"}]] ;TODO
-   [:simpleType {:name "hexBinary"} 
-	   [:restriction {:base "string"}]] ;TODO
-   [:simpleType {:name "date"} 
-	   [:restriction {:base "string"}]] ;TODO
-   [:simpleType {:name "decimal"} 
-	   [:restriction {:base "string"}]];TODO 
-   
    ])
 
 (def env
