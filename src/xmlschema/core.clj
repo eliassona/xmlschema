@@ -66,7 +66,7 @@
                 :and `(and ~@(map (fn [c] `(~c ~env ~base-value)) conditions))
                 )) ~base-value] 
          (arg-exception! "Unknown base")))
-        ([~env] (~arg-map :base)))))
+        ([~env] ((~env (~arg-map :base)) ~env)))))
 
 
    
@@ -630,7 +630,6 @@
     (let [[_ arg-map & elements] hiccup]
       (if (= start :schema)
         (let [expanded-elements (expand-includes elements)]
-          #_(pprint expanded-elements)
           (vec (cons :schema (cons arg-map (filter-includes (apply conj elements (filter #(not (empty? %)) expanded-elements)))))))
         hiccup))))
         

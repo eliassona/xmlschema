@@ -18,6 +18,7 @@ public class XmlSchemaTest {
 					 schema.validateFromXmlString("<elem>10</elem>"));
 		assertEquals(Arrays.asList(kwOf("elem"), Arrays.asList(false, -1L)), 
 				 	 schema.validateFromXmlString("<elem>-1</elem>"));
+		assertEquals(Arrays.asList(kwOf("elem"), "positiveInteger"), schema.layout());
 	}
 	
 }
