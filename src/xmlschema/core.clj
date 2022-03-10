@@ -641,7 +641,9 @@
   (eval (schema->clj hiccup start)))
   ([hiccup] (schema-eval hiccup :schema)))
    
-   
+(defn layout-of [schema]
+  (-> (schema) :elements vec))
+
 (defn parse-predef [predef]
   (ast->clj (parser (pr-str predef) :start :simpleType)))
 
