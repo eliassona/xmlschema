@@ -71,7 +71,7 @@
 
 
    
-   (defn enumeration [arg-map]
+   (defn enumeration [arg-map & _]
      (with-meta `(fn [env# value#]
                   (when-let [exp-value# (:value ~arg-map)]
                     (= value# exp-value#))) {:type :or}))
@@ -83,26 +83,26 @@
            `(fn [env# value#]
               (~op value# ~(Long/valueOf exp-value))) {:type :and}))) ;TODO make better cast here
 
-   (defn max-inclusive [arg-map]
+   (defn max-inclusive [arg-map & _]
      (numeric-op-expr arg-map `<=))
 
-   (defn min-inclusive [arg-map]
+   (defn min-inclusive [arg-map & _]
      (numeric-op-expr arg-map `>=))
 
-   (defn max-exclusive [arg-map]
+   (defn max-exclusive [arg-map & _]
      (numeric-op-expr arg-map `<))
 
-   (defn min-exclusive [arg-map]
+   (defn min-exclusive [arg-map & _]
      (numeric-op-expr arg-map `>))
    
-   (defn pattern [arg-map]
+   (defn pattern [arg-map & _]
      (let [m (Pattern/compile (:value arg-map))]
        (with-meta
          `(fn [env# value#]
             (not= (re-matches ~m value#) nil))
          {:type :or})))
    
-   (defn totalDigits [arg-map]
+   (defn totalDigits [arg-map & _]
      (let [n (-> arg-map :value read-string)]
        (with-meta
          `(fn [env# value#]
@@ -110,6 +110,22 @@
          {:type :or}))
      )
    
+   (defn min-max-length [arg-map op]
+     (let [n (-> arg-map :value read-string)]
+       (with-meta
+         `(fn [env# value#]
+            (~op (count value#) ~n)) 
+         {:type :and}))
+     )
+   
+   (defn minLength [arg-map & _] (min-max-length arg-map >=))
+   (defn maxLength [arg-map & _] (min-max-length arg-map <=))
+   
+   (defn fractionDigits [arg-map]
+     (do-throw! true "not implemented yet"))
+   
+   (defn whiteSpace [arg-map]
+     (do-throw! true "not implemented yet"))
 
    (defn elements-of [env n type-fn]
      (if-let [t (type-fn env)]
@@ -566,6 +582,10 @@
       :minExclusive min-exclusive
       :pattern pattern
       :totalDigits totalDigits
+      :minLength minLength
+      :maxLength maxLength
+      :whiteSpace whiteSpace
+      :fractionDigits fractionDigits
       :simpleType simpleType
       :element element
       :schema schema
