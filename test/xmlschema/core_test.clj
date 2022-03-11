@@ -38,6 +38,8 @@
   (assert-schema "predef_restrictions.xml" :schema))
 (deftest test-keyref
   (assert-schema "keyref.xml" :keyref))
+(deftest test-attribute-with-use
+  (assert-schema "attribute_with_use.xml" :schema))
 
 (deftest ast-test-enum
   (let [restriction (schema-eval [:restriction {:base "string"} 

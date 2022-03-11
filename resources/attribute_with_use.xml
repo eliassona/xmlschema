@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<schema xmlns = "http://www.w3.org/2001/XMLSchema"
+  targetNamespace="http://xml.digitalroute.com/test"
+  xmlns:t2="http://xml.digitalroute.com/test2">
+<attribute name="code" use="optional">
+  <simpleType>
+    <restriction base="string">
+      <enumeration value="Pig"/>
+      <enumeration value="Horse"/>
+    </restriction>
+  </simpleType>
+</attribute>
+
+<complexType name="Udr">
+  <attribute name="noneAttr" type="string"/>
+  <attribute name="requiredAttr" use="required">
+   <simpleType>
+    <restriction base="string">
+      <enumeration value="anders"/>
+      <enumeration value="bengt"/>
+    </restriction>
+   </simpleType>
+  </attribute>  
+  <attribute name="optionalAttr" type="string" use="optional"/>
+  <attribute name="prohibitedAttr" type="string" use="prohibited"/>
+  <xs:attribute ref="code"/>
+</complexType>
+
+</schema>

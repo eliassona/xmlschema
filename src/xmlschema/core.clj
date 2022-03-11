@@ -118,13 +118,13 @@
          {:type :and}))
      )
    
-   (defn minLength [arg-map & _] (min-max-length arg-map >=))
-   (defn maxLength [arg-map & _] (min-max-length arg-map <=))
+   (defn minLength [arg-map & _] (min-max-length arg-map `>=))
+   (defn maxLength [arg-map & _] (min-max-length arg-map `<=))
    
-   (defn fractionDigits [arg-map]
+   (defn fractionDigits [arg-map & _]
      (do-throw! true "not implemented yet"))
    
-   (defn whiteSpace [arg-map]
+   (defn whiteSpace [arg-map & _]
      (do-throw! true "not implemented yet"))
 
    (defn elements-of [env n type-fn]
@@ -642,7 +642,6 @@
           (vec (cons :schema (cons arg-map (filter-includes (apply conj elements (filter #(not (empty? %)) expanded-elements)))))))
         hiccup))))
         
-
 (defn schema->clj [hiccup start]
   (let [p (fn [text] (parser text :start start))]
     (-> (if (string? hiccup) (hiccup-of hiccup) hiccup) (expand-includes start) pr-str p ast->clj)))
@@ -654,6 +653,9 @@
    
 (defn layout-of [schema]
   (-> (schema) :elements vec))
+
+(defn parse [xml]
+  (-> xml hiccup-of pr-str (parser :start :schema)))
 
 (defn parse-predef [predef]
   (ast->clj (parser (pr-str predef) :start :simpleType)))
