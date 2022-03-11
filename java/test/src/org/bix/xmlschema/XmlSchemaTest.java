@@ -4,6 +4,8 @@ import static java.util.Arrays.asList;
 import static org.bix.xmlschema.XmlSchema.kwOf;
 import static org.junit.Assert.assertEquals;
 
+import java.util.List;
+
 import org.junit.Test;
 
 public class XmlSchemaTest {
@@ -32,6 +34,14 @@ public class XmlSchemaTest {
 		assertEquals(asList(asList(kwOf("elem1"), "positiveInteger"),
 				            asList(kwOf("elem2"), "string")), 
 				schema.layout());//with a better syntax [[:elem1 "positiveInteger"][:elem2 "string"]]
+	}
+	
+	@Test
+	public void test_parse() {
+		String xml = XmlSchema.slurp("/Users/anderseliasson/src/xmlschema/resources/attribute_with_use.xml");
+        List res = XmlSchema.parse(xml);
+        
+        
 	}
 	
 }

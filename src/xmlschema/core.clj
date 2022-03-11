@@ -644,7 +644,7 @@
         
 (defn schema->clj [hiccup start]
   (let [p (fn [text] (parser text :start start))]
-    (-> (if (string? hiccup) (hiccup-of hiccup) hiccup) (expand-includes start) pr-str p ast->clj)))
+    (-> (if (string? hiccup) (hiccup-of (.trim hiccup)) hiccup) (expand-includes start) pr-str p ast->clj)))
 
 (defn schema-eval 
   ([hiccup start]
@@ -655,7 +655,7 @@
   (-> (schema) :elements vec))
 
 (defn parse [xml]
-  (-> xml hiccup-of pr-str (parser :start :schema)))
+  (-> xml .trim hiccup-of pr-str (parser :start :schema)))
 
 (defn parse-predef [predef]
   (ast->clj (parser (pr-str predef) :start :simpleType)))

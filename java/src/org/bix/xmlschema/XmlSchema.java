@@ -22,11 +22,13 @@ public class XmlSchema {
 	private final static IFn hiccupOf;
 	private final static IFn layoutOf;
 	private final static IFn keyword;
+	private final static IFn parse;
 	
 	static {
 		require = Clojure.var(CLOJURE_CORE, "require");
 		require.invoke(Clojure.read(XMLSCHEMA_CORE));
 		keyword = Clojure.var(CLOJURE_CORE, "keyword");
+		parse = Clojure.var(XMLSCHEMA_CORE, "parse");
 		clSlurp = Clojure.var(CLOJURE_CORE, "slurp");
 		schemaEval = Clojure.var(XMLSCHEMA_CORE, "schema-eval");
 		hiccupOf = Clojure.var(XMLSCHEMA_CORE, "hiccup-of");
@@ -58,10 +60,14 @@ public class XmlSchema {
 		return fromXmlString(slurp(filename));
 	}
 	
+	public static List parse(String xml) {
+		return (List) parse.invoke(xml);
+	}
+	
 	public static Object kwOf(String str) {
 		return keyword.invoke(str);
 	}
-	private static final String slurp(final Object filenameOrString) {
+	public static final String slurp(final Object filenameOrString) {
 		return (String) clSlurp.invoke(filenameOrString);
 	}
 	private final IFn schema;

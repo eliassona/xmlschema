@@ -6,7 +6,7 @@
 
 
 (defn assert-schema [resource start]
-  (let [text (pr-str (hiccup-of (slurp (clojure.java.io/resource resource))))
+  (let [text (pr-str (hiccup-of (.trim (slurp (clojure.java.io/resource resource)))))
         result (parser text :start start)]
     (if (insta/failure? result)
       (is false (insta/get-failure result))
