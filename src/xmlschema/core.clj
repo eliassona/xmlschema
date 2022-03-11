@@ -102,7 +102,13 @@
             (not= (re-matches ~m value#) nil))
          {:type :or})))
    
-   
+   (defn totalDigits [arg-map]
+     (let [n (-> arg-map :value read-string)]
+       (with-meta
+         `(fn [env# value#]
+            (<= (-> value# str count) ~n)) 
+         {:type :or}))
+     )
    
 
    (defn elements-of [env n type-fn]
@@ -559,6 +565,7 @@
       :maxExclusive max-exclusive
       :minExclusive min-exclusive
       :pattern pattern
+      :totalDigits totalDigits
       :simpleType simpleType
       :element element
       :schema schema
