@@ -1,7 +1,8 @@
 (ns xmlschema.core
   (:require [instaparse.core :as insta]
             [clojure.xml :as xml])
-  (:use [clojure.pprint]))
+  (:use [clojure.pprint])
+  (:import [java.util.regex Pattern]))
 
 (defmacro dbg [body]
   `(let [x# ~body]
@@ -93,6 +94,16 @@
 
    (defn min-exclusive [arg-map]
      (numeric-op-expr arg-map `>))
+   
+   (defn pattern [arg-map]
+     (let [m (Pattern/compile (:value arg-map))]
+       (with-meta
+         `(fn [env# value#]
+            (not= (re-matches ~m value#) nil))
+         {:type :or})))
+   
+   
+   
 
    (defn elements-of [env n type-fn]
      (if-let [t (type-fn env)]
@@ -547,6 +558,7 @@
       :minInclusive min-inclusive
       :maxExclusive max-exclusive
       :minExclusive min-exclusive
+      :pattern pattern
       :simpleType simpleType
       :element element
       :schema schema

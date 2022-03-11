@@ -63,6 +63,11 @@
     )
     
 
+(deftest test-pattern-restriction
+  (let [r (schema-eval [:restriction {:base "string"}
+                        [:pattern {:value "[a-zA-Z][a-zA-Z][a-zA-Z]"}]] :simpleType-restriction)]
+    (is (= [true "abc"] (r env "abc")))
+    (is (= [false "abcd"] (r env "abcd")))))
 
 (deftest test-simple-type
   (let [simpleType 
