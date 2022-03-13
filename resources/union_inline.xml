@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schema xmlns:t2="http://xml.digitalroute.com/test2">
+    <element name="sizes">
+    <complexType>
+        <all>
+            <element ref="size"/>
+        </all>
+    </complexType>
+    </element>
+    <element name="size">
+        <simpleType>
+            <union>
+                <simpleType>
+                    <restriction base="positiveInteger">
+                        <enumeration value="20"/>
+                        <enumeration value="30"/>
+                        <enumeration value="40"/>
+                    </restriction>
+                </simpleType>
+                <simpleType>
+                    <restriction base="positiveInteger">
+                        <minInclusive value="2"/>
+                        <maxInclusive value="18"/>
+                    </restriction>
+                </simpleType>
+                <simpleType>
+                    <restriction base="string">
+                        <enumeration value="small"/>
+                        <enumeration value="medium"/>
+                        <enumeration value="large"/>
+                    </restriction>
+                </simpleType>
+                <simpleType>
+                    <restriction base="string">
+                        <enumeration value="S"/>
+                        <enumeration value="M"/>
+                        <enumeration value="L"/>
+                    </restriction>
+                </simpleType>
+            </union>
+        </simpleType>
+    </element>
+</schema>

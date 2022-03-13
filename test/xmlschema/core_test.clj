@@ -40,6 +40,10 @@
   (assert-schema "keyref.xml" :keyref))
 (deftest test-attribute-with-use
   (assert-schema "attribute_with_use.xml" :schema))
+(deftest test-union-inline
+  (assert-schema "union_inline.xml" :schema))
+(deftest test-bigone
+  #_(assert-schema "bigone.xml" :schema))
 
 (deftest ast-test-enum
   (let [restriction (schema-eval [:restriction {:base "string"} 

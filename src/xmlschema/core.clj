@@ -81,7 +81,7 @@
        (when-let [exp-value (:value arg-map)]
          (with-meta 
            `(fn [env# value#]
-              (~op value# ~(Long/valueOf exp-value))) {:type :and}))) ;TODO make better cast here
+              (~op value# ~(read-string exp-value))) {:type :and}))) ;TODO make better cast here
 
    (defn max-inclusive [arg-map & _]
      (numeric-op-expr arg-map `<=))
@@ -247,6 +247,14 @@
                 (catch NumberFormatException e#
                   [false value#])))
                 ([env#] "integer"))
+            "decimal"
+            (fn ([env# value#]
+              (try 
+                (let [v# (dbg (Double/valueOf value#))]
+                  [true v#])
+                (catch NumberFormatException e#
+                  [false value#])))
+                ([env#] "decimal"))
             "boolean"
             (fn ([env# value#] 
                   (let [v# (read-string value#)]
@@ -655,7 +663,7 @@
   (-> (schema) :elements vec))
 
 (defn parse [xml]
-  (-> xml .trim hiccup-of pr-str (parser :start :schema)))
+  (-> (dbg xml) .trim hiccup-of pr-str (parser :start :schema)))
 
 (defn parse-predef [predef]
   (ast->clj (parser (pr-str predef) :start :simpleType)))
