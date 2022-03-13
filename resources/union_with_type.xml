@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schema xmlns:t2="http://xml.digitalroute.com/test2">
+  <element name="udr">
+    <complexType>
+      <sequence>
+        <element name="aunion" type="code"/>
+        <element name="lastname" type="string"/>
+      </sequence>
+    </complexType>
+  </element>
+  <element name="asdf" type="integer"></element>
+  <simpleType name="code">
+    <union>
+      <simpleType>
+        <restriction base="string"/>
+      </simpleType>  
+      <simpleType>
+        <restriction base="integer"/>
+      </simpleType>  
+    </union>
+  </simpleType>
+</schema>

@@ -44,6 +44,8 @@
   (assert-schema "union_inline.xml" :schema))
 (deftest test-bigone
   #_(assert-schema "bigone.xml" :schema))
+(deftest test-union-with-type
+  (assert-schema "union_with_type.xml" :schema))
 
 (deftest ast-test-enum
   (let [restriction (schema-eval [:restriction {:base "string"} 
