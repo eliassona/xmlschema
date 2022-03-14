@@ -167,6 +167,29 @@
        `[~name ~@value] 
         [name value]))
    
+   (defn element-fn [type-fn name ref type-name default fixed]
+     (add-meta
+       (fn ([env [tmp & value :as all]]
+        (cond 
+          ref
+          (let [r (env ref)]
+            (r env all))
+          type-name   
+          (if-let [t (env (type-name-of type-name))]
+            (massage-return-value name t (t env (prepare-value t value default fixed)))
+            (arg-exception! (format "Unknown type: %s" type-name)))
+          :else
+          (massage-return-value name type-fn (type-fn env (prepare-value type-fn value default fixed)))))
+       ([env]
+         (cond 
+           ref
+           ((env ref) env)
+           type-name
+           (elements-of env name (env type-name))
+           :else
+           (elements-of env name type-fn))))
+      :element name))
+   
    (defn element [& args] 
      `(let [[arg-map# type-fn#] (normalize-args [~@args])
             n# (-> arg-map# :name keyword)
@@ -176,27 +199,7 @@
             fixed# (:fixed arg-map#)]
         (do-throw! (and ref# (or n# type-name#)) "ref and name type cannot be used at the same time")
         (do-throw! (and default# fixed#) "default and fixed cannot be used at the same time")
-        (add-meta
-          (fn ([env# [tmp# & value# :as all#]]
-             (cond 
-               ref#
-               (let [r# (env# ref#)]
-                 (r# env# all#))
-               type-name#   
-               (if-let [t# (env# (type-name-of type-name#))]
-                 (massage-return-value n# t# (t# env# (prepare-value t# value# default# fixed#)))
-                 (arg-exception! (format "Unknown type: %s" type-name#)))
-               :else
-               (massage-return-value n# type-fn# (type-fn# env# (prepare-value type-fn# value# default# fixed#)))))
-            ([env#]
-              (cond 
-                ref#
-                ((env# ref#) env#)
-                type-name#
-                (elements-of env# n# (env# type-name#))
-                :else
-                (elements-of env# n# type-fn#))))
-          :element n#)))
+        (element-fn type-fn# n# ref# type-name# default# fixed#)))
 
    (defn type? [expected-type o]
      (= expected-type (-> o meta :type)))
@@ -227,6 +230,17 @@
    (defn name-spaces-of [xmlns imports]
      imports)
    
+   (defn schema-fn [elem-map elements env-key-set arg-map]
+     (with-meta 
+      (fn 
+        ([xml]
+            ((elem-map (first xml)) env xml))
+        ([]
+          {:elements 
+           (filter identity
+                   (map
+                     (fn [e] (e env)) elements))
+           :env env-key-set})) {:type :schema, :xmlns (ns-of arg-map), :env env}))
    
    (defn schema [& elements]
      `(let [[arg-map# & root-objects#] (normalize-args [~@elements])
@@ -238,6 +252,7 @@
             env# (apply merge env# import-env#)
             env-key-set# (set (keys env#))
             ]
+          #_(schema-fn elem-map# elements# env-key-set# arg-map#)
           (with-meta 
             (fn 
               ([xml#]
@@ -582,8 +597,7 @@
        (apply merge (map #(% env attr-value-map) attrs))))
    
    (defn simpleContent-extension [arg-map & attrs]
-     `(let [type-name# (:base ~arg-map)
-            ]
+     `(let [type-name# (:base ~arg-map)]
         (add-meta 
           (fn [env# [attr-value-map# value#]]
             (let [v# ((env# type-name#) env# value#)]
