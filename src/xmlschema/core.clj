@@ -50,25 +50,42 @@
    (defn type-name-of [t]
      (ast->clj (parser t :start :type)))
 
-   (defn simpleType-restriction [arg-map & conditions]
-     (assert-req-attrs arg-map :base)
-     (do-throw! (not (same-elements? (map (fn [c] (-> c meta :type)) conditions))) "not the same type") 
-     (let [env (gensym)
-           value (gensym)
-           base-result (gensym)
-           base-value (gensym)
-           logic-expr (if (empty? conditions) :empty (-> conditions first meta :type))]
-     `(fn ([~env ~value]
-        (if-let [[~base-result ~base-value] ((~env ~(type-name-of (arg-map :base))) ~env ~value)]
-         [(and ~base-result
-             ~(condp = logic-expr
-                :empty true
-                :or `(or ~@(map (fn [c] `(~c ~env ~base-value)) conditions))
-                :and `(and ~@(map (fn [c] `(~c ~env ~base-value)) conditions))
-                )) ~base-value] 
-         (arg-exception! "Unknown base")))
-        ([~env] ((~env (~arg-map :base)) ~env)))))
+   
 
+   (defn or-fn [args]
+     (loop [args args]
+       (if (not (empty? args))
+         (if (first args)
+           true
+           (recur (rest args)))
+         false)))
+           
+   (defn and-fn [args]
+     (loop [args args]
+       (if (not (empty? args))
+         (if (first args)
+           (recur (rest args))
+           false)
+         true)))
+   
+   (defn simpleType-restriction [arg-map & conditions]
+     `(let [base# (:base ~arg-map)
+            conds# [~@conditions]             
+            logic-expr# (if (empty? conds#) :empty (-> conds# first meta :type))
+            ]
+        (do-throw! (= base# nil) "base attribute must be set")
+        (do-throw! (not (same-elements? (map (fn [c#] (-> c# meta :type)) conds#))) "not the same type")
+        (fn ([env# value#]
+          (if-let [[base-result# base-value#] ((env# (type-name-of base#)) env# value#)]
+            [(and base-result#
+                (let [statements# (vec (map (fn [c#] (c# env# base-value#)) conds#))]
+                  (condp = logic-expr#
+                    :empty true
+                    :or (or-fn statements#)
+                    :and (and-fn statements#)
+                    ))) base-value#] 
+            (arg-exception! "Unknown base")))
+        ([env#] ((env# (~arg-map :base)) env#)))))
 
    
    (defn enumeration [arg-map & _]
