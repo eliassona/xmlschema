@@ -230,7 +230,7 @@
    (defn name-spaces-of [xmlns imports]
      imports)
    
-   (defn schema-fn [elem-map elements env-key-set arg-map]
+   (defn schema-fn [env elem-map elements env-key-set arg-map]
      (with-meta 
       (fn 
         ([xml]
@@ -252,17 +252,7 @@
             env# (apply merge env# import-env#)
             env-key-set# (set (keys env#))
             ]
-          #_(schema-fn elem-map# elements# env-key-set# arg-map#)
-          (with-meta 
-            (fn 
-              ([xml#]
-                  ((elem-map# (first xml#)) env# xml#))
-              ([]
-                {:elements 
-                 (filter identity
-                         (map
-                           (fn [e#] (e# env#)) elements#))
-                 :env env-key-set#})) {:type :schema, :xmlns (ns-of arg-map#), :env env#})))
+          (schema-fn env# elem-map# elements# env-key-set# arg-map#)))
 
    (defn simpleType-fn [name type-fn]
      (add-meta
