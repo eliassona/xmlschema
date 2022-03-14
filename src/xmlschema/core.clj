@@ -121,6 +121,8 @@
    (defn minLength [arg-map & _] (min-max-length arg-map `>=))
    (defn maxLength [arg-map & _] (min-max-length arg-map `<=))
    
+   
+   
    (defn fractionDigits [arg-map & _]
      (let [n (-> arg-map :value read-string)]
        (do-throw! (< n 1) "must be bigger than zero")
@@ -132,7 +134,7 @@
             (<= (count fr#) ~n))) 
          {:type :and})))
    
-   
+
    
    (defn whiteSpace [arg-map & _]
      (let [v (:value arg-map)]
@@ -247,39 +249,42 @@
                            (fn [e#] (e# env#)) elements#))
                  :env env-key-set#})) {:type :schema, :xmlns (ns-of arg-map#), :env env#})))
 
+   (defn simpleType-fn [name type-fn]
+     (add-meta
+      (condp = name 
+        "string"
+        (fn ([env value] [true value])
+           ([env] "string"))
+        "integer"
+        (fn ([env value]
+          (try 
+            (let [v (Long/valueOf value)]
+              [true v])
+            (catch NumberFormatException e
+              [false value])))
+            ([env] "integer"))
+        "decimal"
+        (fn ([env value]
+          (try 
+            (let [v (dbg (Double/valueOf value))]
+              [true v])
+            (catch NumberFormatException e
+              [false value])))
+            ([env] "decimal"))
+        "boolean"
+        (fn ([env value] 
+              (let [v (read-string value)]
+                (if (boolean? v) [true v] [false value])))
+           ([env] "boolean"))
+        (fn 
+          ([env value] (type-fn env value))
+          ([env] (if name name (type-fn env))))) 
+      :simpleType name))
+   
    (defn simpleType [& args]
      `(let [[arg-map# type-fn#] (normalize-args [~@args])
             n# (:name arg-map#)]
-        (add-meta
-          (condp = n# 
-            "string"
-            (fn ([env# value#] [true value#])
-               ([env#] "string"))
-            "integer"
-            (fn ([env# value#]
-              (try 
-                (let [v# (Long/valueOf value#)]
-                  [true v#])
-                (catch NumberFormatException e#
-                  [false value#])))
-                ([env#] "integer"))
-            "decimal"
-            (fn ([env# value#]
-              (try 
-                (let [v# (dbg (Double/valueOf value#))]
-                  [true v#])
-                (catch NumberFormatException e#
-                  [false value#])))
-                ([env#] "decimal"))
-            "boolean"
-            (fn ([env# value#] 
-                  (let [v# (read-string value#)]
-                    (if (boolean? v#) [true v#] [false value#])))
-               ([env#] "boolean"))
-            (fn 
-              ([env# value#] (type-fn# env# value#))
-              ([env#] (if n# n# (type-fn# env#))))) 
-          :simpleType n#)))
+        (simpleType-fn n# type-fn#)))
 
    (defn keyref [& [arg-map]] 
      (assert-req-attrs arg-map :name :refer))
