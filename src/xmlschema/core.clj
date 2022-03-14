@@ -306,18 +306,20 @@
      (assert-req-attrs arg-map :schemaLocation)
      (vals arg-map))
    
+   
+   (defn xml-schema-list-fn [itemType]
+     (add-meta 
+          (fn ([env value]
+            (let [e (env itemType)]
+              (cons true (map #(e env %) (.split value " ")))))
+            ([env] itemType))
+          :list nil))
+   
    (defn xml-schema-list [& args]
      `(let [[arg-map# & elements#] (normalize-args [~@args])
-            itemType# (:itemType arg-map#)
-            ]
+            itemType# (:itemType arg-map#)]
         (assert-req-attrs arg-map# :itemType)
-        (add-meta 
-          (fn ([env# value#]
-            (let [e# (env# itemType#)]
-              (cons true (map #(e# env# %) (.split value# " ")))))
-            ([env#] itemType#))
-          :list nil)
-        ))
+        (xml-schema-list-fn itemType#)))
 
    (defn notation [& [arg-map]] 
      (assert-req-attrs arg-map :name :public))
