@@ -375,25 +375,28 @@
    (defn all-sequence-items [env args]
      (map (partial extract-name env) args))
    
+   (defn choice-fn [the-map min-occurs max-occurs args]
+     (add-meta 
+       (fn ([env value]
+         (let [result (get-result the-map env value) 
+               names (map first result)
+               s (set names)
+               n ((occurance-of names) (first s))
+               ]
+             (conj 
+               result
+               (and 
+                 (< (count s) 2) 
+                 (and (>= n min-occurs) (<= n max-occurs))))))
+         ([env] (flatten (all-sequence-items env (rest args)))))
+    :choice))
+   
    (defn choice [& args]
      `(let [args# (normalize-args [~@args])
             [min-occurs# max-occurs#] (min-max-occurs-of (first args#))
             m# (make-map (rest args#))
             ]
-        (add-meta 
-			    (fn ([env# value#]
-			      (let [result# (get-result m# env# value#) 
-			            names# (map first result#)
-			            s# (set names#)
-			            n# ((occurance-of names#) (first s#))
-			            ]
-			          (conj 
-			            result#
-			            (and 
-			              (< (count s#) 2) 
-			              (and (>= n# min-occurs#) (<= n# max-occurs#))))))
-			      ([env#] (flatten (all-sequence-items env# (rest args#)))))
-       :choice)))
+        (choice-fn m# min-occurs# max-occurs# args#)))
    
    (defn schema-sequence [& args]
      `(let [args# (normalize-args [~@args])
