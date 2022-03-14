@@ -46,6 +46,8 @@
   #_(assert-schema "bigone.xml" :schema))
 (deftest test-union-with-type
   (assert-schema "union_with_type.xml" :schema))
+(deftest test-recursive
+  (assert-schema "recursive.xml" :schema))
 
 (deftest ast-test-enum
   (let [restriction (schema-eval [:restriction {:base "string"} 

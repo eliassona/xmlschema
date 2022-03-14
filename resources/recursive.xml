@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schema xmlns:t2="http://xml.digitalroute.com/test2">
+  <element name="udr">
+    <complexType>
+      <choice>
+        <element name="employee" type="string"/>
+        <element name="member" type="string"/>
+        <any minOccurs="0"/>
+        <sequence>
+          <element name="customer" type="string"/>
+          <element name="orderdetails" type="string"/>
+          <element name="billto" type="string"/>
+          <element name="shipto" type="string"/>
+        </sequence>
+        <group>
+          <sequence>
+            <element name="a" type="string"/>
+            <element name="b" type="string"/>
+          </sequence>
+        </group>
+      </choice>
+    </complexType>
+  </element>
+</schema>

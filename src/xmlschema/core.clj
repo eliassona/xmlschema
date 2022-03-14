@@ -81,7 +81,7 @@
        (when-let [exp-value (:value arg-map)]
          (with-meta 
            `(fn [env# value#]
-              (~op value# ~(read-string exp-value))) {:type :and}))) ;TODO make better cast here
+              (~op value# ~(read-string exp-value))) {:type :and})))
 
    (defn max-inclusive [arg-map & _]
      (numeric-op-expr arg-map `<=))
@@ -107,7 +107,7 @@
        (with-meta
          `(fn [env# value#]
             (<= (-> value# str count) ~n)) 
-         {:type :or}))
+         {:type :and}))
      )
    
    (defn min-max-length [arg-map op]
@@ -122,10 +122,26 @@
    (defn maxLength [arg-map & _] (min-max-length arg-map `<=))
    
    (defn fractionDigits [arg-map & _]
-     (do-throw! true "not implemented yet"))
+     (let [n (-> arg-map :value read-string)]
+       (do-throw! (< n 1) "must be bigger than zero")
+       (with-meta
+         `(fn [env# value#]
+            (let [s# (str value#)
+                  ix# (.indexOf s# ".")
+                  fr# (.substring s# (if (>= ix# 0) (inc ix#) 0))] 
+            (<= (count fr#) ~n))) 
+         {:type :and})))
+   
+   
    
    (defn whiteSpace [arg-map & _]
-     (do-throw! true "not implemented yet"))
+     (let [v (:value arg-map)]
+       (do-throw! (not (contains? #{"collapse" "replace" "preserve"} v)) "invalid value")
+       (with-meta
+         `(fn [env# value#]
+            true ;;todo implement collapse, replace and preserve
+            ) 
+         {:type :and})))
 
    (defn elements-of [env n type-fn]
      (if-let [t (type-fn env)]
@@ -650,9 +666,11 @@
           (vec (cons :schema (cons arg-map (filter-includes (apply conj elements (filter #(not (empty? %)) expanded-elements)))))))
         hiccup))))
         
-(defn schema->clj [hiccup start]
+(defn schema->clj 
+  ([hiccup start]
   (let [p (fn [text] (parser text :start start))]
     (-> (if (string? hiccup) (hiccup-of (.trim hiccup)) hiccup) (expand-includes start) pr-str p ast->clj)))
+  ([hiccup] (schema->clj hiccup :schema)))
 
 (defn schema-eval 
   ([hiccup start]
@@ -677,7 +695,7 @@
    [:simpleType {:name "base64Binary"} [:restriction {:base "string"}]] ;TODO
    [:simpleType {:name "hexBinary"} [:restriction {:base "string"}]] ;TODO
    [:simpleType {:name "date"} [:restriction {:base "string"}]] ;TODO
-   [:simpleType {:name "decimal"} [:restriction {:base "string"}]];TODO 
+   [:simpleType {:name "decimal"} [:restriction {:base ""}]] 
    [:simpleType {:name "byte"} 
     [:restriction {:base "integer"} 
 	    [:minInclusive {:value "-128"}] 
