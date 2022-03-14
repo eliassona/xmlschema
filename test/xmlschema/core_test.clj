@@ -431,3 +431,17 @@
     
     ))
 
+(deftest test-named-group
+  (let [s (schema-eval 
+            [:schema {:xmlns:hej "adsf"}
+             [:group {:name "g"}
+              [:all
+               [:element {:name "a" :type "string"}]
+              ]]]
+            :schema)
+        env (-> s meta :env)
+        g (env "g")]
+    (is (= :group (-> g meta :type)))
+    (is (= [:a] (g env)))
+    (is (= [true [:a [true "hej"]]] (g env [[:a "hej"]])))
+  ))

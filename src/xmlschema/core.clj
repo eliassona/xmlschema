@@ -458,29 +458,32 @@
    (defn attrs-of [args]
      (filter (fn [v] (contains? attrs-sub-element (-> v meta :type))) args))
    
+   (defn complexType-fn [name sub-elem attrs]
+     (add-meta 
+      (fn
+        ([env value]
+          (cond (= (-> sub-elem meta :type) :simpleContent)
+                (sub-elem env value)
+                (map? (first value))
+                (let [e (rest value)
+                  a (first value)]
+                [(apply merge (map (fn [attr] (attr env a)) attrs))
+                (if (empty? e) [] (sub-elem env e))])
+                :else
+                [(sub-elem env value)]))
+        ([env]
+          (if sub-elem
+            (sub-elem env)
+            [])))
+      :complexType name))
+   
    (defn complexType [& args]
      `(let [args# (normalize-args [~@args])
             arg-map# (first args#)
             n# (:name arg-map#)
             sub-elem# (sub-element-of (rest args#))
             attrs# (attrs-of args#)]
-        (add-meta 
-          (fn
-            ([env# value#]
-              (cond (= (-> sub-elem# meta :type) :simpleContent)
-                    (sub-elem# env# value#)
-                    (map? (first value#))
-                    (let [e# (rest value#)
-                      a# (first value#)]
-                    [(apply merge (map (fn [attr#] (attr# env# a#)) attrs#))
-                    (if (empty? e#) [] (sub-elem# env# e#))])
-                    :else
-                    [(sub-elem# env# value#)]))
-            ([env#]
-              (if sub-elem#
-                (sub-elem# env#)
-                [])))
-          :complexType n#)))
+        (complexType-fn n# sub-elem# attrs#)))
    
    (defn group [& args]
      `(let [[arg-map# type-fn#] (normalize-args [~@args])
