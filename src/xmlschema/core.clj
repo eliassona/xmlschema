@@ -476,6 +476,37 @@
               ))
         :group n#)))
    
+   (defn attribute-fn [name ref type-name type-fn default]
+     (add-meta
+      (fn 
+        ([env value]
+          (let [key (keyword name)
+                value (value key)
+                value (if value value default)]
+            (do-throw! (and (not value) (= use "required")) (format "required attribute %s is missing" key))
+            (do-throw! (and value (= use "prohibited")) (format "attribute %s is not allowed" key))
+            (cond
+              name
+              {key (if value
+                      ((if type-name (env type-name) type-fn) env value)
+                      [true nil])}
+              ref
+              (if-let [a (env ref)]
+                (if (= (-> a meta :type) :attribute)
+                  (type-fn env value)
+                  (arg-exception! "ref must point to an attribute"))
+                (arg-exception! "invalid ref"))
+              :else
+              (arg-exception! "name or ref must be set")
+              )))
+            
+        ([env]
+          (cond
+            ref ((env ref) env)
+            name [name (if type-name type-name (type-fn env))])
+          ))
+    :attribute name))
+   
    (defn attribute [& args]
      `(let [[arg-map# type-fn#] (normalize-args [~@args])
             n# (:name arg-map#)
@@ -487,35 +518,7 @@
             ]
         (do-throw! (and n# ref#) "name and ref cannot be used at the same time")
         (do-throw! (and default# fixed#) "default and fixed cannot be used at the same time")
-        (add-meta
-          (fn 
-            ([env# value#]
-              (let [key# (keyword n#)
-                    value# (value# key#)
-                    value# (if value# value# default#)]
-                (do-throw! (and (not value#) (= use# "required")) (format "required attribute %s is missing" key#))
-                (do-throw! (and value# (= use# "prohibited")) (format "attribute %s is not allowed" key#))
-                (cond
-                  n#
-                  {key# (if value#
-                          ((if t# (env# t#) type-fn#) env# value#)
-                          [true nil])}
-                  ref#
-                  (if-let [a# (env# ref#)]
-                    (if (= (-> a# meta :type) :attribute)
-                      (type-fn# env# value#)
-                      (arg-exception! "ref must point to an attribute"))
-                    (arg-exception! "invalid ref"))
-                  :else
-                  (arg-exception! "name or ref must be set")
-                  )))
-                
-            ([env#]
-              (cond
-                ref# ((env# ref#) env#)
-                n# [n# (if t# t# (type-fn# env#))])
-              ))
-        :attribute n#)))
+        (attribute-fn n# ref# t# type-fn# default#)))
    
    (defn attributeGroup [& args]
      `(let [[arg-map# & type-fn#] (normalize-args [~@args])
