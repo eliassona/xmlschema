@@ -271,10 +271,12 @@
             elem-map# (apply merge (map (fn [e#] {(-> e# meta :name) e#}) elements#))
             env# (merge ~`env (apply merge (map (fn [e#] {(name-of e#) e#}) (only-named-objects root-objects#))))
             imports# (filter #(= (-> % meta :type) :import) root-objects#)
-            import-env# (apply merge (map #(-> % meta :env)  imports#))
-            env# (apply merge env# import-env#)
-            env-key-set# (set (keys env#))]
-          (schema-fn env# elem-map# elements# env-key-set# arg-map#)))
+            import-env# (apply merge (map #(-> % meta :env)  imports#))]
+          (schema-fn (apply merge env# import-env#) 
+                     elem-map# 
+                     elements# 
+                     (set (keys env#)) 
+                     arg-map#)))
 
    (defn simpleType-fn [name type-fn]
      (add-meta
@@ -403,8 +405,7 @@
          (let [result (get-result the-map env value) 
                names (map first result)
                s (set names)
-               n ((occurance-of names) (first s))
-               ]
+               n ((occurance-of names) (first s))]
              (conj 
                result
                (and 
@@ -436,8 +437,7 @@
    (defn all-fn [the-map min-occurs max-occurs elements]
      (add-meta 
         (fn ([env value]
-         (let [result (get-result the-map env value) 
-               ]
+         (let [result (get-result the-map env value)]
              (conj 
                result
                true)))
@@ -478,12 +478,11 @@
       :complexType name))
    
    (defn complexType [& args]
-     `(let [args# (normalize-args [~@args])
-            arg-map# (first args#)
-            n# (:name arg-map#)
-            sub-elem# (sub-element-of (rest args#))
-            attrs# (attrs-of args#)]
-        (complexType-fn n# sub-elem# attrs#)))
+     `(let [args# (normalize-args [~@args])]
+        (complexType-fn 
+          (:name (first args#)) 
+          (sub-element-of (rest args#)) 
+          (attrs-of args#))))
    
    (defn group [& args]
      `(let [[arg-map# type-fn#] (normalize-args [~@args])
