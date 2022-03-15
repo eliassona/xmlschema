@@ -6,6 +6,7 @@
 			<xs:element name="Othr" type="GenericAccountIdentification1_HR"/>
 		</xs:sequence>
 	</xs:complexType>
+<!-- 	
 	<xs:complexType name="AccountIdentification4Choice_HR2">
 		<xs:sequence>
 			<xs:element name="IBAN" type="IBAN2007Identifier"/>
@@ -444,15 +445,15 @@
 			<xs:element name="Id" type="Party6Choice_HR1" minOccurs="0" maxOccurs="1"/>
 		</xs:sequence>
 	</xs:complexType>
-	<xs:complexType name="PartyIdentification32_HR3">
-		<xs:sequence>
-			<xs:element name="Id" type="Party6Choice_HR2" maxOccurs="1"/>
-		</xs:sequence>
-	</xs:complexType>
 	<xs:complexType name="PartyIdentification32_HR4">
 		<xs:sequence>
 			<xs:element name="Nm" type="Max70Text" minOccurs="0" maxOccurs="1"/>
 			<xs:element name="Id" type="Party6Choice_HR3" minOccurs="0" maxOccurs="1"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="PartyIdentification32_HR3">
+		<xs:sequence>
+			<xs:element name="Id" type="Party6Choice_HR2" maxOccurs="1"/>
 		</xs:sequence>
 	</xs:complexType>
 	<xs:complexType name="PartyIdentification32_HR5">
@@ -554,6 +555,7 @@
 			<xs:element name="Strd" type="StructuredRemittanceInformation7" minOccurs="0" maxOccurs="1"/>
 		</xs:sequence>
 	</xs:complexType>
+	
 	<xs:simpleType name="SequenceType1Code">
 		<xs:restriction base="xs:string">
 			<xs:enumeration value="FRST"/>
@@ -605,4 +607,5 @@
 	<xs:simpleType name="TrueFalseIndicator">
 		<xs:restriction base="xs:boolean"/>
 	</xs:simpleType>
+ -->	
 </xs:schema>

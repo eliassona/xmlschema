@@ -43,7 +43,9 @@
 (deftest test-union-inline
   (assert-schema "union_inline.xml" :schema))
 (deftest test-bigone
-  #_(assert-schema "bigone.xml" :schema))
+  (pretty-spit "/Users/anderseliasson/src/xmlschema/test/xmlschema/tmp.clj" 
+        (schema->clj (slurp (clojure.java.io/resource "bigone.xml")))))
+
 (deftest test-union-with-type
   (assert-schema "union_with_type.xml" :schema))
 (deftest test-recursive
@@ -176,6 +178,36 @@
                ]]]]
            [:element {:name "employee" :type "fullPersonInfo"}]] :schema)]
     type-fn
+  ))
+
+(deftest test-complex-referring-to-complexType
+  (let [s
+        (schema-eval 
+          [:schema {:xmlns:person "myfile"}
+           [:complexType {:name "personInfo"}
+            [:sequence {} 
+             [:element {:name "firstname" :type "string"}]
+             [:element {:name "lastname" :type "string"}]]]
+            
+           [:complexType {:name "fullPersonInfo"}
+            [:sequence {} 
+             [:element {:name "info" :type "personInfo"}]
+             [:element {:name "address" :type "string"}]
+             [:element {:name "city" :type "string"}]
+             [:element {:name "country" :type "string"}]
+             ]]
+           [:element {:name "employee" :type "fullPersonInfo"}]] :schema)]
+    (is (= [:employee
+            [true 
+             [:info [true [:firstname [true "anders"]][:lastname [true "olson"]]]]
+             [:address [true "solna"]]
+             [:city [true "sthlm"]]
+             [:country [true "swe"]]]]
+           (s [:employee 
+              [:info [:firstname "anders"][:lastname "olson"]] 
+              [:address "solna"]
+              [:city "sthlm"]
+              [:country "swe"]])))
   ))
 
 (deftest test-all-type
@@ -462,8 +494,16 @@
     (is (= [:olle {:attr1 [true "a1"], :attr2 [false "a2"]} []] (s [:olle {:attr1 "a1" :attr2 "a2"}])))
     ))
         
-            
-              
+(deftest test-bug
+  #_(let [s (schema->clj
+           [:schema {:xmlns:hej "adsf"}
+            [:element {:name "Document" :type "Document"}]
+            [:complexType {:name "AccountIdentification4Choice_HR"}
+             [:sequence
+              [:element {:name "Othr" :type "GenericAccountIdentification1_HR"}]]
+             ]])]
+     (pprint s)
+     ))
               
   
   

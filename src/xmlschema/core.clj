@@ -295,7 +295,7 @@
         "decimal"
         (fn ([env value]
           (try 
-            (let [v (dbg (Double/valueOf value))]
+            (let [v (Double/valueOf value)]
               [true v])
             (catch NumberFormatException e
               [false value])))
@@ -420,7 +420,7 @@
             the-map# (make-map elements#)]
         (~coll-fn the-map# min-occurs# max-occurs# elements#)))
    
-   (defn choice [& args] (collections args choice-fn))
+   (defn choice [& args] (collections args `choice-fn))
    
    (defn schema-sequence-fn [the-map min-occurs max-occurs elements]
      (add-meta 
@@ -432,7 +432,7 @@
          ([env] (flatten (all-sequence-items env elements))))
          :sequence))
    
-   (defn schema-sequence [& args] (collections args schema-sequence-fn))
+   (defn schema-sequence [& args] (collections args `schema-sequence-fn))
 
    (defn all-fn [the-map min-occurs max-occurs elements]
      (add-meta 
@@ -444,7 +444,7 @@
           ([env] (flatten (all-sequence-items env elements))))
         :all))
    
-   (defn all [& args] (collections args all-fn))
+   (defn all [& args] (collections args `all-fn))
    
    (def complex-type-sub-element #{:simpleContent 
                                    :complexContent 
@@ -719,7 +719,7 @@
   (-> (schema) :elements vec))
 
 (defn parse [xml]
-  (-> (dbg xml) .trim hiccup-of pr-str (parser :start :schema)))
+  (-> xml .trim hiccup-of pr-str (parser :start :schema)))
 
 (defn parse-predef [predef]
   (ast->clj (parser (pr-str predef) :start :simpleType)))
