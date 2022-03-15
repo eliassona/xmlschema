@@ -410,24 +410,26 @@
    
    (defn choice [& args]
      `(let [[arg-map# & elements#] (normalize-args [~@args])
-            [min-occurs# max-occurs#] (min-max-occurs-of arg-map#)]
-        (choice-fn (make-map elements#) min-occurs# max-occurs# arg-map#)))
+            [min-occurs# max-occurs#] (min-max-occurs-of arg-map#)
+            the-map# (make-map elements#)]
+        (choice-fn the-map# min-occurs# max-occurs# elements#)))
+   
+   (defn schema-sequence-fn [the-map min-occurs max-occurs elements]
+     (add-meta 
+         (fn ([env value]
+           (let [result (get-result the-map env value)]
+               (conj 
+                 result
+                 true)))
+         ([env] (flatten (all-sequence-items env elements))))
+         :sequence))
    
    (defn schema-sequence [& args]
-     `(let [args# (normalize-args [~@args])
-            [min-occurs# max-occurs#] (min-max-occurs-of (first args#))
-            m# (make-map (rest args#))
+     `(let [[arg-map# & elements#] (normalize-args [~@args])
+            [min-occurs# max-occurs#] (min-max-occurs-of arg-map#)
+            the-map# (make-map elements#)
             ]
-       (add-meta 
-         (fn ([env# value#]
-           (let [result# (get-result m# env# value#) 
-
-                 ]
-               (conj 
-                 result#
-                 true)))
-         ([env#] (flatten (all-sequence-items env# (rest args#)))))
-         :sequence)))
+       (schema-sequence-fn the-map# min-occurs# max-occurs# elements#)))
  
    (defn all [& args]
      `(let [args# (normalize-args [~@args])
