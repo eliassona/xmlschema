@@ -445,3 +445,21 @@
     (is (= [:a] (g env)))
     (is (= [true [:a [true "hej"]]] (g env [[:a "hej"]])))
   ))
+
+(deftest test-attributeGroup
+  (let [s (schema-eval 
+            [:schema {:xmlns:hej "adsf"}
+             [:attributeGroup {:name "personattr"}
+              [:attribute {:name "attr1" :type "string"}]
+              [:attribute {:name "attr2" :type "integer"}]]
+             [:complexType {:name "person"}
+              [:attributeGroup {:ref "personattr"}]]
+             [:element {:name "olle" :type "person"}]])]
+    (is (= [:olle {:attr1 [true "a1"], :attr2 [false "a2"]} []] (s [:olle {:attr1 "a1" :attr2 "a2"}])))
+    ))
+        
+            
+              
+              
+  
+  

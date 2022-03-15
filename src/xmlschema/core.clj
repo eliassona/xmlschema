@@ -484,21 +484,22 @@
           (sub-element-of (rest args#)) 
           (attrs-of args#))))
    
+   (defn group-fn [name ref type-fn]
+     (do-throw! (and name ref) "name and ref cannot be used at the same time")
+     (add-meta 
+            (fn 
+              ([env value]
+                (if ref
+                  ((env ref) env value)
+                  (type-fn env value)))
+              ([env]
+                (type-fn env)
+                ))
+          :group name))
+   
    (defn group [& args]
-     `(let [[arg-map# type-fn#] (normalize-args [~@args])
-            n# (:name arg-map#)
-            ref# (:ref arg-map#)]
-        (do-throw! (and n# ref#) "name and ref cannot be used at the same time")
-        (add-meta 
-          (fn 
-            ([env# value#]
-              (if ref#
-                ((env# ref#) env# value#)
-                (type-fn# env# value#)))
-            ([env#]
-              (type-fn# env#)
-              ))
-        :group n#)))
+     `(let [[arg-map# type-fn#] (normalize-args [~@args])]
+        (group-fn (:name arg-map#) (:ref arg-map#) type-fn#)))
    
    (defn attribute-fn [name ref type-name type-fn default fixed]
     (do-throw! (and name ref) "name and ref cannot be used at the same time")
@@ -543,23 +544,25 @@
           (:default arg-map#) 
           (:fixed arg-map#))))
    
+   (defn attributeGroup-fn [name ref type-fn]
+     (do-throw! (and name ref) "name and ref cannot be used at the same time")
+     (do-throw! (and ref (not (empty? type-fn)))  "ref and attributes cannot be used at the same time")
+     (add-meta
+       (fn ([env value]
+         (if ref
+           (let [rf (env ref)]
+             (if (= (-> rf meta :type) :attributeGroup)
+               (rf env value)
+               (arg-exception! "ref does not point to an attributeGroup")))
+           (apply merge (map (fn [f] (f env value)) type-fn))))
+         ([env]
+           (set (apply concat (map (fn [f] (f env)) type-fn)))))
+       :attributeGroup name)
+     )
+   
    (defn attributeGroup [& args]
-     `(let [[arg-map# & type-fn#] (normalize-args [~@args])
-            n# (:name arg-map#)
-            ref# (:ref arg-map#)]
-        (do-throw! (and n# ref#) "name and ref cannot be used at the same time")
-        (do-throw! (and ref# (not (empty? type-fn#)))  "ref and attributes cannot be used at the same time")
-        (add-meta
-          (fn ([env# value#]
-            (if ref#
-              (let [rf# (env# ref#)]
-                (if (= (-> rt# meta :type) :attributeGroup)
-                  (rf# env# value#)
-                  (arg-exception! "ref does not point to an attributeGroup")))
-              (apply merge (map (fn [f#] (f# env# value#)) type-fn#))))
-            ([env#]
-              (set (apply concat (map (fn [f#] (f# env#)) type-fn#)))))
-          :attributeGroup n#)))
+     `(let [[arg-map# & type-fn#] (normalize-args [~@args])]
+        (attributeGroup-fn (:name arg-map#) (:ref arg-map#) type-fn#)))
    
    (defn memberTypes-of [mt]
      (if mt
