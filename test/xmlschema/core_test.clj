@@ -145,10 +145,14 @@
                       [:element {:name "satoshi" :type "string"}]
                       [:sequence
                        [:element {:name "nakamoto" :type "string"}]
+                       [:sequence
+                        [:element {:name "oskar" :type "string"}]
+                        ]
                        ]
                       ] :sequence)]
+    (is (= [:hej :satoshi :nakamoto :oskar] (type-fn env)))
     (is (= [true [:hej [true "soffa"]][:satoshi [true "kudde"]]#_[:nakamoto [true "bla"]]] 
-                  (type-fn env [[:hej "soffa"][:satoshi "kudde"]#_[:nakamoto "bla"]])))
+                 (type-fn env [[:hej "soffa"][:satoshi "kudde"]#_[:nakamoto "bla"]])))
     
     )
   )
