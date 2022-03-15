@@ -68,24 +68,29 @@
            false)
          true)))
    
-   (defn simpleType-restriction [arg-map & conditions]
-     `(let [base# (:base ~arg-map)
-            conds# [~@conditions]             
-            logic-expr# (if (empty? conds#) :empty (-> conds# first meta :type))
-            ]
-        (do-throw! (= base# nil) "base attribute must be set")
-        (do-throw! (not (same-elements? (map (fn [c#] (-> c# meta :type)) conds#))) "not the same type")
-        (fn ([env# value#]
-          (if-let [[base-result# base-value#] ((env# (type-name-of base#)) env# value#)]
-            [(and base-result#
-                (let [statements# (vec (map (fn [c#] (c# env# base-value#)) conds#))]
-                  (condp = logic-expr#
+   (defn simpleType-restriction-fn [base conds logic-expr arg-map]
+     (do-throw! (= base nil) "base attribute must be set")
+     (do-throw! (not (same-elements? (map (fn [c] (-> c meta :type)) conds))) "not the same type")
+     (fn ([env value]
+          (if-let [[base-result base-value] ((env (type-name-of base)) env value)]
+            [(and base-result
+                (let [statements (vec (map (fn [c] (c env base-value)) conds))]
+                  (condp = logic-expr
                     :empty true
-                    :or (or-fn statements#)
-                    :and (and-fn statements#)
-                    ))) base-value#] 
+                    :or (or-fn statements)
+                    :and (and-fn statements)
+                    ))) base-value] 
             (arg-exception! "Unknown base")))
-        ([env#] ((env# (~arg-map :base)) env#)))))
+        ([env] ((env (arg-map :base)) env)))
+     )
+   
+   (defn simpleType-restriction [arg-map & conditions]
+     `(let [conds# [~@conditions]]
+        (simpleType-restriction-fn 
+          (:base ~arg-map) 
+          conds# 
+          (if (empty? conds#) :empty (-> conds# first meta :type)) 
+          ~arg-map)))
 
    
    (defn enumeration [arg-map & _]
