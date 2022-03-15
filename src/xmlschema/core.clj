@@ -185,6 +185,9 @@
         [name value]))
    
    (defn element-fn [type-fn name ref type-name default fixed]
+     (do-throw! (and ref (or name type-name)) "ref and name type cannot be used at the same time")
+     (do-throw! (and default fixed) "default and fixed cannot be used at the same time")
+
      (add-meta
        (fn ([env [tmp & value :as all]]
         (cond 
@@ -208,15 +211,13 @@
       :element name))
    
    (defn element [& args] 
-     `(let [[arg-map# type-fn#] (normalize-args [~@args])
-            n# (-> arg-map# :name keyword)
-            ref# (:ref arg-map#)
-            type-name# (:type arg-map#)
-            default# (:default arg-map#)
-            fixed# (:fixed arg-map#)]
-        (do-throw! (and ref# (or n# type-name#)) "ref and name type cannot be used at the same time")
-        (do-throw! (and default# fixed#) "default and fixed cannot be used at the same time")
-        (element-fn type-fn# n# ref# type-name# default# fixed#)))
+     `(let [[arg-map# type-fn#] (normalize-args [~@args])]
+        (element-fn type-fn# 
+                    (-> arg-map# :name keyword) 
+                    (:ref arg-map#) 
+                    (:type arg-map#) 
+                    (:default arg-map#) 
+                    (:fixed arg-map#))))
 
    (defn type? [expected-type o]
      (= expected-type (-> o meta :type)))
@@ -267,8 +268,7 @@
             imports# (filter #(= (-> % meta :type) :import) root-objects#)
             import-env# (apply merge (map #(-> % meta :env)  imports#))
             env# (apply merge env# import-env#)
-            env-key-set# (set (keys env#))
-            ]
+            env-key-set# (set (keys env#))]
           (schema-fn env# elem-map# elements# env-key-set# arg-map#)))
 
    (defn simpleType-fn [name type-fn]
@@ -431,11 +431,11 @@
    (defn all-fn [the-map min-occurs max-occurs elements]
      (add-meta 
         (fn ([env value]
-                 (let [result (get-result the-map env value) 
-                       ]
-                     (conj 
-                       result
-                       true)))
+         (let [result (get-result the-map env value) 
+               ]
+             (conj 
+               result
+               true)))
           ([env] (flatten (all-sequence-items env elements))))
         :all))
    
