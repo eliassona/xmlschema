@@ -392,7 +392,7 @@
    (defn all-sequence-items [env args]
      (map (partial extract-name env) args))
    
-   (defn choice-fn [the-map min-occurs max-occurs args]
+   (defn choice-fn [the-map min-occurs max-occurs elements]
      (add-meta 
        (fn ([env value]
          (let [result (get-result the-map env value) 
@@ -405,15 +405,13 @@
                (and 
                  (< (count s) 2) 
                  (and (>= n min-occurs) (<= n max-occurs))))))
-         ([env] (flatten (all-sequence-items env (rest args)))))
+         ([env] (flatten (all-sequence-items env elements))))
     :choice))
    
    (defn choice [& args]
-     `(let [args# (normalize-args [~@args])
-            [min-occurs# max-occurs#] (min-max-occurs-of (first args#))
-            m# (make-map (rest args#))
-            ]
-        (choice-fn m# min-occurs# max-occurs# args#)))
+     `(let [[arg-map# & elements#] (normalize-args [~@args])
+            [min-occurs# max-occurs#] (min-max-occurs-of arg-map#)]
+        (choice-fn (make-map elements#) min-occurs# max-occurs# arg-map#)))
    
    (defn schema-sequence [& args]
      `(let [args# (normalize-args [~@args])
@@ -501,7 +499,9 @@
               ))
         :group n#)))
    
-   (defn attribute-fn [name ref type-name type-fn default]
+   (defn attribute-fn [name ref type-name type-fn default fixed]
+    (do-throw! (and name ref) "name and ref cannot be used at the same time")
+    (do-throw! (and default fixed) "default and fixed cannot be used at the same time")
      (add-meta
       (fn 
         ([env value]
@@ -533,17 +533,14 @@
     :attribute name))
    
    (defn attribute [& args]
-     `(let [[arg-map# type-fn#] (normalize-args [~@args])
-            n# (:name arg-map#)
-            t# (:type arg-map#)
-            ref# (:ref arg-map#)
-            use# (:use arg-map#)
-            default# (:default arg-map#)
-            fixed# (:fixed arg-map#)
-            ]
-        (do-throw! (and n# ref#) "name and ref cannot be used at the same time")
-        (do-throw! (and default# fixed#) "default and fixed cannot be used at the same time")
-        (attribute-fn n# ref# t# type-fn# default#)))
+     `(let [[arg-map# type-fn#] (normalize-args [~@args])]
+        (attribute-fn 
+          (:name arg-map#) 
+          (:ref arg-map#) 
+          (:type arg-map#) 
+          type-fn# 
+          (:default arg-map#) 
+          (:fixed arg-map#))))
    
    (defn attributeGroup [& args]
      `(let [[arg-map# & type-fn#] (normalize-args [~@args])
