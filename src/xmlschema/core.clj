@@ -408,11 +408,13 @@
          ([env] (flatten (all-sequence-items env elements))))
     :choice))
    
-   (defn choice [& args]
+   (defn collections [args coll-fn]
      `(let [[arg-map# & elements#] (normalize-args [~@args])
             [min-occurs# max-occurs#] (min-max-occurs-of arg-map#)
             the-map# (make-map elements#)]
-        (choice-fn the-map# min-occurs# max-occurs# elements#)))
+        (~coll-fn the-map# min-occurs# max-occurs# elements#)))
+   
+   (defn choice [& args] (collections args choice-fn))
    
    (defn schema-sequence-fn [the-map min-occurs max-occurs elements]
      (add-meta 
@@ -424,27 +426,20 @@
          ([env] (flatten (all-sequence-items env elements))))
          :sequence))
    
-   (defn schema-sequence [& args]
-     `(let [[arg-map# & elements#] (normalize-args [~@args])
-            [min-occurs# max-occurs#] (min-max-occurs-of arg-map#)
-            the-map# (make-map elements#)
-            ]
-       (schema-sequence-fn the-map# min-occurs# max-occurs# elements#)))
- 
-   (defn all [& args]
-     `(let [args# (normalize-args [~@args])
-            [min-occurs# max-occurs#] (min-max-occurs-of (first args#))
-            m# (make-map (rest args#))
-            ]
-        (add-meta 
-          (fn ([env# value#]
-                   (let [result# (get-result m# env# value#) 
-                         ]
-                       (conj 
-                         result#
-                         true)))
-            ([env#] (flatten (all-sequence-items env# (rest args#)))))
-          :all)))
+   (defn schema-sequence [& args] (collections args schema-sequence-fn))
+
+   (defn all-fn [the-map min-occurs max-occurs elements]
+     (add-meta 
+        (fn ([env value]
+                 (let [result (get-result the-map env value) 
+                       ]
+                     (conj 
+                       result
+                       true)))
+          ([env] (flatten (all-sequence-items env elements))))
+        :all))
+   
+   (defn all [& args] (collections args all-fn))
    
    (def complex-type-sub-element #{:simpleContent 
                                    :complexContent 
