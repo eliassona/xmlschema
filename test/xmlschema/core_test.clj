@@ -115,13 +115,12 @@
 
 (deftest test-type-simple-type-element
   (let [schema 
-        (schema-eval [:schema {:xmlns:lib "myfile"}
-                      [:simpleType {:name "hej"}
-                         [:restriction {:base "integer"} 
-                          [:maxInclusive {:value "10"}]
-                          [:minInclusive {:value "0"}]]]
-                      [:element {:name "car" :type "hej"}]] 
-                     :schema)]
+        (schema-compile [:schema {:xmlns:lib "myfile"}
+                         [:simpleType {:name "hej"}
+                            [:restriction {:base "integer"} 
+                             [:maxInclusive {:value "10"}]
+                             [:minInclusive {:value "0"}]]]
+                         [:element {:name "car" :type "hej"}]])]
     (is (= [:car [true 5]] (schema [:car "5"])))
     ))
 
@@ -182,7 +181,7 @@
 
 (deftest test-complex-referring-to-complexType
   (let [s
-        (schema-eval 
+        (schema-compile 
           [:schema {:xmlns:person "myfile"}
            [:complexType {:name "personInfo"}
             [:sequence {} 
@@ -196,7 +195,7 @@
              [:element {:name "city" :type "string"}]
              [:element {:name "country" :type "string"}]
              ]]
-           [:element {:name "employee" :type "fullPersonInfo"}]] :schema)]
+           [:element {:name "employee" :type "fullPersonInfo"}]])]
     (is (= [:employee
             [true 
              [:info [true [:firstname [true "anders"]][:lastname [true "olson"]]]]
@@ -245,12 +244,12 @@
 
 (deftest test-schema-for-named-simple-type-element-at-schema-level
   (let [s 
-        (schema-eval [:schema {:xmlns:lib "myfile"}
-                      [:element {:name "car"}
-                       [:simpleType 
-                         [:restriction {:base "integer"} 
-                          [:maxInclusive {:value "10"}]
-                          [:minInclusive {:value "0"}]]]]] :schema)]
+        (schema-compile [:schema {:xmlns:lib "myfile"}
+                         [:element {:name "car"}
+                          [:simpleType 
+                            [:restriction {:base "integer"} 
+                             [:maxInclusive {:value "10"}]
+                             [:minInclusive {:value "0"}]]]]])]
     (is (= [:car [true 5]] (s [:car "5"])))
     (is (= [:car [false 11]] (s [:car "11"])))
     ))
@@ -264,7 +263,7 @@
 
 
 (deftest schema-layout
-  (is (= {:elements [[:a "string"] [:b "string"]]
+  (is (= {:elements #{[:a "string"] [:b "string"]}
           :env 
           #{"date" "hexBinary" "decimal" 
             "base64Binary" "anyURI" 
@@ -274,9 +273,9 @@
             "nonNegativeInteger" 
             "nonPositiveInteger" "unsignedShort" 
             "byte" "positiveInteger"}} 
-         ((schema-eval [:schema {:xmlns:lib "myfile"}
-                        [:element {:name "a" :type "string"}]
-                        [:element {:name "b" :type "string"}]] :schema))))
+         ((schema-compile [:schema {:xmlns:lib "myfile"}
+                           [:element {:name "a" :type "string"}]
+                           [:element {:name "b" :type "string"}]]))))
   #_(is (= [:hej :satoshi :nakamoto :bitcoin :a] 
           ((schema-eval [:sequence {} 
                         [:element {:name "hej" :type "string"}]
@@ -351,7 +350,7 @@
     ))
 
 (deftest test-attribute-name-at-schema-level 
-  (let [s (schema-eval 
+  (let [s (schema-compile 
               [:schema {:xmlns:lib "myfile"}
                [:element {:name "a"}
                 [:complexType
@@ -364,8 +363,7 @@
                       [:enumeration {:value "Pig"}]
                       [:enumeration {:value "Horse"}]]]]
                  [:attribute {:name "base" :type "string"}]
-                ]]]
-             :schema)]
+                ]]])]
     (is (= [:a {:code [true "Pig"], :base [true "hej"]} [true [:b [true "elem"]][:c [true "celem"]]]]
            (s [:a {:code "Pig", :base "hej"} [:b "elem"][:c "celem"]])))
     ))
@@ -376,18 +374,20 @@
     (is (= [:a [false "hej"]] (e env [:e "hej"])))))
     
 (deftest test-include
-  (let [s (schema-eval [:schema {:xmlns:lib "myfile"} [:include {:schemaLocation "typed_elements.xml"}]
-                      [:element {:type "string", :name "a"}]
-                      ] :schema)]
+  (let [s (schema-compile [:schema {:xmlns:lib "myfile"} [:include {:schemaLocation "typed_elements.xml"}]
+                          [:element {:type "string", :name "a"}]])]
     (is (= {:env #{"boolean" "string" "hexBinary" "student" "member" "club"
-                   "negativeInteger" "short" "unsignedByte" 
-                   "employee" "a" "integer" "nonNegativeInteger" 
-                   "anyURI" "nonPositiveInteger" "date" 
-                   "base64Binary" "unsignedShort" "byte" 
-                   "positiveInteger" "decimal"}, :elements [[:member "string"] [:student "string"] [:employee "string"] [:a "string"]]} 
-           (s)))
+                    "negativeInteger" "short" "unsignedByte" 
+                    "employee" "a" "integer" "nonNegativeInteger" 
+                    "anyURI" "nonPositiveInteger" "date" 
+                    "base64Binary" "unsignedShort" "byte" 
+                    "positiveInteger" "decimal"}, 
+            :elements #{[:member "string"] [:student "string"] [:employee "string"] [:a "string"]}} 
+            (s)))
     (is (= [:student [true "hej"]] (s [:student "hej"])))
   ))
+
+
 
 (deftest test-positiveInteger
   (let [e (schema-eval [:element {:name "a" :type "positiveInteger"}] :element)]
@@ -456,9 +456,9 @@
 
 
 (deftest test-element-ref
-  (let [r (schema-eval 
+  (let [r (schema-compile 
             [:schema {:xmlns:hej "adsf"}
-                                  [:element {:name "intvalues" :type "string"}]] :schema)
+             [:element {:name "intvalues" :type "string"}]])
         ref-env (-> r meta :env)
         e (schema-eval [:element {:ref "intvalues"}] :element)]
     (is (= [:intvalues [true "1 2 3"]] 
@@ -468,13 +468,12 @@
     ))
 
 (deftest test-named-group
-  (let [s (schema-eval 
+  (let [s (schema-compile 
             [:schema {:xmlns:hej "adsf"}
              [:group {:name "g"}
               [:all
                [:element {:name "a" :type "string"}]
-              ]]]
-            :schema)
+              ]]])
         env (-> s meta :env)
         g (env "g")]
     (is (= :group (-> g meta :type)))
@@ -483,7 +482,7 @@
   ))
 
 (deftest test-attributeGroup
-  (let [s (schema-eval 
+  (let [s (schema-compile 
             [:schema {:xmlns:hej "adsf"}
              [:attributeGroup {:name "personattr"}
               [:attribute {:name "attr1" :type "string"}]

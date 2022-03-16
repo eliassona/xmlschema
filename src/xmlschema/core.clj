@@ -256,13 +256,15 @@
    (defn schema-fn [env elem-map elements env-key-set arg-map]
      (with-meta 
       (fn 
-        ([xml]
-            ((elem-map (first xml)) env xml))
+        ([xml-or-hiccup]
+          (let [hiccup (if (string? xml-or-hiccup) (hiccup-of xml-or-hiccup) xml-or-hiccup)]
+            ((elem-map (first hiccup)) env hiccup)))
         ([]
           {:elements 
-           (filter identity
-                   (map
-                     (fn [e] (e env)) elements))
+           (set 
+             (filter identity
+                     (map
+                       (fn [e] (e env)) elements)))
            :env env-key-set})) {:type :schema, :xmlns (ns-of arg-map), :env env}))
    
    (defn import-env-of [elements]
@@ -716,14 +718,21 @@
     (-> (if (string? hiccup) (hiccup-of (.trim hiccup)) hiccup) (expand-includes start) pr-str p ast->clj)))
   ([hiccup] (schema->clj hiccup :schema)))
 
-(defn schema-eval 
+(defn schema-eval
+  "Compiles an xml string or a hiccup list to a clojure function with the following singature:
+   (fn ([hiccup-or-xml]) ; validates xml data
+       ([]))             ; layout of elements
+   "
   ([hiccup start]
   (eval (schema->clj hiccup start)))
   ([hiccup] (schema-eval hiccup :schema)))
 
-(defn schema-compile [hiccup]
-  (let [arg-map (second hiccup)
-        hiccup-elements (-> (dbg (expand-includes hiccup :schema)) rest rest)
+(defn schema-compile
+  "Does the same as schema-eval but compiles each element inside a schema separately to avoid one big function"
+  [hiccup]
+  (let [hiccup (if (string? hiccup) (-> hiccup .trim hiccup-of) hiccup)
+        arg-map (second hiccup)
+        hiccup-elements (-> (expand-includes hiccup :schema) rest rest)
         filter-fn #(contains? named-root-objects (first %))
         named-elements (filter filter-fn hiccup-elements)
         unnamed-elements (filter #(not (filter-fn %)) hiccup-elements)
