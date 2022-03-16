@@ -803,6 +803,14 @@
       k)
     ))
 
+(defn make-import-env [unnamed-elements]
+  (let [imports (filter #(= (name-only %) :import) unnamed-elements)
+        import-fn (comp #(-> % meta :env) #(schema-eval % :import))]
+    (apply merge (map import-fn imports))))
+
+(defn make-new-env [named-elements]
+  (apply merge (map (fn [e] {(-> e second :name)  (schema-eval e (name-only e))}) named-elements)))
+
 (defn schema-compile
   "Does the same as schema-eval but compiles each element inside a schema separately to avoid one big function"
   [hiccup-or-xml]
@@ -812,17 +820,13 @@
         filter-fn #(contains? named-root-objects (name-only %))
         named-elements (filter filter-fn hiccup-elements)
         unnamed-elements (filter #(not (filter-fn %)) hiccup-elements)
-        import-env (apply merge (map (comp #(-> % meta :env) #(schema-eval % :import)) (filter #(= (name-only %) :import) unnamed-elements)))
+        import-env (make-import-env unnamed-elements)
         new-env (merge 
                   env 
                   import-env 
-                  (apply merge (map (fn [e] {(-> e second :name)  (schema-eval e (name-only e))}) named-elements)))
+                  (make-new-env named-elements))
         elements (filter #(= (-> % meta :type) :element) (vals new-env))  
         elem-map (elem-map-of elements)
-        env-key-set (set (keys new-env))
-        ]
-    (schema-fn new-env elem-map elements env-key-set arg-map)
-    )
-  
-  )
+        env-key-set (set (keys new-env))]
+    (schema-fn new-env elem-map elements env-key-set arg-map)))
 
