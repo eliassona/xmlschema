@@ -609,8 +609,9 @@
    `(let [[arg-map# & type-fn#] [~@args]
           f# (:schemaLocation arg-map#)
           schema# (-> f# slurp-file hiccup-of (schema-eval :schema))
+          schema-env# (-> schema# meta :env)
           xmlns# (str (-> schema# meta :xmlns))
-          schema-env# (apply merge (map (partial qName-of xmlns#) (-> schema# meta :env)))
+          schema-env# (apply merge (map (partial qName-of xmlns#) schema-env#))
           l# (count xmlns#)]
       (with-meta
         (fn [env#]
