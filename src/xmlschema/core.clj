@@ -603,12 +603,12 @@
       ([_ value] (element local-env value))
       ([_] (element local-env))) (meta element)))
    
-(defn qName-of [xmlns e]
+(defn qName-of [local-env xmlns e]
   {(let [k (key e)]
      (if (> (.indexOf k ":") 0)
        k
        (xs-type xmlns k)))
-     (val e)})
+     (local-env (val e))})
    
 (defn schema-import [& args]
 `(let [[arg-map# & type-fn#] [~@args]
@@ -617,7 +617,7 @@
        schema-env# (-> schema# meta :env)
        local-env# (partial local-import-env-of schema-env#)
        xmlns# (str (-> schema# meta :xmlns))
-       schema-env# (apply merge (map (partial qName-of xmlns#) schema-env#))
+       schema-env# (apply merge (map (partial qName-of local-env# xmlns#) schema-env#))
        l# (count xmlns#)]
    (with-meta
      (fn [env#]

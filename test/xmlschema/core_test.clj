@@ -373,7 +373,7 @@
 (deftest test-include
   (let [s (schema-compile [:schema {:xmlns:lib "myfile"} [:include {:schemaLocation "typed_elements.xml"}]
                           [:element {:type "string", :name "a"}]])]
-    (is (= {:env #{"boolean" "string" "hexBinary" "student" "member" "club"
+    (is (= {:env #{"boolean" "string" "hexBinary" "student" "member" "club" "club1"
                     "negativeInteger" "short" "unsignedByte" 
                     "employee" "a" "integer" "nonNegativeInteger" 
                     "anyURI" "nonPositiveInteger" "date" 
@@ -404,7 +404,9 @@
     (is (= [:a [true 1]] (s [:a "1"])))
     (is (= [:a [false 0]] (s [:a "0"])))
     (is (= [:a [false 10000]] (s [:a "10000"])))
-    (is (= [:a [true 9999]] (s [:a "9999"])))
+    (is (= [:a [false 9999]] (s [:a "9999"])))
+    (is (= [:a [true 99]] (s [:a "99"])))
+    
     ))
 
 (deftest test-simple-extension
@@ -491,13 +493,13 @@
     ))
         
 (deftest test-big-one
-  #_(let [s (schema-compile
-           [:schema {:xmlns:hej "adsf"}
-            [:import {:schemaLocation "bigone.xml"}]
-            [:element {:name "a" :type "lib:AccountIdentification4Choice_HR2"}]
-            ])]
-     (is (= [] (s [:a [:IBAN "hej"]])))
-     ))
+  #(let [s (schema-compile
+          [:schema {:xmlns:hej "adsf"}
+           [:import {:schemaLocation "bigone.xml"}]
+           [:element {:name "a" :type "lib:AccountIdentification4Choice_HR2"}]
+           ])]
+    (is (= [] (s [:a [:IBAN "hej"]])))
+    ))
     
 
 

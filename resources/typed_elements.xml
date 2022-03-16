@@ -5,9 +5,14 @@
 <element name="member" type="string"/>
 
 <simpleType name="club">
-	    <restriction base="integer">
+	    <restriction base="club1">
 	        <minInclusive value="1"/>
 	        <maxInclusive value="9999"/>
+	    </restriction>
+</simpleType>
+<simpleType name="club1">
+	    <restriction base="integer">
+	        <totalDigits value="2"/>
 	    </restriction>
 </simpleType>
 </schema>
