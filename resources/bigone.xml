@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<xs:schema xmlns="urn:iso:std:iso:20022:tech:xsd:sddhr:pain.002.001.03" xmlns:xs="http://www.w3.org/2001/XMLSchema" targetNamespace="urn:iso:std:iso:20022:tech:xsd:sddhr:pain.002.001.03" elementFormDefault="qualified">
+<xs:schema xmlns="urn:iso:std:iso:20022:tech:xsd:sddhr:pain.002.001.03" xmlns:lib="http://www.w3.org/2001/XMLSchema" targetNamespace="urn:iso:std:iso:20022:tech:xsd:sddhr:pain.002.001.03" elementFormDefault="qualified">
 	<xs:element name="Document" type="Document"/>
 	<xs:complexType name="AccountIdentification4Choice_HR">
 		<xs:sequence>

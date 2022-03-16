@@ -42,8 +42,6 @@
   (assert-schema "attribute_with_use.xml" :schema))
 (deftest test-union-inline
   (assert-schema "union_inline.xml" :schema))
-(deftest test-bigone
-  (schema-compile (slurp (clojure.java.io/resource "bigone.xml"))))
 
 (deftest test-union-with-type
   (assert-schema "union_with_type.xml" :schema))
@@ -492,16 +490,16 @@
     (is (= [:olle {:attr1 [true "a1"], :attr2 [false "a2"]} []] (s [:olle {:attr1 "a1" :attr2 "a2"}])))
     ))
         
-(deftest test-bug
-  #_(let [s (schema->clj
+(deftest test-big-one
+  #_(let [s (schema-compile
            [:schema {:xmlns:hej "adsf"}
-            [:element {:name "Document" :type "Document"}]
-            [:complexType {:name "AccountIdentification4Choice_HR"}
-             [:sequence
-              [:element {:name "Othr" :type "GenericAccountIdentification1_HR"}]]
-             ]])]
-     (pprint s)
+            [:import {:schemaLocation "bigone.xml"}]
+            [:element {:name "a" :type "lib:AccountIdentification4Choice_HR2"}]
+            ])]
+     (is (= [] (s [:a [:IBAN "hej"]])))
      ))
-              
+    
+
+
   
   
