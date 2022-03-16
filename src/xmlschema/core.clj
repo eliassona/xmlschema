@@ -597,27 +597,33 @@
    (defn xs-type 
      ([t] t)
      ([ns t] (str ns ":" t)))
+(defn local-import-env-of [local-env element]
+  (with-meta 
+    (fn 
+      ([_ value] (element local-env value))
+      ([_] (element local-env))) (meta element)))
    
-   (defn qName-of [xmlns e]
-     {(let [k (key e)]
-        (if (> (.indexOf k ":") 0)
-          k
-          (xs-type xmlns k)))
-        (val e)})
+(defn qName-of [xmlns e]
+  {(let [k (key e)]
+     (if (> (.indexOf k ":") 0)
+       k
+       (xs-type xmlns k)))
+     (val e)})
    
-   (defn schema-import [& args]
-   `(let [[arg-map# & type-fn#] [~@args]
-          f# (:schemaLocation arg-map#)
-          schema# (-> f# slurp-file hiccup-of (schema-eval :schema))
-          schema-env# (-> schema# meta :env)
-          xmlns# (str (-> schema# meta :xmlns))
-          schema-env# (apply merge (map (partial qName-of xmlns#) schema-env#))
-          l# (count xmlns#)]
-      (with-meta
-        (fn [env#]
-            (let [s# (:env (schema#))]
-              (set (map (partial str xmlns#) s#))))
-        {:type :import, :env schema-env#})))
+(defn schema-import [& args]
+`(let [[arg-map# & type-fn#] [~@args]
+       f# (:schemaLocation arg-map#)
+       schema# (-> f# slurp-file hiccup-of (schema-eval :schema))
+       schema-env# (-> schema# meta :env)
+       local-env# (partial local-import-env-of schema-env#)
+       xmlns# (str (-> schema# meta :xmlns))
+       schema-env# (apply merge (map (partial qName-of xmlns#) schema-env#))
+       l# (count xmlns#)]
+   (with-meta
+     (fn [env#]
+         (let [s# (:env (schema#))]
+           (set (map (partial str xmlns#) s#))))
+     {:type :import, :env schema-env#})))
 
    (defn attr-map-of [env attrs attr-value-map]
      (if (empty? attrs)
