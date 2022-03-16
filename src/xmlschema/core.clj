@@ -265,13 +265,19 @@
                      (fn [e] (e env)) elements))
            :env env-key-set})) {:type :schema, :xmlns (ns-of arg-map), :env env}))
    
+   (defn import-env-of [elements]
+      (let [imports (filter #(= (-> % meta :type) :import) elements)]
+        (apply merge (map #(-> % meta :env) imports))))
+   
+   (defn elem-map-of [elements]
+     (apply merge (map (fn [e] {(-> e meta :name) e}) elements)))
+   
    (defn schema [& elements]
      `(let [[arg-map# & root-objects#] (normalize-args [~@elements])
             elements# (filter (fn [e#] (= (:type (meta e#)) :element)) root-objects#)
-            elem-map# (apply merge (map (fn [e#] {(-> e# meta :name) e#}) elements#))
+            elem-map# (elem-map-of elements#)
             env# (merge ~`env (apply merge (map (fn [e#] {(name-of e#) e#}) (only-named-objects root-objects#))))
-            imports# (filter #(= (-> % meta :type) :import) root-objects#)
-            import-env# (apply merge (map #(-> % meta :env)  imports#))]
+            import-env# (import-env-of root-objects#)]
           (schema-fn (apply merge env# import-env#) 
                      elem-map# 
                      elements# 
@@ -714,6 +720,24 @@
   ([hiccup start]
   (eval (schema->clj hiccup start)))
   ([hiccup] (schema-eval hiccup :schema)))
+
+(defn schema-compile [hiccup]
+  (let [arg-map (second hiccup)
+        hiccup-elements (-> (dbg (expand-includes hiccup :schema)) rest rest)
+        filter-fn #(contains? named-root-objects (first %))
+        named-elements (filter filter-fn hiccup-elements)
+        unnamed-elements (filter #(not (filter-fn %)) hiccup-elements)
+        import-env (apply merge (map (comp #(-> % meta :env) #(schema-eval % :import)) (filter #(= (first %) :import) unnamed-elements)))
+        schema (cons (first hiccup) (cons (second hiccup) unnamed-elements))
+        new-env (merge env import-env (apply merge (map (fn [e] {(-> e second :name)  (schema-eval e (first e))}) named-elements)))
+        elements (filter #(= (-> % meta :type) :element) (vals new-env))  
+        elem-map (elem-map-of elements)
+        env-key-set (set (keys new-env))
+        ]
+    (schema-fn new-env elem-map elements env-key-set arg-map)
+    )
+  
+  )
    
 (defn layout-of [schema]
   (-> (schema) :elements vec))
