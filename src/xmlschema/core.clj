@@ -725,7 +725,7 @@
 (defn schema->clj 
   ([hiccup start]
   (let [p (fn [text] (parser text :start start))]
-    (-> hiccup trim-xml (expand-includes start) pr-str p ast->clj)))
+    (-> hiccup #_trim-xml (expand-includes start) pr-str p ast->clj)))
   ([hiccup] (schema->clj hiccup :schema)))
 
 (defn schema-eval
@@ -797,10 +797,9 @@
 
 (defn name-only [e]
   (let [k (first e)
-        n (name k)
-        ix (.indexOf n ":")]
-    (if (> ix 0)
-      (keyword (.substring n (inc ix)))
+        n (name k)]
+    (if (.startsWith n "xs:")
+      (keyword (.substring n 3))
       k)
     ))
 
