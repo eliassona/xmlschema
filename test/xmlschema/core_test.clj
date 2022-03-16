@@ -43,8 +43,7 @@
 (deftest test-union-inline
   (assert-schema "union_inline.xml" :schema))
 (deftest test-bigone
-  #_(pretty-spit "/Users/anderseliasson/src/xmlschema/test/xmlschema/tmp.clj" 
-        (schema->clj (slurp (clojure.java.io/resource "bigone.xml")))))
+  (schema-compile (slurp (clojure.java.io/resource "bigone.xml"))))
 
 (deftest test-union-with-type
   (assert-schema "union_with_type.xml" :schema))

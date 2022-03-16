@@ -711,11 +711,14 @@
         (let [expanded-elements (expand-includes elements)]
           (vec (cons :schema (cons arg-map (filter-includes (apply conj elements (filter #(not (empty? %)) expanded-elements)))))))
         hiccup))))
-        
+
+(defn trim-xml [xml-hiccup]
+  (if (string? xml-hiccup) (hiccup-of (.trim xml-hiccup)) xml-hiccup))
+
 (defn schema->clj 
   ([hiccup start]
   (let [p (fn [text] (parser text :start start))]
-    (-> (if (string? hiccup) (hiccup-of (.trim hiccup)) hiccup) (expand-includes start) pr-str p ast->clj)))
+    (-> hiccup trim-xml (expand-includes start) pr-str p ast->clj)))
   ([hiccup] (schema->clj hiccup :schema)))
 
 (defn schema-eval
@@ -727,26 +730,7 @@
   (eval (schema->clj hiccup start)))
   ([hiccup] (schema-eval hiccup :schema)))
 
-(defn schema-compile
-  "Does the same as schema-eval but compiles each element inside a schema separately to avoid one big function"
-  [hiccup]
-  (let [hiccup (if (string? hiccup) (-> hiccup .trim hiccup-of) hiccup)
-        arg-map (second hiccup)
-        hiccup-elements (-> (expand-includes hiccup :schema) rest rest)
-        filter-fn #(contains? named-root-objects (first %))
-        named-elements (filter filter-fn hiccup-elements)
-        unnamed-elements (filter #(not (filter-fn %)) hiccup-elements)
-        import-env (apply merge (map (comp #(-> % meta :env) #(schema-eval % :import)) (filter #(= (first %) :import) unnamed-elements)))
-        schema (cons (first hiccup) (cons (second hiccup) unnamed-elements))
-        new-env (merge env import-env (apply merge (map (fn [e] {(-> e second :name)  (schema-eval e (first e))}) named-elements)))
-        elements (filter #(= (-> % meta :type) :element) (vals new-env))  
-        elem-map (elem-map-of elements)
-        env-key-set (set (keys new-env))
-        ]
-    (schema-fn new-env elem-map elements env-key-set arg-map)
-    )
-  
-  )
+
    
 (defn layout-of [schema]
   (-> (schema) :elements vec))
@@ -804,5 +788,35 @@
      predefs)))
 
 
+(defn name-only [e]
+  (let [k (first e)
+        n (name k)
+        ix (.indexOf n ":")]
+    (if (> ix 0)
+      (keyword (.substring n (inc ix)))
+      k)
+    ))
 
+(defn schema-compile
+  "Does the same as schema-eval but compiles each element inside a schema separately to avoid one big function"
+  [hiccup-or-xml]
+  (let [hiccup (trim-xml hiccup-or-xml)
+        arg-map (second hiccup)
+        hiccup-elements (-> (expand-includes hiccup :schema) rest rest)
+        filter-fn #(contains? named-root-objects (name-only %))
+        named-elements (filter filter-fn hiccup-elements)
+        unnamed-elements (filter #(not (filter-fn %)) hiccup-elements)
+        import-env (apply merge (map (comp #(-> % meta :env) #(schema-eval % :import)) (filter #(= (name-only %) :import) unnamed-elements)))
+        new-env (merge 
+                  env 
+                  import-env 
+                  (apply merge (map (fn [e] {(-> e second :name)  (schema-eval e (name-only e))}) named-elements)))
+        elements (filter #(= (-> % meta :type) :element) (vals new-env))  
+        elem-map (elem-map-of elements)
+        env-key-set (set (keys new-env))
+        ]
+    (schema-fn new-env elem-map elements env-key-set arg-map)
+    )
+  
+  )
 

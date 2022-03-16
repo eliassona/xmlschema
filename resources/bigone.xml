@@ -6,7 +6,6 @@
 			<xs:element name="Othr" type="GenericAccountIdentification1_HR"/>
 		</xs:sequence>
 	</xs:complexType>
-<!-- 	
 	<xs:complexType name="AccountIdentification4Choice_HR2">
 		<xs:sequence>
 			<xs:element name="IBAN" type="IBAN2007Identifier"/>
@@ -607,5 +606,4 @@
 	<xs:simpleType name="TrueFalseIndicator">
 		<xs:restriction base="xs:boolean"/>
 	</xs:simpleType>
- -->	
 </xs:schema>

@@ -24,6 +24,7 @@ public class XmlSchema {
 	private final static IFn keyword;
 	private final static IFn parse;
 	private final static IFn schemaToClj;
+	private final static IFn schemaCompile;
 	
 	static {
 		require = Clojure.var(CLOJURE_CORE, "require");
@@ -33,6 +34,7 @@ public class XmlSchema {
 		clSlurp = Clojure.var(CLOJURE_CORE, "slurp");
 		schemaEval = Clojure.var(XMLSCHEMA_CORE, "schema-eval");
 		schemaToClj = Clojure.var(XMLSCHEMA_CORE, "schema->clj");
+		schemaCompile = Clojure.var(XMLSCHEMA_CORE, "schema-compile");
 		hiccupOf = Clojure.var(XMLSCHEMA_CORE, "hiccup-of");
 		layoutOf = Clojure.var(XMLSCHEMA_CORE, "layout-of");
 	}
@@ -80,7 +82,7 @@ public class XmlSchema {
 	private final IFn schema;
 
 	private XmlSchema(final String xml) {
-		schema = (IFn) schemaEval.invoke(xml);
+		schema = (IFn) schemaCompile.invoke(xml);
 	}
 	
 	/**
