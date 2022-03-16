@@ -625,77 +625,77 @@
            (set (map (partial str xmlns#) s#))))
      {:type :import, :env schema-env#})))
 
-   (defn attr-map-of [env attrs attr-value-map]
-     (if (empty? attrs)
-       {}
-       (apply merge (map #(% env attr-value-map) attrs))))
+(defn attr-map-of [env attrs attr-value-map]
+  (if (empty? attrs)
+    {}
+    (apply merge (map #(% env attr-value-map) attrs))))
    
-   (defn simpleContent-extension [arg-map & attrs]
-     `(let [type-name# (:base ~arg-map)]
-        (add-meta 
-          (fn [env# [attr-value-map# value#]]
-            (let [v# ((env# type-name#) env# value#)]
-                [(attr-map-of env# ~(vec attrs) attr-value-map#) v#])
-              ) :simpleContent-restriction nil)))
+(defn simpleContent-extension [arg-map & attrs]
+  `(let [type-name# (:base ~arg-map)]
+     (add-meta 
+       (fn [env# [attr-value-map# value#]]
+         (let [v# ((env# type-name#) env# value#)]
+             [(attr-map-of env# ~(vec attrs) attr-value-map#) v#])
+           ) :simpleContent-restriction nil)))
    
-   (defn simpleContent [& args]
-     `(let [[arg-map# type-fn#] (normalize-args [~@args])]
-        (add-meta 
-          (fn [env# value#]
-            (type-fn# env# value#))
-          :simpleContent nil)))
+(defn simpleContent [& args]
+  `(let [[arg-map# type-fn#] (normalize-args [~@args])]
+     (add-meta 
+       (fn [env# value#]
+         (type-fn# env# value#))
+       :simpleContent nil)))
    
-   (def ast->clj-map  
-     {
-      :ident (fn[& chars] (read-string (apply str chars))) 
-      :string-literal (fn [& chars] (apply str chars)) 
-      :attrs (fn [& args] (apply hash-map args))
-      :req-attrs (fn [& args] (apply hash-map args))
-      :enumeration enumeration
-      :simpleType-restriction simpleType-restriction
-      :maxInclusive max-inclusive
-      :minInclusive min-inclusive
-      :maxExclusive max-exclusive
-      :minExclusive min-exclusive
-      :pattern pattern
-      :totalDigits totalDigits
-      :minLength minLength
-      :maxLength maxLength
-      :whiteSpace whiteSpace
-      :fractionDigits fractionDigits
-      :simpleType simpleType
-      :element element
-      :schema schema
-      :keyref keyref
-      :extension extension
-      :field field
-      :include include 
-      :list xml-schema-list
-      :notation notation
-      :redefine redefine
-      :selector selector
-      :unique unique
-      :choice choice
-      :sequence schema-sequence
-      :all all
-      :complexType complexType
-      :group group
-      :attribute attribute
-      :attributeGroup attributeGroup
-      :qName (fn[& chars] (apply str chars))
-      :memberTypes (fn [& args] (vec args))
-      :union union
-      :type xs-type
-      :import schema-import 
-      :xmlns (fn [ns] ns)
-      :simpleContent-extension simpleContent-extension
-      :simpleContent simpleContent
-      })
+(def ast->clj-map  
+  {
+   :ident (fn[& chars] (read-string (apply str chars))) 
+   :string-literal (fn [& chars] (apply str chars)) 
+   :attrs (fn [& args] (apply hash-map args))
+   :req-attrs (fn [& args] (apply hash-map args))
+   :enumeration enumeration
+   :simpleType-restriction simpleType-restriction
+   :maxInclusive max-inclusive
+   :minInclusive min-inclusive
+   :maxExclusive max-exclusive
+   :minExclusive min-exclusive
+   :pattern pattern
+   :totalDigits totalDigits
+   :minLength minLength
+   :maxLength maxLength
+   :whiteSpace whiteSpace
+   :fractionDigits fractionDigits
+   :simpleType simpleType
+   :element element
+   :schema schema
+   :keyref keyref
+   :extension extension
+   :field field
+   :include include 
+   :list xml-schema-list
+   :notation notation
+   :redefine redefine
+   :selector selector
+   :unique unique
+   :choice choice
+   :sequence schema-sequence
+   :all all
+   :complexType complexType
+   :group group
+   :attribute attribute
+   :attributeGroup attributeGroup
+   :qName (fn[& chars] (apply str chars))
+   :memberTypes (fn [& args] (vec args))
+   :union union
+   :type xs-type
+   :import schema-import 
+   :xmlns (fn [ns] ns)
+   :simpleContent-extension simpleContent-extension
+   :simpleContent simpleContent
+   })
 
-   (defn ast->clj [ast]
-       (insta/transform
-       ast->clj-map 
-       ast))
+(defn ast->clj [ast]
+    (insta/transform
+    ast->clj-map 
+    ast))
    
 (defn slurp-file [url]
   (slurp (clojure.java.io/resource url)))
