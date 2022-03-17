@@ -133,7 +133,7 @@
   )
 
 (deftest test-sequence-type
-  (let [type-fn
+  (let [s
         (schema-eval [:sequence {} 
                       [:element {:name "hej" :type "string"}]
                       [:element {:name "satoshi" :type "string"}]
@@ -144,9 +144,10 @@
                         ]
                        ]
                       ] :sequence)]
-    (is (= [:hej :satoshi :nakamoto :oskar] (type-fn env)))
+    (is (= [:hej :satoshi [:nakamoto :oskar]] (-> s meta :names)))
+    (is (= [:hej :satoshi :nakamoto :oskar] (s env)))
     (is (= [true [:hej [true "soffa"]][:satoshi [true "kudde"]]#_[:nakamoto [true "bla"]]] 
-                 (type-fn env [[:hej "soffa"][:satoshi "kudde"]#_[:nakamoto "bla"]])))
+                 (s env [[:hej "soffa"][:satoshi "kudde"]#_[:nakamoto "bla"]])))
     
     )
   )

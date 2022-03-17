@@ -425,15 +425,24 @@
    
 (defn choice [& args] (collections args `choice-fn))
    
+
+(defn coll-name-of [element]
+  (if (= (-> element meta :type) :element)
+    (-> element meta :name)
+    (-> element meta :names flatten)))
+
+(defn coll-names-of [elements]
+  (map coll-name-of elements))
+
 (defn schema-sequence-fn [the-map min-occurs max-occurs elements]
-  (add-meta 
+  (with-meta 
       (fn ([env value]
         (let [result (get-result the-map env value)]
             (conj 
               result
               true)))
       ([env] (flatten (all-sequence-items env elements))))
-      :sequence))
+      {:names (coll-names-of elements), :type :sequence}))
    
 (defn schema-sequence [& args] (collections args `schema-sequence-fn))
 
