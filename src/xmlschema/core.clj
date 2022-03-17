@@ -37,208 +37,200 @@
   ([o t n]
     (with-meta o (merge {:type t} (if n {:name n} {})))))
 
-   (defn assert-req-attrs [arg-map & keys]
-     (doseq [k keys]
-       (assert (contains? arg-map k) (format "argument %s is missing" k))))
+(defn assert-req-attrs [arg-map & keys]
+  (doseq [k keys]
+    (assert (contains? arg-map k) (format "argument %s is missing" k))))
 
+(defn same-elements? [c]
+  (= (count (set c))) 1)
 
-   (defn same-elements? [c]
-     (= (count (set c))) 1)
+(declare ast->clj)
 
-   (declare ast->clj)
+(defn type-name-of [t]
+  (ast->clj (parser t :start :type)))
 
-   (defn type-name-of [t]
-     (ast->clj (parser t :start :type)))
+(defn or-fn [args]
+  (loop [args args]
+    (if (not (empty? args))
+      (if (first args)
+        true
+        (recur (rest args)))
+      false)))
+
+(defn and-fn [args]
+  (loop [args args]
+    (if (not (empty? args))
+      (if (first args)
+        (recur (rest args))
+        false)
+      true)))
+   
+(defn simpleType-restriction-fn [base conds logic-expr arg-map]
+  (do-throw! (= base nil) "base attribute must be set")
+  (do-throw! (not (same-elements? (map (fn [c] (-> c meta :type)) conds))) "not the same type")
+  (fn ([env value]
+       (if-let [[base-result base-value] ((env (type-name-of base)) env value)]
+         [(and base-result
+             (let [statements (vec (map (fn [c] (c env base-value)) conds))]
+               (condp = logic-expr
+                 :empty true
+                 :or (or-fn statements)
+                 :and (and-fn statements)
+                 ))) base-value] 
+         (arg-exception! "Unknown base")))
+     ([env] ((env (arg-map :base)) env))))
+   
+(defn simpleType-restriction [arg-map & conditions]
+  `(let [conds# [~@conditions]]
+     (simpleType-restriction-fn 
+       (:base ~arg-map) 
+       conds# 
+       (if (empty? conds#) :empty (-> conds# first meta :type)) 
+       ~arg-map)))
 
    
-
-   (defn or-fn [args]
-     (loop [args args]
-       (if (not (empty? args))
-         (if (first args)
-           true
-           (recur (rest args)))
-         false)))
-           
-   (defn and-fn [args]
-     (loop [args args]
-       (if (not (empty? args))
-         (if (first args)
-           (recur (rest args))
-           false)
-         true)))
-   
-   (defn simpleType-restriction-fn [base conds logic-expr arg-map]
-     (do-throw! (= base nil) "base attribute must be set")
-     (do-throw! (not (same-elements? (map (fn [c] (-> c meta :type)) conds))) "not the same type")
-     (fn ([env value]
-          (if-let [[base-result base-value] ((env (type-name-of base)) env value)]
-            [(and base-result
-                (let [statements (vec (map (fn [c] (c env base-value)) conds))]
-                  (condp = logic-expr
-                    :empty true
-                    :or (or-fn statements)
-                    :and (and-fn statements)
-                    ))) base-value] 
-            (arg-exception! "Unknown base")))
-        ([env] ((env (arg-map :base)) env)))
-     )
-   
-   (defn simpleType-restriction [arg-map & conditions]
-     `(let [conds# [~@conditions]]
-        (simpleType-restriction-fn 
-          (:base ~arg-map) 
-          conds# 
-          (if (empty? conds#) :empty (-> conds# first meta :type)) 
-          ~arg-map)))
-
-   
-   (defn enumeration [arg-map & _]
-     (with-meta `(fn [env# value#]
-                  (when-let [exp-value# (:value ~arg-map)]
-                    (= value# exp-value#))) {:type :or}))
+(defn enumeration [arg-map & _]
+  (with-meta `(fn [env# value#]
+               (when-let [exp-value# (:value ~arg-map)]
+                 (= value# exp-value#))) {:type :or}))
 
 
-   (defn numeric-op-expr [arg-map op]
-       (when-let [exp-value (:value arg-map)]
-         (with-meta 
-           `(fn [env# value#]
-              (~op value# ~(read-string exp-value))) {:type :and})))
+(defn numeric-op-expr [arg-map op]
+    (when-let [exp-value (:value arg-map)]
+      (with-meta 
+        `(fn [env# value#]
+           (~op value# ~(read-string exp-value))) {:type :and})))
 
-   (defn max-inclusive [arg-map & _]
-     (numeric-op-expr arg-map `<=))
+(defn max-inclusive [arg-map & _]
+  (numeric-op-expr arg-map `<=))
 
-   (defn min-inclusive [arg-map & _]
-     (numeric-op-expr arg-map `>=))
+(defn min-inclusive [arg-map & _]
+  (numeric-op-expr arg-map `>=))
 
-   (defn max-exclusive [arg-map & _]
-     (numeric-op-expr arg-map `<))
+(defn max-exclusive [arg-map & _]
+  (numeric-op-expr arg-map `<))
 
-   (defn min-exclusive [arg-map & _]
-     (numeric-op-expr arg-map `>))
+(defn min-exclusive [arg-map & _]
+  (numeric-op-expr arg-map `>))
    
-   (defn pattern [arg-map & _]
-     (let [m (Pattern/compile (:value arg-map))]
-       (with-meta
-         `(fn [env# value#]
-            (not= (re-matches ~m value#) nil))
-         {:type :or})))
+(defn pattern [arg-map & _]
+  (let [m (Pattern/compile (:value arg-map))]
+    (with-meta
+      `(fn [env# value#]
+         (not= (re-matches ~m value#) nil))
+      {:type :or})))
    
-   (defn totalDigits [arg-map & _]
-     (let [n (-> arg-map :value read-string)]
-       (with-meta
-         `(fn [env# value#]
-            (<= (-> value# str count) ~n)) 
-         {:type :and}))
-     )
+(defn totalDigits [arg-map & _]
+  (let [n (-> arg-map :value read-string)]
+    (with-meta
+      `(fn [env# value#]
+         (<= (-> value# str count) ~n)) 
+      {:type :and}))
+  )
    
-   (defn min-max-length [arg-map op]
-     (let [n (-> arg-map :value read-string)]
-       (with-meta
-         `(fn [env# value#]
-            (~op (count value#) ~n)) 
-         {:type :and}))
-     )
+(defn min-max-length [arg-map op]
+  (let [n (-> arg-map :value read-string)]
+    (with-meta
+      `(fn [env# value#]
+         (~op (count value#) ~n)) 
+      {:type :and})))
    
-   (defn minLength [arg-map & _] (min-max-length arg-map `>=))
-   (defn maxLength [arg-map & _] (min-max-length arg-map `<=))
+(defn minLength [arg-map & _] (min-max-length arg-map `>=))
+(defn maxLength [arg-map & _] (min-max-length arg-map `<=))
    
-   
-   
-   (defn fractionDigits [arg-map & _]
-     (let [n (-> arg-map :value read-string)]
-       (do-throw! (< n 1) "must be bigger than zero")
-       (with-meta
-         `(fn [env# value#]
-            (let [s# (str value#)
-                  ix# (.indexOf s# ".")
-                  fr# (.substring s# (if (>= ix# 0) (inc ix#) 0))] 
-            (<= (count fr#) ~n))) 
-         {:type :and})))
+(defn fractionDigits [arg-map & _]
+  (let [n (-> arg-map :value read-string)]
+    (do-throw! (< n 1) "must be bigger than zero")
+    (with-meta
+      `(fn [env# value#]
+         (let [s# (str value#)
+               ix# (.indexOf s# ".")
+               fr# (.substring s# (if (>= ix# 0) (inc ix#) 0))] 
+         (<= (count fr#) ~n))) 
+      {:type :and})))
    
 
    
-   (defn whiteSpace [arg-map & _]
-     (let [v (:value arg-map)]
-       (do-throw! (not (contains? #{"collapse" "replace" "preserve"} v)) "invalid value")
-       (with-meta
-         `(fn [env# value#]
-            true ;;todo implement collapse, replace and preserve
-            ) 
-         {:type :and})))
+(defn whiteSpace [arg-map & _]
+  (let [v (:value arg-map)]
+    (do-throw! (not (contains? #{"collapse" "replace" "preserve"} v)) "invalid value")
+    (with-meta
+      `(fn [env# value#]
+         true ;;todo implement collapse, replace and preserve
+         ) 
+      {:type :and})))
 
-   (defn elements-of [env n type-fn]
-     (if-let [t (type-fn env)]
-       [n t]
-       n))
+(defn elements-of [env n type-fn]
+  (if-let [t (type-fn env)]
+    [n t]
+    n))
    
-   (defn prepare-value [type-fn value default fixed]
-     (let [st (= (-> type-fn meta :type) :simpleType)]
-       (do-throw! (and (or default fixed) (not st)) "default and fixed can only be used for simpleType")
-       (if st
-         (let [v (first value)]
-           (cond 
-             default (if v v default)
-             fixed (if (= v fixed) v (arg-exception! (format "is fixed"))) ;TODO better error text
-             :else v
-             ))
-         value)))
-
-   (defn massage-return-value [name type-fn value]
-     (if (= (-> type-fn meta :type) :complexType)
-       `[~name ~@value] 
-        [name value]))
-   
-   (defn element-fn [type-fn name ref type-name default fixed]
-     (do-throw! (and ref (or name type-name)) "ref and name type cannot be used at the same time")
-     (do-throw! (and default fixed) "default and fixed cannot be used at the same time")
-
-     (add-meta
-       (fn ([env [tmp & value :as all]]
+(defn prepare-value [type-fn value default fixed]
+  (let [st (= (-> type-fn meta :type) :simpleType)]
+    (do-throw! (and (or default fixed) (not st)) "default and fixed can only be used for simpleType")
+    (if st
+      (let [v (first value)]
         (cond 
-          ref
-          (let [r (env ref)]
-            (r env all))
-          type-name   
-          (if-let [t (env (type-name-of type-name))]
-            (massage-return-value name t (t env (prepare-value t value default fixed)))
-            (arg-exception! (format "Unknown type: %s" type-name)))
-          :else
-          (massage-return-value name type-fn (type-fn env (prepare-value type-fn value default fixed)))))
-       ([env]
-         (cond 
-           ref
-           ((env ref) env)
-           type-name
-           (elements-of env name (env type-name))
-           :else
-           (elements-of env name type-fn))))
-      :element name))
-   
-   (defn element [& args] 
-     `(let [[arg-map# type-fn#] (normalize-args [~@args])]
-        (element-fn type-fn# 
-                    (-> arg-map# :name keyword) 
-                    (:ref arg-map#) 
-                    (:type arg-map#) 
-                    (:default arg-map#) 
-                    (:fixed arg-map#))))
+          default (if v v default)
+          fixed (if (= v fixed) v (arg-exception! (format "is fixed"))) ;TODO better error text
+          :else v
+          ))
+      value)))
 
-   (defn type? [expected-type o]
-     (= expected-type (-> o meta :type)))
+(defn massage-return-value [name type-fn value]
+  (if (= (-> type-fn meta :type) :complexType)
+    `[~name ~@value] 
+     [name value]))
    
-   (defn name-of [o]
-     (if-let [n (-> o meta :name)]
-       (name n)
-       (arg-exception! "Name attribute missing")))
+(defn element-fn [type-fn name ref type-name default fixed]
+  (do-throw! (and ref (or name type-name)) "ref and name type cannot be used at the same time")
+  (do-throw! (and default fixed) "default and fixed cannot be used at the same time")
+  (add-meta
+    (fn ([env [tmp & value :as all]]
+     (cond 
+       ref
+       (let [r (env ref)]
+         (r env all))
+       type-name   
+       (if-let [t (env (type-name-of type-name))]
+         (massage-return-value name t (t env (prepare-value t value default fixed)))
+         (arg-exception! (format "Unknown type: %s" type-name)))
+       :else
+       (massage-return-value name type-fn (type-fn env (prepare-value type-fn value default fixed)))))
+    ([env]
+      (cond 
+        ref
+        ((env ref) env)
+        type-name
+        (elements-of env name (env type-name))
+        :else
+        (elements-of env name type-fn))))
+   :element name))
+    
+(defn element [& args] 
+  `(let [[arg-map# type-fn#] (normalize-args [~@args])]
+     (element-fn type-fn# 
+                 (-> arg-map# :name keyword) 
+                 (:ref arg-map#) 
+                 (:type arg-map#) 
+                 (:default arg-map#) 
+                 (:fixed arg-map#))))
 
-   (def named-root-objects #{:simpleType :complexType 
-                             :group :attributeGroup
-                             :element :attribute
-                             :notation})
+(defn type? [expected-type o]
+  (= expected-type (-> o meta :type)))
    
-   (defn only-named-objects [root-objects]
-     (filter (fn [o] (contains? named-root-objects (-> o meta :type))) root-objects))
+(defn name-of [o]
+  (if-let [n (-> o meta :name)]
+    (name n)
+    (arg-exception! "Name attribute missing")))
+
+(def named-root-objects #{:simpleType :complexType 
+                          :group :attributeGroup
+                          :element :attribute
+                          :notation})
+   
+(defn only-named-objects [root-objects]
+  (filter (fn [o] (contains? named-root-objects (-> o meta :type))) root-objects))
    
    (defn ns-key-of [t]
     (let [ix (.indexOf t ":")]
@@ -246,361 +238,362 @@
         (.substring t 0 (inc ix))
         t)))
    
-   (defn ns-of [arg-map]
-     (when-let [xmlns (first (filter #(.startsWith % "xmlns:") (map name (keys arg-map))))]
-       (ast->clj (parser xmlns :start :xmlns))))
+(defn ns-of [arg-map]
+  (when-let [xmlns (first (filter #(.startsWith % "xmlns:") (map name (keys arg-map))))]
+    (ast->clj (parser xmlns :start :xmlns))))
    
-   (defn name-spaces-of [xmlns imports]
-     imports)
+(defn name-spaces-of [xmlns imports]
+  imports)
    
-   (defn invalid-names! [names]
-     (some #(>= (.indexOf % ":") 0) names))
+(defn invalid-names! [names]
+  (some #(>= (.indexOf % ":") 0) names))
    
-   (defn schema-fn [env elem-map elements env-key-set arg-map]
-     (do-throw! (invalid-names! (map name (keys elem-map))) "can't define an element in another namespace")
-     (with-meta 
-      (fn 
-        ([xml-or-hiccup]
-          (let [hiccup (if (string? xml-or-hiccup) (hiccup-of xml-or-hiccup) xml-or-hiccup)]
-            ((elem-map (first hiccup)) env hiccup)))
-        ([]
-          {:elements 
-           (set 
-             (filter identity
-                     (map
-                       (fn [e] (e env)) elements)))
-           :env env-key-set})) {:type :schema, :xmlns (ns-of arg-map), :env env}))
+(defn schema-fn [env elem-map elements env-key-set arg-map]
+  (do-throw! (invalid-names! (map name (keys elem-map))) "can't define an element in another namespace")
+  (with-meta 
+   (fn 
+     ([xml-or-hiccup]
+       (let [hiccup (if (string? xml-or-hiccup) (hiccup-of xml-or-hiccup) xml-or-hiccup)]
+         ((elem-map (first hiccup)) env hiccup)))
+     ([]
+       {:elements 
+        (set 
+          (filter identity
+                  (map
+                    (fn [e] (e env)) elements)))
+        :env env-key-set})) {:type :schema, :xmlns (ns-of arg-map), :env env}))
    
-   (defn import-env-of [elements]
-      (let [imports (filter #(= (-> % meta :type) :import) elements)]
-        (apply merge (map #(-> % meta :env) imports))))
+(defn import-env-of [elements]
+   (let [imports (filter #(= (-> % meta :type) :import) elements)]
+     (apply merge (map #(-> % meta :env) imports))))
    
-   (defn elem-map-of [elements]
-     (apply merge (map (fn [e] {(-> e meta :name) e}) elements)))
+(defn elem-map-of [elements]
+  (apply merge (map (fn [e] {(-> e meta :name) e}) elements)))
    
-   (defn schema [& elements]
-     `(let [[arg-map# & root-objects#] (normalize-args [~@elements])
-            elements# (filter (fn [e#] (= (:type (meta e#)) :element)) root-objects#)
-            elem-map# (elem-map-of elements#)
-            env# (merge ~`env (apply merge (map (fn [e#] {(name-of e#) e#}) (only-named-objects root-objects#))))
-            import-env# (import-env-of root-objects#)]
-          (schema-fn (apply merge env# import-env#) 
-                     elem-map# 
-                     elements# 
-                     (set (keys env#)) 
-                     arg-map#)))
+(defn schema [& elements]
+  `(let [[arg-map# & root-objects#] (normalize-args [~@elements])
+         elements# (filter (fn [e#] (= (:type (meta e#)) :element)) root-objects#)
+         elem-map# (elem-map-of elements#)
+         env# (merge ~`env (apply merge (map (fn [e#] {(name-of e#) e#}) (only-named-objects root-objects#))))
+         import-env# (import-env-of root-objects#)]
+       (schema-fn (apply merge env# import-env#) 
+                  elem-map# 
+                  elements# 
+                  (set (keys env#)) 
+                  arg-map#)))
 
-   (defn simpleType-fn [name type-fn]
-     (add-meta
-      (condp = name 
-        "string"
-        (fn ([env value] [true value])
-           ([env] "string"))
-        "integer"
-        (fn ([env value]
-          (try 
-            (let [v (Long/valueOf value)]
-              [true v])
-            (catch NumberFormatException e
-              [false value])))
-            ([env] "integer"))
-        "decimal"
-        (fn ([env value]
-          (try 
-            (let [v (Double/valueOf value)]
-              [true v])
-            (catch NumberFormatException e
-              [false value])))
-            ([env] "decimal"))
-        "boolean"
-        (fn ([env value] 
-              (let [v (read-string value)]
-                (if (boolean? v) [true v] [false value])))
-           ([env] "boolean"))
-        (fn 
-          ([env value] (type-fn env value))
-          ([env] (if name name (type-fn env))))) 
-      :simpleType name))
+(defn simpleType-fn [name type-fn]
+  (add-meta
+   (condp = name 
+     "string"
+     (fn ([env value] [true value])
+        ([env] "string"))
+     "integer"
+     (fn ([env value]
+       (try 
+         (let [v (Long/valueOf value)]
+           [true v])
+         (catch NumberFormatException e
+           [false value])))
+         ([env] "integer"))
+     "decimal"
+     (fn ([env value]
+       (try 
+         (let [v (Double/valueOf value)]
+           [true v])
+         (catch NumberFormatException e
+           [false value])))
+         ([env] "decimal"))
+     "boolean"
+     (fn ([env value] 
+           (let [v (read-string value)]
+             (if (boolean? v) [true v] [false value])))
+        ([env] "boolean"))
+     (fn 
+       ([env value] (type-fn env value))
+       ([env] (if name name (type-fn env))))) 
+   :simpleType name))
    
-   (defn simpleType [& args]
-     `(let [[arg-map# type-fn#] (normalize-args [~@args])
-            n# (:name arg-map#)]
-        (simpleType-fn n# type-fn#)))
+(defn simpleType [& args]
+  `(let [[arg-map# type-fn#] (normalize-args [~@args])
+         n# (:name arg-map#)]
+     (simpleType-fn n# type-fn#)))
 
-   (defn keyref [& [arg-map]] 
-     (assert-req-attrs arg-map :name :refer))
+(defn keyref [& [arg-map]] 
+  (assert-req-attrs arg-map :name :refer))
 
-   (defn extension [& arg-map]
-     (assert-req-attrs arg-map :base))
+(defn extension [& arg-map]
+  (assert-req-attrs arg-map :base))
 
-   (defn field [& [arg-map]] 
-     (assert-req-attrs arg-map :xpath))
-   (defn selector [& [arg-map]] 
-     (assert-req-attrs arg-map :xpath))
-   
-   (defn include [arg-map & args] 
-     (assert-req-attrs arg-map :schemaLocation)
-     (vals arg-map))
-   
-   
-   (defn xml-schema-list-fn [itemType]
-     (add-meta 
-          (fn ([env value]
-            (let [e (env itemType)]
-              (cons true (map #(e env %) (.split value " ")))))
-            ([env] itemType))
-          :list nil))
-   
-   (defn xml-schema-list [& args]
-     `(let [[arg-map# & elements#] (normalize-args [~@args])
-            itemType# (:itemType arg-map#)]
-        (assert-req-attrs arg-map# :itemType)
-        (xml-schema-list-fn itemType#)))
+(defn field [& [arg-map]] 
+  (assert-req-attrs arg-map :xpath))
 
-   (defn notation [& [arg-map]] 
-     (assert-req-attrs arg-map :name :public))
+(defn selector [& [arg-map]] 
+  (assert-req-attrs arg-map :xpath))
    
-   (defn redefine [& [arg-map]] 
-     (assert-req-attrs arg-map :schemaLocation))
-   
-   (defn unique [& [arg-map]] 
-     (assert-req-attrs arg-map :name))
-   
-   (defn val-or-default [value default]
-     (if value value default))
-   
-   (defn min-max-occurs-of ([arg-map min-default max-default]
-     [(val-or-default (:minOccurs arg-map) min-default)
-      (val-or-default (:maxOccurs arg-map) max-default)])
-     ([arg-map]
-       (min-max-occurs-of  arg-map 0 1)))
-   
-   (defn occurance-of [l]
-     (reduce (fn [acc v] (update acc v (fn [v] (if v (inc v) 1)))) {} l))
+(defn include [arg-map & args] 
+  (assert-req-attrs arg-map :schemaLocation)
+  (vals arg-map))
    
    
-   (defn valid-sequence? [data ks min-occurs max-occurs]
-     (let [pd (partition-by keyword data)]
-       
-     ))
-   
-   (defn filter-elements 
-     ([m op]
-       (filter (fn [e] (op (-> e meta :type) :element)) m))
-     ([m] (filter-elements m =)))
-
-   (defn normalize-args [args]
-     (if (-> args first map?) args (cons {} args)))
-   
-   (defn make-map [args]
-     (reduce 
-       (fn [acc type-fn] (assoc acc (-> type-fn meta :name) type-fn)) {} (filter-elements args)))
-   
-   (defn get-result [m env value]
-     (map 
-       (fn [v] 
-         (let [n (first v)]
-           ((n m) env v))) value))
-   
-   (defn extract-name [env arg]
-     (let [t (-> arg meta :type)]
-       (if (= t :element)
-         (-> arg meta :name)
-         (arg env))))
-   
-   (defn all-sequence-items [env args]
-     (map (partial extract-name env) args))
-   
-   (defn choice-fn [the-map min-occurs max-occurs elements]
-     (add-meta 
+(defn xml-schema-list-fn [itemType]
+  (add-meta 
        (fn ([env value]
-         (let [result (get-result the-map env value) 
-               names (map first result)
-               s (set names)
-               n ((occurance-of names) (first s))]
-             (conj 
-               result
-               (and 
-                 (< (count s) 2) 
-                 (and (>= n min-occurs) (<= n max-occurs))))))
-         ([env] (flatten (all-sequence-items env elements))))
+         (let [e (env itemType)]
+           (cons true (map #(e env %) (.split value " ")))))
+         ([env] itemType))
+       :list nil))
+   
+(defn xml-schema-list [& args]
+  `(let [[arg-map# & elements#] (normalize-args [~@args])
+         itemType# (:itemType arg-map#)]
+     (assert-req-attrs arg-map# :itemType)
+     (xml-schema-list-fn itemType#)))
+
+(defn notation [& [arg-map]] 
+  (assert-req-attrs arg-map :name :public))
+   
+(defn redefine [& [arg-map]] 
+  (assert-req-attrs arg-map :schemaLocation))
+   
+(defn unique [& [arg-map]] 
+  (assert-req-attrs arg-map :name))
+   
+(defn val-or-default [value default]
+  (if value value default))
+   
+(defn min-max-occurs-of ([arg-map min-default max-default]
+  [(val-or-default (:minOccurs arg-map) min-default)
+   (val-or-default (:maxOccurs arg-map) max-default)])
+  ([arg-map]
+    (min-max-occurs-of  arg-map 0 1)))
+   
+(defn occurance-of [l]
+  (reduce (fn [acc v] (update acc v (fn [v] (if v (inc v) 1)))) {} l))
+   
+   
+(defn valid-sequence? [data ks min-occurs max-occurs]
+  (let [pd (partition-by keyword data)]))
+   
+(defn filter-elements 
+  ([m op]
+    (filter (fn [e] (op (-> e meta :type) :element)) m))
+  ([m] (filter-elements m =)))
+
+(defn normalize-args [args]
+  (if (-> args first map?) args (cons {} args)))
+   
+(defn make-map [args]
+  (reduce 
+    (fn [acc type-fn] (assoc acc (-> type-fn meta :name) type-fn)) {} (filter-elements args)))
+   
+(defn get-result [m env value]
+  (map 
+    (fn [v] 
+      (let [n (first v)]
+        ((n m) env v))) value))
+   
+(defn extract-name [env arg]
+  (let [t (-> arg meta :type)]
+    (if (= t :element)
+      (-> arg meta :name)
+      (arg env))))
+   
+(defn all-sequence-items [env args]
+  (map (partial extract-name env) args))
+   
+(defn choice-fn [the-map min-occurs max-occurs elements]
+  (add-meta 
+    (fn ([env value]
+      (let [result (get-result the-map env value) 
+            names (map first result)
+            s (set names)
+            n ((occurance-of names) (first s))]
+          (conj 
+            result
+            (and 
+              (< (count s) 2) 
+              (and (>= n min-occurs) (<= n max-occurs))))))
+      ([env] (flatten (all-sequence-items env elements)))) 
     :choice))
    
-   (defn collections [args coll-fn]
-     `(let [[arg-map# & elements#] (normalize-args [~@args])
-            [min-occurs# max-occurs#] (min-max-occurs-of arg-map#)
-            the-map# (make-map elements#)]
-        (~coll-fn the-map# min-occurs# max-occurs# elements#)))
+(defn collections [args coll-fn]
+  `(let [[arg-map# & elements#] (normalize-args [~@args])
+         [min-occurs# max-occurs#] (min-max-occurs-of arg-map#)
+         the-map# (make-map elements#)]
+     (~coll-fn the-map# min-occurs# max-occurs# elements#)))
    
-   (defn choice [& args] (collections args `choice-fn))
+(defn choice [& args] (collections args `choice-fn))
    
-   (defn schema-sequence-fn [the-map min-occurs max-occurs elements]
-     (add-meta 
-         (fn ([env value]
-           (let [result (get-result the-map env value)]
-               (conj 
-                 result
-                 true)))
-         ([env] (flatten (all-sequence-items env elements))))
-         :sequence))
+(defn schema-sequence-fn [the-map min-occurs max-occurs elements]
+  (add-meta 
+      (fn ([env value]
+        (let [result (get-result the-map env value)]
+            (conj 
+              result
+              true)))
+      ([env] (flatten (all-sequence-items env elements))))
+      :sequence))
    
-   (defn schema-sequence [& args] (collections args `schema-sequence-fn))
+(defn schema-sequence [& args] (collections args `schema-sequence-fn))
 
-   (defn all-fn [the-map min-occurs max-occurs elements]
-     (add-meta 
-        (fn ([env value]
-         (let [result (get-result the-map env value)]
-             (conj 
-               result
-               true)))
-          ([env] (flatten (all-sequence-items env elements))))
-        :all))
+(defn all-fn [the-map min-occurs max-occurs elements]
+  (add-meta 
+     (fn ([env value]
+      (let [result (get-result the-map env value)]
+          (conj 
+            result
+            true)))
+       ([env] (flatten (all-sequence-items env elements))))
+     :all))
    
-   (defn all [& args] (collections args `all-fn))
+(defn all [& args] (collections args `all-fn))
    
-   (def complex-type-sub-element #{:simpleContent 
-                                   :complexContent 
-                                   :group :all 
-                                   :choice :sequence}) 
-   (def attrs-sub-element #{:attribute :attributeGroup})
+(def complex-type-sub-element #{:simpleContent 
+                                :complexContent 
+                                :group :all 
+                                :choice :sequence}) 
+(def attrs-sub-element #{:attribute :attributeGroup})
    
-   (defn sub-element-of [args]
-     (first (filter (fn [e] (contains? complex-type-sub-element (-> e meta :type))) args)))
+(defn sub-element-of [args]
+  (first (filter (fn [e] (contains? complex-type-sub-element (-> e meta :type))) args)))
    
-   (defn attrs-of [args]
-     (filter (fn [v] (contains? attrs-sub-element (-> v meta :type))) args))
+(defn attrs-of [args]
+  (filter (fn [v] (contains? attrs-sub-element (-> v meta :type))) args))
    
-   (defn complexType-fn [name sub-elem attrs]
-     (add-meta 
-      (fn
-        ([env value]
-          (cond (= (-> sub-elem meta :type) :simpleContent)
-                (sub-elem env value)
-                (map? (first value))
-                (let [e (rest value)
-                  a (first value)]
-                [(apply merge (map (fn [attr] (attr env a)) attrs))
-                (if (empty? e) [] (sub-elem env e))])
-                :else
-                [(sub-elem env value)]))
-        ([env]
-          (if sub-elem
-            (sub-elem env)
-            [])))
-      :complexType name))
+(defn complexType-fn [name sub-elem attrs]
+  (add-meta 
+   (fn
+     ([env value]
+       (cond (= (-> sub-elem meta :type) :simpleContent)
+             (sub-elem env value)
+             (map? (first value))
+             (let [e (rest value)
+               a (first value)]
+             [(apply merge (map (fn [attr] (attr env a)) attrs))
+             (if (empty? e) [] (sub-elem env e))])
+             :else
+             [(sub-elem env value)]))
+     ([env]
+       (if sub-elem
+         (sub-elem env)
+         [])))
+   :complexType name))
    
-   (defn complexType [& args]
-     `(let [args# (normalize-args [~@args])]
-        (complexType-fn 
-          (:name (first args#)) 
-          (sub-element-of (rest args#)) 
-          (attrs-of args#))))
+(defn complexType [& args]
+  `(let [[arg-map# & elements#] (normalize-args [~@args])]
+     (complexType-fn 
+       (:name arg-map#) 
+       (sub-element-of elements#) 
+       (attrs-of elements#))))
    
-   (defn group-fn [name ref type-fn]
-     (do-throw! (and name ref) "name and ref cannot be used at the same time")
-     (add-meta 
-            (fn 
-              ([env value]
-                (if ref
-                  ((env ref) env value)
-                  (type-fn env value)))
-              ([env]
-                (type-fn env)
-                ))
-          :group name))
    
-   (defn group [& args]
-     `(let [[arg-map# type-fn#] (normalize-args [~@args])]
-        (group-fn (:name arg-map#) (:ref arg-map#) type-fn#)))
+(defn group-fn [name ref type-fn]
+  (do-throw! (and name ref) "name and ref cannot be used at the same time")
+  (add-meta 
+         (fn 
+           ([env value]
+             (if ref
+               ((env ref) env value)
+               (type-fn env value)))
+           ([env]
+             (type-fn env)
+             ))
+       :group name))
    
-   (defn attribute-fn [name ref type-name type-fn default fixed]
-    (do-throw! (and name ref) "name and ref cannot be used at the same time")
-    (do-throw! (and default fixed) "default and fixed cannot be used at the same time")
-     (add-meta
-      (fn 
-        ([env value]
-          (let [key (keyword name)
-                value (value key)
-                value (if value value default)]
-            (do-throw! (and (not value) (= use "required")) (format "required attribute %s is missing" key))
-            (do-throw! (and value (= use "prohibited")) (format "attribute %s is not allowed" key))
-            (cond
-              name
-              {key (if value
-                      ((if type-name (env type-name) type-fn) env value)
-                      [true nil])}
-              ref
-              (if-let [a (env ref)]
-                (if (= (-> a meta :type) :attribute)
-                  (type-fn env value)
-                  (arg-exception! "ref must point to an attribute"))
-                (arg-exception! "invalid ref"))
-              :else
-              (arg-exception! "name or ref must be set")
-              )))
+(defn group [& args]
+  `(let [[arg-map# type-fn#] (normalize-args [~@args])]
+     (group-fn (:name arg-map#) (:ref arg-map#) type-fn#)))
+   
+(defn attribute-fn [name ref type-name type-fn default fixed]
+ (do-throw! (and name ref) "name and ref cannot be used at the same time")
+ (do-throw! (and default fixed) "default and fixed cannot be used at the same time")
+  (add-meta
+   (fn 
+     ([env value]
+       (let [key (keyword name)
+             value (value key)
+             value (if value value default)]
+         (do-throw! (and (not value) (= use "required")) (format "required attribute %s is missing" key))
+         (do-throw! (and value (= use "prohibited")) (format "attribute %s is not allowed" key))
+         (cond
+           name
+           {key (if value
+                   ((if type-name (env type-name) type-fn) env value)
+                   [true nil])}
+           ref
+           (if-let [a (env ref)]
+             (if (= (-> a meta :type) :attribute)
+               (type-fn env value)
+               (arg-exception! "ref must point to an attribute"))
+             (arg-exception! "invalid ref"))
+           :else
+           (arg-exception! "name or ref must be set")
+           )))
             
-        ([env]
-          (cond
-            ref ((env ref) env)
-            name [name (if type-name type-name (type-fn env))])
-          ))
-    :attribute name))
+     ([env]
+       (cond
+         ref ((env ref) env)
+         name [name (if type-name type-name (type-fn env))])
+       ))
+ :attribute name))
    
-   (defn attribute [& args]
-     `(let [[arg-map# type-fn#] (normalize-args [~@args])]
-        (attribute-fn 
-          (:name arg-map#) 
-          (:ref arg-map#) 
-          (:type arg-map#) 
-          type-fn# 
-          (:default arg-map#) 
-          (:fixed arg-map#))))
+(defn attribute [& args]
+  `(let [[arg-map# type-fn#] (normalize-args [~@args])]
+     (attribute-fn 
+       (:name arg-map#) 
+       (:ref arg-map#) 
+       (:type arg-map#) 
+       type-fn# 
+       (:default arg-map#) 
+       (:fixed arg-map#))))
    
-   (defn attributeGroup-fn [name ref type-fn]
-     (do-throw! (and name ref) "name and ref cannot be used at the same time")
-     (do-throw! (and ref (not (empty? type-fn)))  "ref and attributes cannot be used at the same time")
-     (add-meta
-       (fn ([env value]
-         (if ref
-           (let [rf (env ref)]
-             (if (= (-> rf meta :type) :attributeGroup)
-               (rf env value)
-               (arg-exception! "ref does not point to an attributeGroup")))
-           (apply merge (map (fn [f] (f env value)) type-fn))))
-         ([env]
-           (set (apply concat (map (fn [f] (f env)) type-fn)))))
-       :attributeGroup name)
-     )
+(defn attributeGroup-fn [name ref type-fn]
+  (do-throw! (and name ref) "name and ref cannot be used at the same time")
+  (do-throw! (and ref (not (empty? type-fn)))  "ref and attributes cannot be used at the same time")
+  (add-meta
+    (fn ([env value]
+      (if ref
+        (let [rf (env ref)]
+          (if (= (-> rf meta :type) :attributeGroup)
+            (rf env value)
+            (arg-exception! "ref does not point to an attributeGroup")))
+        (apply merge (map (fn [f] (f env value)) type-fn))))
+      ([env]
+        (set (apply concat (map (fn [f] (f env)) type-fn)))))
+    :attributeGroup name)
+  )
    
-   (defn attributeGroup [& args]
-     `(let [[arg-map# & type-fn#] (normalize-args [~@args])]
-        (attributeGroup-fn (:name arg-map#) (:ref arg-map#) type-fn#)))
+(defn attributeGroup [& args]
+  `(let [[arg-map# & type-fn#] (normalize-args [~@args])]
+     (attributeGroup-fn (:name arg-map#) (:ref arg-map#) type-fn#)))
    
-   (defn memberTypes-of [mt]
-     (if mt
-       (vec (ast->clj (parser mt :start :memberTypes)))
-       []))
+(defn memberTypes-of [mt]
+  (if mt
+    (vec (ast->clj (parser mt :start :memberTypes)))
+    []))
    
-   (defn union-or-of [results]
-     (if (empty? results) 
-       [false nil]
-       (loop [r results]
-         (if (empty? r)
-           (first results)
-           (let [e (first r)]
-             (if (first e)
-               e
-               (recur (rest results))))))))
+(defn union-or-of [results]
+  (if (empty? results) 
+    [false nil]
+    (loop [r results]
+      (if (empty? r)
+        (first results)
+        (let [e (first r)]
+          (if (first e)
+            e
+            (recur (rest results))))))))
    
-   (defn union [& args]
-     `(let [[arg-map# & type-fn#] (normalize-args [~@args])
-            memberTypes# (memberTypes-of (:memberTypes arg-map#))]
-        (fn [env# value#]
-          (union-or-of (map #(% env# value#) (concat (map env# memberTypes#) type-fn#))))))
+(defn union [& args]
+  `(let [[arg-map# & type-fn#] (normalize-args [~@args])
+         memberTypes# (memberTypes-of (:memberTypes arg-map#))]
+     (fn [env# value#]
+       (union-or-of (map #(% env# value#) (concat (map env# memberTypes#) type-fn#))))))
    
-   (defn xs-type 
-     ([t] t)
-     ([ns t] (str ns ":" t)))
+(defn xs-type 
+  ([t] t)
+  ([ns t] (str ns ":" t)))
+
 (defn local-import-env-of [local-env element]
   (with-meta 
     (fn 
@@ -617,7 +610,7 @@
 (defn schema-import [& args]
 `(let [[arg-map# & type-fn#] [~@args]
        f# (:schemaLocation arg-map#)
-       schema# (-> f# slurp-file hiccup-of (schema-eval :schema))
+       schema# (-> f# slurp-file hiccup-of schema-compile)
        schema-env# (-> schema# meta :env)
        local-env# (partial local-import-env-of schema-env#)
        xmlns# (str (-> schema# meta :xmlns))
@@ -640,14 +633,14 @@
        (fn [env# [attr-value-map# value#]]
          (let [v# ((env# type-name#) env# value#)]
              [(attr-map-of env# ~(vec attrs) attr-value-map#) v#])
-           ) :simpleContent-restriction nil)))
+           ) :simpleContent-restriction)))
    
 (defn simpleContent [& args]
   `(let [[arg-map# type-fn#] (normalize-args [~@args])]
      (add-meta 
        (fn [env# value#]
          (type-fn# env# value#))
-       :simpleContent nil)))
+       :simpleContent)))
    
 (def ast->clj-map  
   {

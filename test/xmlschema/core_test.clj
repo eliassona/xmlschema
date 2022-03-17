@@ -14,10 +14,6 @@
         #_(ast->clj result)
         (is true)))))
 
- 
-
-
-
 (deftest parse-test 
   (let [a (partial assert-schema)]
 	  ;(a "typed_element.xml" :schema)
@@ -511,13 +507,13 @@
             ]]
           [:simpleType {:name "IBAN2007Identifier"}
            [:restriction {:base "xs:string"}
-            [:pattern {:value "[A-Z]{2,2}[0-9]{2,2}[a-zA-Z0-9]{1,30}"}]
-
-           ; [:enumeration {:value "A"}]
-           ; [:enumeration {:value "B"}]
+            [:enumeration {:value "A"}]
+            [:enumeration {:value "B"}]
             ]]
           [:element {:name "a" :type "AccountIdentification4Choice_HR2"}]])]
     (is (= [:a [true [:IBAN [false "hej"]]]] (s [:a [:IBAN "hej"]])))
+    (is (= [:a [true [:IBAN [true "A"]]]] (s [:a [:IBAN "A"]])))
+    (is (= [:a [true [:IBAN [true "B"]]]] (s [:a [:IBAN "B"]])))
     ))
 
 
