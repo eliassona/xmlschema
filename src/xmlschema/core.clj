@@ -415,7 +415,13 @@
   (CollNormalizer/normalizeCollData data names)
   )
 
-(defn choice-fn [the-map min-occurs max-occurs elements]
+(defn collections [args coll-fn]
+  `(let [[arg-map# & elements#] (normalize-args [~@args])
+         [min-occurs# max-occurs#] (min-max-occurs-of arg-map#)
+         the-map# (make-map elements#)]
+     (~coll-fn the-map# min-occurs# max-occurs# elements# (coll-names-of elements#))))
+
+(defn choice-fn [the-map min-occurs max-occurs elements coll-names]
   (with-meta 
     (fn ([env value]
       (let [result (get-result the-map env value) 
@@ -428,19 +434,15 @@
               (< (count s) 2) 
               (and (>= n min-occurs) (<= n max-occurs))))))
       ([env] (flatten (all-sequence-items env elements)))) 
-    {:names (coll-names-of elements), :type :choice}))
+    {:names coll-names, :type :choice}))
    
-(defn collections [args coll-fn]
-  `(let [[arg-map# & elements#] (normalize-args [~@args])
-         [min-occurs# max-occurs#] (min-max-occurs-of arg-map#)
-         the-map# (make-map elements#)]
-     (~coll-fn the-map# min-occurs# max-occurs# elements#)))
+
    
 (defn choice [& args] (collections args `choice-fn))
    
 
 
-(defn schema-sequence-fn [the-map min-occurs max-occurs elements]
+(defn schema-sequence-fn [the-map min-occurs max-occurs elements coll-names]
   (with-meta 
     (fn ([env value]
       (let [result (get-result the-map env value)]
@@ -448,11 +450,11 @@
             result
             true)))
     ([env] (flatten (all-sequence-items env elements))))
-      {:names (coll-names-of elements), :type :sequence}))
+      {:names coll-names, :type :sequence}))
    
 (defn schema-sequence [& args] (collections args `schema-sequence-fn))
 
-(defn all-fn [the-map min-occurs max-occurs elements]
+(defn all-fn [the-map min-occurs max-occurs elements coll-names]
   (with-meta 
      (fn ([env value]
       (let [result (get-result the-map env value)]
@@ -460,7 +462,7 @@
             result
             true)))
        ([env] (flatten (all-sequence-items env elements))))
-     {:names (coll-names-of elements), :type :all}))
+     {:names coll-names, :type :all}))
    
 (defn all [& args] (collections args `all-fn))
    
