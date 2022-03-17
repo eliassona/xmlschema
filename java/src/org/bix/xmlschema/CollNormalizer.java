@@ -10,7 +10,13 @@ public class CollNormalizer {
 		int dIx = 0;
 		int nIx = 0;
 		while (true) {
-			if (nIx >= names.size() || dIx >= data.size()) return result;
+			if (nIx >= names.size() || dIx >= data.size()) {
+				while (dIx < data.size()) {
+					result.add(data.get(dIx));
+					dIx++;
+				}
+				return result;
+			}
 			final Object o = names.get(nIx);
 			nIx++;
 			if (o instanceof List) {
@@ -18,7 +24,12 @@ public class CollNormalizer {
 				final List newList = new ArrayList<>();
 				result.add(newList);
 				for (int j = 0; j < nn.size(); j++) {
-					newList.add(data.get(dIx));
+					final List d = (List) data.get(dIx);
+					if (nn.contains(d.get(0))) {
+						newList.add(d);
+					} else {
+						result.add(d);
+					}
 					dIx++;
 					if (dIx >= data.size()) return result;
 				}
