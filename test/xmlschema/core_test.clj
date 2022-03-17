@@ -493,13 +493,33 @@
     ))
         
 (deftest test-big-one
-  #(let [s (schema-compile
-          [:schema {:xmlns:hej "adsf"}
-           [:import {:schemaLocation "bigone.xml"}]
-           [:element {:name "a" :type "lib:AccountIdentification4Choice_HR2"}]
-           ])]
-    (is (= [] (s [:a [:IBAN "hej"]])))
+  (let [s (schema-compile
+         [:schema {:xmlns:hej "adsf"}
+          [:import {:schemaLocation "bigone.xml"}]
+          [:element {:name "a" :type "lib:AccountIdentification4Choice_HR2"}]
+          ])]
+   (is (= [:a [true [:IBAN [false "hej"]]]] (s [:a [:IBAN "hej"]])))
+   ))
+
+
+(deftest test-sequence-when-referring-to-new-type
+  (let [s (schema-compile
+         [:schema {:xmlns:hej "adsf"}
+          [:complexType {:name "AccountIdentification4Choice_HR2"}
+           [:sequence
+            [:element {:name "IBAN" :type "IBAN2007Identifier"}]
+            ]]
+          [:simpleType {:name "IBAN2007Identifier"}
+           [:restriction {:base "xs:string"}
+            [:pattern {:value "[A-Z]{2,2}[0-9]{2,2}[a-zA-Z0-9]{1,30}"}]
+
+           ; [:enumeration {:value "A"}]
+           ; [:enumeration {:value "B"}]
+            ]]
+          [:element {:name "a" :type "AccountIdentification4Choice_HR2"}]])]
+    (is (= [:a [true [:IBAN [false "hej"]]]] (s [:a [:IBAN "hej"]])))
     ))
+
 
 (deftest test-trying-to-override-from-other-ns
   (is (thrown? IllegalArgumentException
@@ -509,5 +529,14 @@
           [:element {:name "hej" :type "string"}]]))))
 
 
+(deftest test-redefine
+  #_(let [s (schema-compile
+          [:schema {:xmlns:hej "adsf"}
+           [:import {:schemaLocation "typed_elements.xml"}]
+           [:element {:name "a" :type "lib:AccountIdentification4Choice_HR2"}]
+           ])]
+    (is (= [] (s [:a [:IBAN "hej"]])))
+    )
+  )
   
   
