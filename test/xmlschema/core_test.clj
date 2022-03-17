@@ -500,7 +500,13 @@
            ])]
     (is (= [] (s [:a [:IBAN "hej"]])))
     ))
-    
+
+(deftest test-trying-to-override-from-other-ns
+  (is (thrown? IllegalArgumentException
+        (schema-compile
+         [:schema {:xmlns:hej "adsf"}
+          [:element {:name "lib:a" :type "string"}]
+          [:element {:name "hej" :type "string"}]]))))
 
 
   
