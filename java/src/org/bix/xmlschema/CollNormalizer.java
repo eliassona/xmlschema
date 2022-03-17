@@ -1,0 +1,31 @@
+package org.bix.xmlschema;
+
+import java.util.ArrayList;
+import java.util.List;
+
+public class CollNormalizer {
+	@SuppressWarnings("rawtypes")
+	public static List normalizeCollData(final List data, final List names) {
+		final List result = new ArrayList<>();
+		int dIx = 0;
+		int nIx = 0;
+		while (true) {
+			if (nIx >= names.size() || dIx >= data.size()) return result;
+			final Object o = names.get(nIx);
+			nIx++;
+			if (o instanceof List) {
+				final List nn = (List) o;
+				final List newList = new ArrayList<>();
+				result.add(newList);
+				for (int j = 0; j < nn.size(); j++) {
+					newList.add(data.get(dIx));
+					dIx++;
+					if (dIx >= data.size()) return result;
+				}
+			} else {
+				result.add(data.get(dIx));
+				dIx++;
+			}
+		}
+	}
+}

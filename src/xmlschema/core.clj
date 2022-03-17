@@ -2,7 +2,8 @@
   (:require [instaparse.core :as insta]
             [clojure.xml :as xml])
   (:use [clojure.pprint])
-  (:import [java.util.regex Pattern]))
+  (:import [java.util.regex Pattern]
+           [org.bix.xmlschema CollNormalizer]))
 
 (defmacro dbg [body]
   `(let [x# ~body]
@@ -401,7 +402,19 @@
    
 (defn all-sequence-items [env args]
   (map (partial extract-name env) args))
-   
+
+(defn coll-name-of [element]
+  (if (= (-> element meta :type) :element)
+    (-> element meta :name)
+    (-> element meta :names flatten)))
+
+(defn coll-names-of [elements]
+  (map coll-name-of elements))
+
+(defn normalize-coll-data [data names]
+  (CollNormalizer/normalizeCollData data names)
+  )
+
 (defn choice-fn [the-map min-occurs max-occurs elements]
   (with-meta 
     (fn ([env value]
@@ -426,13 +439,6 @@
 (defn choice [& args] (collections args `choice-fn))
    
 
-(defn coll-name-of [element]
-  (if (= (-> element meta :type) :element)
-    (-> element meta :name)
-    (-> element meta :names flatten)))
-
-(defn coll-names-of [elements]
-  (map coll-name-of elements))
 
 (defn schema-sequence-fn [the-map min-occurs max-occurs elements]
   (with-meta 

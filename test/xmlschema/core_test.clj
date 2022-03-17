@@ -536,4 +536,8 @@
     )
   )
   
-  
+(deftest test-normalize-coll-data
+  (is (= [] (normalize-coll-data [] []))) 
+  (is (= [[:a 1][[:b 2][:c 3]][:d 4]] (normalize-coll-data [[:a 1][:b 2][:c 3][:d 4]] [:a [:b :c] :d])))
+  (is (= [[:a 1][[:b 2]]] (normalize-coll-data [[:a 1][:b 2]] [:a [:b :c]])))
+)  
