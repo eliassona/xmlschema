@@ -403,7 +403,7 @@
   (map (partial extract-name env) args))
    
 (defn choice-fn [the-map min-occurs max-occurs elements]
-  (add-meta 
+  (with-meta 
     (fn ([env value]
       (let [result (get-result the-map env value) 
             names (map first result)
@@ -415,7 +415,7 @@
               (< (count s) 2) 
               (and (>= n min-occurs) (<= n max-occurs))))))
       ([env] (flatten (all-sequence-items env elements)))) 
-    :choice))
+    {:names (coll-names-of elements), :type :choice}))
    
 (defn collections [args coll-fn]
   `(let [[arg-map# & elements#] (normalize-args [~@args])
@@ -436,25 +436,25 @@
 
 (defn schema-sequence-fn [the-map min-occurs max-occurs elements]
   (with-meta 
-      (fn ([env value]
-        (let [result (get-result the-map env value)]
-            (conj 
-              result
-              true)))
-      ([env] (flatten (all-sequence-items env elements))))
+    (fn ([env value]
+      (let [result (get-result the-map env value)]
+          (conj 
+            result
+            true)))
+    ([env] (flatten (all-sequence-items env elements))))
       {:names (coll-names-of elements), :type :sequence}))
    
 (defn schema-sequence [& args] (collections args `schema-sequence-fn))
 
 (defn all-fn [the-map min-occurs max-occurs elements]
-  (add-meta 
+  (with-meta 
      (fn ([env value]
       (let [result (get-result the-map env value)]
           (conj 
             result
             true)))
        ([env] (flatten (all-sequence-items env elements))))
-     :all))
+     {:names (coll-names-of elements), :type :all}))
    
 (defn all [& args] (collections args `all-fn))
    
