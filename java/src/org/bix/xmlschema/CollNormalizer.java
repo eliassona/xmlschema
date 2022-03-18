@@ -4,6 +4,25 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class CollNormalizer {
+	
+	@SuppressWarnings("rawtypes")
+	public static List choiceFn(final List data, final List elements) {
+		final List result = new ArrayList<>();
+		result.add(true);
+		int dIx = 0;
+		int nIx = 0;
+		while (true) {
+			if (nIx >= elements.size() || dIx >= data.size()) {
+				while (dIx < data.size()) {
+					//TODO
+					dIx++;
+				}
+				return result;
+			}
+			
+		}
+		return result;
+	}
 	@SuppressWarnings("rawtypes")
 	public static List normalizeCollData(final List data, final List names) {
 		final List result = new ArrayList<>();

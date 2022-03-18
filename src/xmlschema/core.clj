@@ -436,31 +436,52 @@
       ([env] (flatten (all-sequence-items env elements)))) 
     {:names coll-names, :type :choice}))
    
-
+(defn choice-fn [the-map min-occurs max-occurs elements coll-names]
+  (let [element-fn #(= (-> % meta :type) :element)
+        pure-elem (filter element-fn elements)
+        sub-elem (filter #(not (element-fn %)) elements)
+        the-keys (-> the-map keys set)]
+    (with-meta 
+      (fn ([env value]
+        (let [value-fn #(-> % first keyword?)
+              pure-v (filter value-fn value)
+              valid-v (filter #(contains? the-keys (first %)) pure-v)
+              sub-v (filter #(not (value-fn %)) value)
+              choice-result (and (= (count valid-v) 1) (= (count sub-v) (count sub-elem)))
+              sub-result (map (fn [e v] (e env v)) sub-elem sub-v)
+              pure-result ((the-map (-> valid-v first first)) env (first valid-v))]
+          (if (empty? sub-result)
+            [choice-result  
+             pure-result
+            ]
+            [choice-result  
+             pure-result
+             sub-result
+            ])))
+        ([env] (flatten (all-sequence-items env elements)))) 
+      {:names coll-names, :type :choice})))
    
 (defn choice [& args] (collections args `choice-fn))
-   
 
+(defn seq-ok? [value elements]
+  true)
 
 (defn schema-sequence-fn [the-map min-occurs max-occurs elements coll-names]
   (with-meta 
     (fn ([env value]
-      (let [result (get-result the-map env value)]
-          (conj 
-            result
-            true)))
+      (cons (seq-ok? value elements) (map (fn [e v] (e env v)) elements value)))
     ([env] (flatten (all-sequence-items env elements))))
       {:names coll-names, :type :sequence}))
    
 (defn schema-sequence [& args] (collections args `schema-sequence-fn))
 
+(defn all-ok? [value elements]
+  (= (count value) (count elements)))
+
 (defn all-fn [the-map min-occurs max-occurs elements coll-names]
   (with-meta 
      (fn ([env value]
-      (let [result (get-result the-map env value)]
-          (conj 
-            result
-            true)))
+      (cons (all-ok? value elements) (map (fn [v] ((the-map (first v)) env v)) value)))
        ([env] (flatten (all-sequence-items env elements))))
      {:names coll-names, :type :all}))
    

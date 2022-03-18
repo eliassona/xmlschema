@@ -125,9 +125,9 @@
                       [:element {:name "satoshi" :type "xs:string"}]
                       ] :choice)]
     (is (= [true [:hej [true "asdf"]]] (type-fn env [[:hej "asdf"]])))
-    (is (= [false [:hej [true "asdf"]][:hej [true "fsda"]]] 
+    (is (= [false [:hej [true "asdf"]]] 
           (type-fn env [[:hej "asdf"][:hej "fsda"]])))
-    (is (= [false [:hej [true "asdf"]][:satoshi [true "fsda"]]] 
+    (is (= [false [:hej [true "asdf"]]] 
           (type-fn env [[:hej "asdf"][:satoshi "fsda"]])))
     )
   )
