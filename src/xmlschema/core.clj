@@ -466,10 +466,8 @@
   (with-meta 
     (fn ([env value]
       (let [value (normalize-coll-data value coll-names)    
-            res (map (fn [e v] (e env v)) elements value)
-            ]
-        ;res
-            (cons (seq-ok? res elements) (flatten-coll-value res))))
+            res (map (fn [e v] (e env v)) elements value)]
+        (cons (seq-ok? res elements) (flatten-coll-value res))))
     ([env] (flatten (all-sequence-items env elements))))
       {:names coll-names, :type :sequence}))
    
