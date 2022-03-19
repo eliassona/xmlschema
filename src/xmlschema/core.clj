@@ -233,11 +233,11 @@
 (defn only-named-objects [root-objects]
   (filter (fn [o] (contains? named-root-objects (-> o meta :type))) root-objects))
    
-   (defn ns-key-of [t]
-    (let [ix (.indexOf t ":")]
-      (if (> ix 0)
-        (.substring t 0 (inc ix))
-        t)))
+(defn ns-key-of [t]
+ (let [ix (.indexOf t ":")]
+   (if (> ix 0)
+     (.substring t 0 (inc ix))
+     t)))
    
 (defn ns-of [arg-map]
   (when-let [xmlns (first (filter #(.startsWith % "xmlns:") (map name (keys arg-map))))]
@@ -422,21 +422,6 @@
      (~coll-fn the-map# min-occurs# max-occurs# elements# (coll-names-of elements#))))
 
 (defn choice-fn [the-map min-occurs max-occurs elements coll-names]
-  (with-meta 
-    (fn ([env value]
-      (let [result (get-result the-map env value) 
-            names (map first result)
-            s (set names)
-            n ((occurance-of names) (first s))]
-          (conj 
-            result
-            (and 
-              (< (count s) 2) 
-              (and (>= n min-occurs) (<= n max-occurs))))))
-      ([env] (flatten (all-sequence-items env elements)))) 
-    {:names coll-names, :type :choice}))
-   
-(defn choice-fn [the-map min-occurs max-occurs elements coll-names]
   (let [element-fn #(= (-> % meta :type) :element)
         pure-elem (filter element-fn elements)
         sub-elem (filter #(not (element-fn %)) elements)
@@ -452,12 +437,10 @@
               pure-result ((the-map (-> valid-v first first)) env (first valid-v))]
           (if (empty? sub-result)
             [choice-result  
-             pure-result
-            ]
+             pure-result]
             [choice-result  
              pure-result
-             sub-result
-            ])))
+             sub-result])))
         ([env] (flatten (all-sequence-items env elements)))) 
       {:names coll-names, :type :choice})))
    
