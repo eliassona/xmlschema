@@ -495,7 +495,7 @@
           [:import {:schemaLocation "bigone.xml"}]
           [:element {:name "a" :type "lib:AccountIdentification4Choice_HR2"}]
           ])]
-   (is (= [:a [true [:IBAN [false "hej"]]]] (s [:a [:IBAN "hej"]])))
+   (is (= [:a [false [:IBAN [false "hej"]]]] (s [:a [:IBAN "hej"]])))
    ))
 
 
@@ -512,7 +512,7 @@
             [:enumeration {:value "B"}]
             ]]
           [:element {:name "a" :type "AccountIdentification4Choice_HR2"}]])]
-    (is (= [:a [true [:IBAN [false "hej"]]]] (s [:a [:IBAN "hej"]])))
+    (is (= [:a [false [:IBAN [false "hej"]]]] (s [:a [:IBAN "hej"]])))
     (is (= [:a [true [:IBAN [true "A"]]]] (s [:a [:IBAN "A"]])))
     (is (= [:a [true [:IBAN [true "B"]]]] (s [:a [:IBAN "B"]])))
     ))

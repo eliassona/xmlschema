@@ -415,6 +415,13 @@
   (CollNormalizer/normalizeCollData data names)
   )
 
+(defn flatten-coll-value [value]
+  (reduce 
+    (fn [acc v] acc (if (-> v first keyword?) (conj acc v) (apply conj acc (rest v)))) 
+    [] 
+    value)
+  )
+
 (defn collections [args coll-fn]
   `(let [[arg-map# & elements#] (normalize-args [~@args])
          [min-occurs# max-occurs#] (min-max-occurs-of arg-map#)
@@ -450,11 +457,19 @@
 (defn seq-ok? [value elements]
   true)
 
+(defn seq-ok? [value elements]
+  (and
+    ;TODO same length
+    (every? identity (map #(if (-> % first keyword?) (-> % second first) (first %)) value))))
+
 (defn schema-sequence-fn [the-map min-occurs max-occurs elements coll-names]
   (with-meta 
     (fn ([env value]
-      (let [value (normalize-coll-data value coll-names)]    
-        (cons (seq-ok? value elements) (map (fn [e v] (e env v)) elements value))))
+      (let [value (normalize-coll-data value coll-names)    
+            res (map (fn [e v] (e env v)) elements value)
+            ]
+        ;res
+            (cons (seq-ok? res elements) (flatten-coll-value res))))
     ([env] (flatten (all-sequence-items env elements))))
       {:names coll-names, :type :sequence}))
    
