@@ -146,8 +146,8 @@
                       ] :sequence)]
     (is (= [:hej :satoshi [:nakamoto :oskar]] (-> s meta :names)))
     (is (= [:hej :satoshi :nakamoto :oskar] (s env)))
-    (is (= [true [:hej [true "soffa"]][:satoshi [true "kudde"]]#_[:nakamoto [true "bla"]]] 
-                 (s env [[:hej "soffa"][:satoshi "kudde"]#_[:nakamoto "bla"]])))
+    (is (= [true [:hej [true "soffa"]][:satoshi [true "kudde"]][:nakamoto [true "bla"]]] 
+                 (s env [[:hej "soffa"][:satoshi "kudde"][:nakamoto "bla"]])))
     
     )
   )

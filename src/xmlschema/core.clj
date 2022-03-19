@@ -428,7 +428,8 @@
         the-keys (-> the-map keys set)]
     (with-meta 
       (fn ([env value]
-        (let [value-fn #(-> % first keyword?)
+        (let [value (normalize-coll-data value coll-names)
+              value-fn #(-> % first keyword?)
               pure-v (filter value-fn value)
               valid-v (filter #(contains? the-keys (first %)) pure-v)
               sub-v (filter #(not (value-fn %)) value)
@@ -452,7 +453,8 @@
 (defn schema-sequence-fn [the-map min-occurs max-occurs elements coll-names]
   (with-meta 
     (fn ([env value]
-      (cons (seq-ok? value elements) (map (fn [e v] (e env v)) elements value)))
+      (let [value (normalize-coll-data value coll-names)]    
+        (cons (seq-ok? value elements) (map (fn [e v] (e env v)) elements value))))
     ([env] (flatten (all-sequence-items env elements))))
       {:names coll-names, :type :sequence}))
    
