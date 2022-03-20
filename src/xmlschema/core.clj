@@ -422,6 +422,12 @@
     value)
   )
 
+(defn coll-ok? [value elements]
+  (and
+    ;TODO same length
+    (every? identity (map #(if (-> % first keyword?) (-> % second first) (first %)) value))))
+
+
 (defn collections [args coll-fn]
   `(let [[arg-map# & elements#] (normalize-args [~@args])
          [min-occurs# max-occurs#] (min-max-occurs-of arg-map#)
@@ -440,7 +446,7 @@
               pure-v (filter value-fn value)
               valid-v (filter #(contains? the-keys (first %)) pure-v)
               sub-v (filter #(not (value-fn %)) value)
-              choice-result (and (= (count valid-v) 1) (= (count sub-v) (count sub-elem)))
+              choice-result (and (= (count valid-v) 1) (= (count sub-v) (count sub-elem)) (coll-ok? value elements))
               sub-result (map (fn [e v] (e env v)) sub-elem sub-v)
               pure-result ((the-map (-> valid-v first first)) env (first valid-v))]
           (if (empty? sub-result)
@@ -454,20 +460,14 @@
    
 (defn choice [& args] (collections args `choice-fn))
 
-(defn seq-ok? [value elements]
-  true)
 
-(defn seq-ok? [value elements]
-  (and
-    ;TODO same length
-    (every? identity (map #(if (-> % first keyword?) (-> % second first) (first %)) value))))
 
 (defn schema-sequence-fn [the-map min-occurs max-occurs elements coll-names]
   (with-meta 
     (fn ([env value]
       (let [value (normalize-coll-data value coll-names)    
             res (map (fn [e v] (e env v)) elements value)]
-        (cons (seq-ok? res elements) (flatten-coll-value res))))
+        (cons (coll-ok? res elements) (flatten-coll-value res))))
     ([env] (flatten (all-sequence-items env elements))))
       {:names coll-names, :type :sequence}))
    
