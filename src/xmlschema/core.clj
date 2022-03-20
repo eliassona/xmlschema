@@ -452,9 +452,8 @@
           (if (empty? sub-result)
             [choice-result  
              pure-result]
-            [choice-result  
-             pure-result
-             sub-result])))
+            (cons choice-result  
+             (flatten-coll-value [pure-result sub-result])))))
         ([env] (flatten (all-sequence-items env elements)))) 
       {:names coll-names, :type :choice})))
    
