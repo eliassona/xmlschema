@@ -91,7 +91,7 @@
                         [:minInclusive {:value "0"}]]] :simpleType)]
     
     (is (= [true 5] (simpleType env "5")))
-    (is (= true (-> (simpleType env "5") meta :result)))
+    (is (= true (is-valid? (simpleType env "5"))))
     ))
 
 (deftest test-embedded-simple-type-element
@@ -103,7 +103,7 @@
                          [:minInclusive {:value "0"}]]]] :element)]
     (is (= :car (-> element meta :name)))
     (is (= [:car [true 5]] (element env [:car "5"])))
-    (is (= true (-> (element env [:car "5"]) meta :result)))
+    (is (= true (is-valid? (element env [:car "5"]))))
     (is ( = :element (-> element meta :type)))
     ))
 
@@ -116,7 +116,7 @@
                              [:minInclusive {:value "0"}]]]
                          [:element {:name "car" :type "hej"}]])]
     (is (= [:car [true 5]] (schema [:car "5"])))
-    (is (= true (-> (schema [:car "5"]) meta :result)))
+    (is (= true (is-valid? (schema [:car "5"]))))
     ))
 
 
@@ -130,7 +130,7 @@
     (is (= [false [:hej [true "asdf"]]] 
           (type-fn env [[:hej "asdf"][:hej "fsda"]])))
     (is (= false 
-          (-> (type-fn env [[:hej "asdf"][:hej "fsda"]]) meta :result)))
+          (is-valid? (type-fn env [[:hej "asdf"][:hej "fsda"]]))))
     (is (= [false [:hej [true "asdf"]]] 
           (type-fn env [[:hej "asdf"][:satoshi "fsda"]])))
     )
@@ -153,7 +153,7 @@
     (is (= [true [:hej [true "soffa"]][:satoshi [true "kudde"]][:nakamoto [true "bla"]]] 
                  (s env [[:hej "soffa"][:satoshi "kudde"][:nakamoto "bla"]])))
     (is (= true 
-           (-> (s env [[:hej "soffa"][:satoshi "kudde"][:nakamoto "bla"]]) meta :result)))
+           (is-valid? (s env [[:hej "soffa"][:satoshi "kudde"][:nakamoto "bla"]]))))
     
     )
   )
@@ -208,7 +208,7 @@
                [:city [true "sthlm"]]
                [:country [true "swe"]]]]
              r))
-      (is (= true (-> r meta :result))))
+      (is (= true (is-valid? r))))
   ))
 
 (deftest test-all-type
@@ -227,7 +227,7 @@
   (let [e (schema-eval [:element {:name "car", :type "string"}] :element)]
     (is (= :car (-> e meta :name)))
     (is (= [:car [true "asdf"]] (e env [:car "asdf"])))
-    (is (= true (-> (e env [:car "asdf"]) meta :result)))
+    (is (= true (is-valid? (e env [:car "asdf"]))))
     (is (= :element (-> e meta :type)))
   ))
                
@@ -255,7 +255,7 @@
                              [:minInclusive {:value "0"}]]]]])]
     (is (= [:car [true 5]] (s [:car "5"])))
     (is (= [:car [false 11]] (s [:car "11"])))
-    (is (= false (-> (s [:car "11"]) meta :result)))
+    (is (= false (is-valid? (s [:car "11"]))))
     ))
 
 (deftest arg-test
@@ -331,7 +331,7 @@
             :attribute)]
     (is (= ["code" "string"] (a env)))
     (is (= {:code [true "Pig"]} (a env {:code "Pig"})))
-    (is (= true (-> (a env {:code "Pig"}) meta :result)))
+    (is (= true (is-valid? (a env {:code "Pig"}))))
     (is (= {:code [true nil]} (a env {})))
     ))
 
@@ -370,7 +370,7 @@
                  [:attribute {:name "base" :type "string"}]
                 ]]])]
     (let [result (s [:a {:code "Pig", :base "hej"} [:b "elem"][:c "celem"]])]
-      (is (= true (-> result meta :result)))
+      (is (= true (is-valid? result)))
       (is (= [:a {:code [true "Pig"], :base [true "hej"]} [true [:b [true "elem"]][:c [true "celem"]]]]
              result)))
     ))
@@ -404,7 +404,7 @@
 (deftest test-union
   (let [u (schema-eval [:union {:memberTypes "xs:positiveInteger string"}] :union)]
     (is (= [true 1] (u env "1")))
-    (is (= true (-> (u env "1") meta :result)))
+    (is (= true (is-valid? (u env "1"))))
     (is (= [true "-1"] (u env "-1")))
     ))
     
@@ -413,9 +413,9 @@
                       [:import {:schemaLocation "typed_elements.xml"}]
                       [:element {:name "a" :type "lib:club"}]] :schema)]
     (is (= [:a [true 1]] (s [:a "1"])))
-    (is (= true (-> (s [:a "1"]) meta :result)))
+    (is (= true (is-valid? (s [:a "1"]))))
     (is (= [:a [false 0]] (s [:a "0"])))
-    (is (= false (-> (s [:a "0"]) meta :result)))
+    (is (= false (is-valid? (s [:a "0"]))))
     (is (= [:a [false 10000]] (s [:a "10000"])))
     (is (= [:a [false 9999]] (s [:a "9999"])))
     (is (= [:a [true 99]] (s [:a "99"])))
@@ -462,9 +462,9 @@
                          [:simpleType
                           [:list {:itemType "positiveInteger"}]]]] :schema)]
     (is (= [:intvalues [true [true 1] [true 2] [true 3]]] (e [:intvalues "1 2 3"])))
-    (is (= true (-> (e [:intvalues "1 2 3"]) meta :result)))
+    (is (= true (is-valid? (e [:intvalues "1 2 3"]))))
     (is (= [:intvalues [true [true 1] [true 2] [false "3.0"]]] (e [:intvalues "1 2 3.0"])))
-    (is (= true (-> (e [:intvalues "1 2 3.0"]) meta :result)))
+    (is (= true (is-valid? (e [:intvalues "1 2 3.0"]))))
     (is (= [:intvalues [true [true 1] [false -2] [false "3.0"]]] (e [:intvalues "1 -2 3.0"])))
   ))
 
@@ -495,7 +495,7 @@
     (is (= :group (-> g meta :type)))
     (is (= [:a] (g env)))
     (is (= [true [:a [true "hej"]]] (g env [[:a "hej"]])))
-    (is (= true (-> (g env [[:a "hej"]]) meta :result)))
+    (is (= true (is-valid? (g env [[:a "hej"]]))))
   ))
 
 (deftest test-attributeGroup
@@ -508,7 +508,7 @@
               [:attributeGroup {:ref "personattr"}]]
              [:element {:name "olle" :type "person"}]])]
     (is (= [:olle {:attr1 [true "a1"], :attr2 [false "a2"]} []] (s [:olle {:attr1 "a1" :attr2 "a2"}])))
-    (is (= false (-> (s [:olle {:attr1 "a1" :attr2 "a2"}]) meta :result)))
+    (is (= false (is-valid? (s [:olle {:attr1 "a1" :attr2 "a2"}]))))
     ))
         
 (deftest test-big-one
@@ -518,7 +518,7 @@
           [:element {:name "a" :type "lib:AccountIdentification4Choice_HR2"}]
           ])]
    (is (= [:a [false [:IBAN [false "hej"]]]] (s [:a [:IBAN "hej"]])))
-   (is (= false (-> (s [:a [:IBAN "hej"]]) meta :result)))
+   (is (= false (is-valid? (s [:a [:IBAN "hej"]]))))
    ))
 
 

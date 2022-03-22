@@ -880,3 +880,5 @@
         env-key-set (set (keys new-env))]
     (schema-fn new-env elem-map elements env-key-set arg-map)))
 
+(defn is-valid? [result] (-> result meta :result))
+  
