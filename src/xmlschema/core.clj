@@ -495,7 +495,10 @@
    
 (defn attrs-of [args]
   (filter (fn [v] (contains? attrs-sub-element (-> v meta :type))) args))
-   
+
+(defn attr-data-of [env in-data attrs]
+  (apply merge (map (fn [attr] (attr env in-data)) attrs)))
+
 (defn complexType-fn [name sub-elem attrs]
   (add-meta 
    (fn
@@ -505,8 +508,8 @@
              (map? (first value))
              (let [e (rest value)
                a (first value)]
-             [(apply merge (map (fn [attr] (attr env a)) attrs))
-             (if (empty? e) [] (sub-elem env e))])
+               [(attr-data-of env a attrs)
+               (if (empty? e) [] (sub-elem env e))])
              :else
              [(sub-elem env value)]))
      ([env]
