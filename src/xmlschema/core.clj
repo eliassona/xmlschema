@@ -51,7 +51,7 @@
   (ast->clj (parser t :start :type)))
 
 (defn or-fn [args]
-  (loop [args args]
+  (loop [args (map first args)]
     (if (not (empty? args))
       (if (first args)
         true
@@ -59,20 +59,31 @@
       false)))
 
 (defn and-fn [args]
-  (loop [args args]
+  (loop [args (map first args)]
     (if (not (empty? args))
       (if (first args)
         (recur (rest args))
         false)
       true)))
-   
+
+(defn statements-of [env value conditions]
+  (first 
+    (reduce 
+      (fn [[s v] c]
+        (let [new-v (c env v)]
+          [(conj s new-v) (second new-v)])
+        ) [[] value] 
+      conditions))
+  )
+                     
+
 (defn simpleType-restriction-fn [base conds logic-expr arg-map]
   (do-throw! (= base nil) "base attribute must be set")
   (do-throw! (not (same-elements? (map (fn [c] (-> c meta :type)) conds))) "not the same type")
   (fn ([env value]
        (if-let [[base-result base-value] ((env (type-name-of base)) env value)]
          [(and base-result
-             (let [statements (vec (map (fn [c] (c env base-value)) conds))]
+             (let [statements (statements-of env base-value conds)]
                (condp = logic-expr
                  :empty true
                  :or (or-fn statements)
@@ -93,14 +104,14 @@
 (defn enumeration [arg-map & _]
   (with-meta `(fn [env# value#]
                (when-let [exp-value# (:value ~arg-map)]
-                 (= value# exp-value#))) {:type :or}))
+                 [(= value# exp-value#) value#])) {:type :or}))
 
 
 (defn numeric-op-expr [arg-map op]
     (when-let [exp-value (:value arg-map)]
       (with-meta 
         `(fn [env# value#]
-           (~op value# ~(read-string exp-value))) {:type :and})))
+           [(~op value# ~(read-string exp-value)) value#]) {:type :and})))
 
 (defn max-inclusive [arg-map & _]
   (numeric-op-expr arg-map `<=))
@@ -118,14 +129,14 @@
   (let [m (Pattern/compile (:value arg-map))]
     (with-meta
       `(fn [env# value#]
-         (not= (re-matches ~m value#) nil))
+         [(not= (re-matches ~m value#) nil) value#])
       {:type :or})))
    
 (defn totalDigits [arg-map & _]
   (let [n (-> arg-map :value read-string)]
     (with-meta
       `(fn [env# value#]
-         (<= (-> value# str count) ~n)) 
+         [(<= (-> value# str count) ~n) value#]) 
       {:type :and}))
   )
    
@@ -133,7 +144,7 @@
   (let [n (-> arg-map :value read-string)]
     (with-meta
       `(fn [env# value#]
-         (~op (count value#) ~n)) 
+         [(~op (count value#) ~n) value#]) 
       {:type :and})))
    
 (defn minLength [arg-map & _] (min-max-length arg-map `>=))
@@ -147,7 +158,7 @@
          (let [s# (str value#)
                ix# (.indexOf s# ".")
                fr# (.substring s# (if (>= ix# 0) (inc ix#) 0))] 
-         (<= (count fr#) ~n))) 
+         [(<= (count fr#) ~n) value#])) 
       {:type :and})))
    
 
@@ -157,7 +168,7 @@
     (do-throw! (not (contains? #{"collapse" "replace" "preserve"} v)) "invalid value")
     (with-meta
       `(fn [env# value#]
-         true ;;todo implement collapse, replace and preserve
+         [true value#];;todo implement collapse, replace and preserve
          ) 
       {:type :and})))
 
