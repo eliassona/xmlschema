@@ -73,8 +73,8 @@
         (let [new-v (c env v)]
           [(conj s new-v) (second new-v)])
         ) [[] value] 
-      conditions))
-  )
+      conditions)))
+  
                      
 
 (defn simpleType-restriction-fn [base conds logic-expr arg-map]
@@ -82,13 +82,16 @@
   (do-throw! (not (same-elements? (map (fn [c] (-> c meta :type)) conds))) "not the same type")
   (fn ([env value]
        (if-let [[base-result base-value] ((env (type-name-of base)) env value)]
-         [(and base-result
-             (let [statements (statements-of env base-value conds)]
-               (condp = logic-expr
-                 :empty true
-                 :or (or-fn statements)
-                 :and (and-fn statements)
-                 ))) base-value] 
+         (let [statements (statements-of env base-value conds)]
+           [(and base-result
+                 (condp = logic-expr
+                   :empty true
+                   :or (or-fn statements)
+                   :and (and-fn statements)
+                   )) 
+            (if (= logic-expr :and)
+              (-> statements last second)
+              base-value)]) 
          (arg-exception! "Unknown base")))
      ([env] ((env (arg-map :base)) env))))
    
@@ -164,12 +167,18 @@
 
    
 (defn whiteSpace [arg-map & _]
-  (let [v (:value arg-map)]
+  (let [v (:value arg-map)
+        whitespace-pattern "[\t\n\r]"]
     (do-throw! (not (contains? #{"collapse" "replace" "preserve"} v)) "invalid value")
     (with-meta
       `(fn [env# value#]
-         [true value#];;todo implement collapse, replace and preserve
-         ) 
+         value#
+         [true 
+          (condp = ~v
+            "replace" (.replaceAll value# ~whitespace-pattern " ")
+            "collapse" (.replaceAll value# ~whitespace-pattern "")
+            value#)
+          ]) 
       {:type :and})))
 
 (defn elements-of [env n type-fn]
