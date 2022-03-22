@@ -91,7 +91,7 @@
                         [:minInclusive {:value "0"}]]] :simpleType)]
     
     (is (= [true 5] (simpleType env "5")))
-    
+    (is (= true (-> (simpleType env "5") meta :result)))
     ))
 
 (deftest test-embedded-simple-type-element
@@ -103,6 +103,7 @@
                          [:minInclusive {:value "0"}]]]] :element)]
     (is (= :car (-> element meta :name)))
     (is (= [:car [true 5]] (element env [:car "5"])))
+    (is (= true (-> (element env [:car "5"]) meta :result)))
     (is ( = :element (-> element meta :type)))
     ))
 
@@ -115,6 +116,7 @@
                              [:minInclusive {:value "0"}]]]
                          [:element {:name "car" :type "hej"}]])]
     (is (= [:car [true 5]] (schema [:car "5"])))
+    (is (= true (-> (schema [:car "5"]) meta :result)))
     ))
 
 
@@ -127,6 +129,8 @@
     (is (= [true [:hej [true "asdf"]]] (type-fn env [[:hej "asdf"]])))
     (is (= [false [:hej [true "asdf"]]] 
           (type-fn env [[:hej "asdf"][:hej "fsda"]])))
+    (is (= false 
+          (-> (type-fn env [[:hej "asdf"][:hej "fsda"]]) meta :result)))
     (is (= [false [:hej [true "asdf"]]] 
           (type-fn env [[:hej "asdf"][:satoshi "fsda"]])))
     )
@@ -148,6 +152,8 @@
     (is (= [:hej :satoshi :nakamoto :oskar] (s env)))
     (is (= [true [:hej [true "soffa"]][:satoshi [true "kudde"]][:nakamoto [true "bla"]]] 
                  (s env [[:hej "soffa"][:satoshi "kudde"][:nakamoto "bla"]])))
+    (is (= true 
+           (-> (s env [[:hej "soffa"][:satoshi "kudde"][:nakamoto "bla"]]) meta :result)))
     
     )
   )
@@ -190,17 +196,19 @@
              [:element {:name "country" :type "string"}]
              ]]
            [:element {:name "employee" :type "fullPersonInfo"}]])]
-    (is (= [:employee
-            [true 
-             [:info [true [:firstname [true "anders"]][:lastname [true "olson"]]]]
-             [:address [true "solna"]]
-             [:city [true "sthlm"]]
-             [:country [true "swe"]]]]
-           (s [:employee 
+    (let [r (s [:employee 
               [:info [:firstname "anders"][:lastname "olson"]] 
               [:address "solna"]
               [:city "sthlm"]
-              [:country "swe"]])))
+              [:country "swe"]])]
+      (is (= [:employee
+              [true 
+               [:info [true [:firstname [true "anders"]][:lastname [true "olson"]]]]
+               [:address [true "solna"]]
+               [:city [true "sthlm"]]
+               [:country [true "swe"]]]]
+             r))
+      (is (= true (-> r meta :result))))
   ))
 
 (deftest test-all-type
@@ -219,6 +227,7 @@
   (let [e (schema-eval [:element {:name "car", :type "string"}] :element)]
     (is (= :car (-> e meta :name)))
     (is (= [:car [true "asdf"]] (e env [:car "asdf"])))
+    (is (= true (-> (e env [:car "asdf"]) meta :result)))
     (is (= :element (-> e meta :type)))
   ))
                
@@ -246,6 +255,7 @@
                              [:minInclusive {:value "0"}]]]]])]
     (is (= [:car [true 5]] (s [:car "5"])))
     (is (= [:car [false 11]] (s [:car "11"])))
+    (is (= false (-> (s [:car "11"]) meta :result)))
     ))
 
 (deftest arg-test
@@ -321,6 +331,7 @@
             :attribute)]
     (is (= ["code" "string"] (a env)))
     (is (= {:code [true "Pig"]} (a env {:code "Pig"})))
+   ; (is (= true (-> (a env {:code "Pig"}) meta :result)))
     (is (= {:code [true nil]} (a env {})))
     ))
 

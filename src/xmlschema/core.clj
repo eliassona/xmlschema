@@ -179,9 +179,10 @@
       value)))
 
 (defn massage-return-value [name type-fn value]
-  (if (= (-> type-fn meta :type) :complexType)
-    `[~name ~@value] 
-     [name value]))
+  (with-meta 
+    (if (= (-> type-fn meta :type) :complexType)
+      `[~name ~@value] 
+       [name value]) {:result (-> value meta :result)}))
    
 (defn element-fn [type-fn name ref type-name default fixed]
   (do-throw! (and ref (or name type-name)) "ref and name type cannot be used at the same time")
