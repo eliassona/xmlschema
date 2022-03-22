@@ -282,36 +282,38 @@
                   elements# 
                   (set (keys env#)) 
                   arg-map#)))
+(defn add-result [v]
+  (with-meta v {:result (first v)}))
 
 (defn simpleType-fn [name type-fn]
   (add-meta
    (condp = name 
      "string"
-     (fn ([env value] [true value])
+     (fn ([env value] (add-result [true value]))
         ([env] "string"))
      "integer"
      (fn ([env value]
        (try 
          (let [v (Long/valueOf value)]
-           [true v])
+           (add-result [true v]))
          (catch NumberFormatException e
-           [false value])))
+           (add-result [false value]))))
          ([env] "integer"))
      "decimal"
      (fn ([env value]
        (try 
          (let [v (Double/valueOf value)]
-           [true v])
+           (add-result [true v]))
          (catch NumberFormatException e
-           [false value])))
+           (add-result [false value]))))
          ([env] "decimal"))
      "boolean"
      (fn ([env value] 
            (let [v (read-string value)]
-             (if (boolean? v) [true v] [false value])))
+             (add-result (if (boolean? v) [true v] [false value]))))
         ([env] "boolean"))
      (fn 
-       ([env value] (type-fn env value))
+       ([env value] (add-result (type-fn env value)))
        ([env] (if name name (type-fn env))))) 
    :simpleType name))
    
@@ -449,11 +451,12 @@
               choice-result (and (= (count valid-v) 1) (= (count sub-v) (count sub-elem)) (coll-ok? value elements))
               sub-result (map (fn [e v] (e env v)) sub-elem sub-v)
               pure-result ((the-map (-> valid-v first first)) env (first valid-v))]
-          (if (empty? sub-result)
-            [choice-result  
-             pure-result]
-            (cons choice-result  
-             (flatten-coll-value [pure-result sub-result])))))
+          (with-meta 
+            (if (empty? sub-result)
+              [choice-result  
+               pure-result]
+              (cons choice-result  
+               (flatten-coll-value [pure-result sub-result]))) {:result choice-result})))
         ([env] (flatten (all-sequence-items env elements)))) 
       {:names coll-names, :type :choice})))
    
@@ -465,8 +468,9 @@
   (with-meta 
     (fn ([env value]
       (let [value (normalize-coll-data value coll-names)    
-            res (map (fn [e v] (e env v)) elements value)]
-        (cons (coll-ok? res elements) (flatten-coll-value res))))
+            res (map (fn [e v] (e env v)) elements value)
+            seq-ok? (coll-ok? res elements)]
+        (with-meta (cons seq-ok? (flatten-coll-value res)) {:result seq-ok?})))
     ([env] (flatten (all-sequence-items env elements))))
       {:names coll-names, :type :sequence}))
    
@@ -478,7 +482,9 @@
 (defn all-fn [the-map min-occurs max-occurs elements coll-names]
   (with-meta 
      (fn ([env value]
-      (cons (all-ok? value elements) (map (fn [v] ((the-map (first v)) env v)) value)))
+      (let [all-ok? (all-ok? value elements)]     
+        (with-meta 
+          (cons all-ok? (map (fn [v] ((the-map (first v)) env v)) value)) {:result all-ok?})))
        ([env] (flatten (all-sequence-items env elements))))
      {:names coll-names, :type :all}))
    
@@ -497,7 +503,10 @@
   (filter (fn [v] (contains? attrs-sub-element (-> v meta :type))) args))
 
 (defn attr-data-of [env in-data attrs]
-  (apply merge (map (fn [attr] (attr env in-data)) attrs)))
+  (let [a (apply merge (map (fn [attr] (attr env in-data)) attrs))
+        result (every? identity (map (comp first val) a))]
+    (with-meta a {:result result})
+    ))
 
 (defn complexType-fn [name sub-elem attrs]
   (add-meta 
@@ -507,11 +516,15 @@
              (sub-elem env value)
              (map? (first value))
              (let [e (rest value)
-               a (first value)]
-               [(attr-data-of env a attrs)
-               (if (empty? e) [] (sub-elem env e))])
+               a (first value)
+               attr-data (attr-data-of env a attrs)
+               se (if (empty? e) [] (sub-elem env e))]
+               (with-meta 
+                 [attr-data se] 
+                 {:result (and (-> attr-data meta :result) (if (empty? se) true (-> se meta :result)))}))
              :else
-             [(sub-elem env value)]))
+             (let [se (sub-elem env value)]
+               (with-meta [se] {:result (-> se meta :result)}))))
      ([env]
        (if sub-elem
          (sub-elem env)

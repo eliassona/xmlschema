@@ -358,8 +358,10 @@
                       [:enumeration {:value "Horse"}]]]]
                  [:attribute {:name "base" :type "string"}]
                 ]]])]
-    (is (= [:a {:code [true "Pig"], :base [true "hej"]} [true [:b [true "elem"]][:c [true "celem"]]]]
-           (s [:a {:code "Pig", :base "hej"} [:b "elem"][:c "celem"]])))
+    (let [result (s [:a {:code "Pig", :base "hej"} [:b "elem"][:c "celem"]])]
+      (is (= true (-> result second meta :result)))
+      (is (= [:a {:code [true "Pig"], :base [true "hej"]} [true [:b [true "elem"]][:c [true "celem"]]]]
+             result)))
     ))
 
 (deftest test-boolan-element
