@@ -314,19 +314,21 @@
         ([env] "string"))
      "integer"
      (fn ([env value]
-       (try 
-         (let [v (Long/valueOf value)]
-           (add-result [true v]))
-         (catch NumberFormatException e
-           (add-result [false value]))))
+       (add-result 
+         (try 
+	         (let [v (Long/valueOf value)]
+	           [true v])
+	         (catch NumberFormatException e
+	           [false value]))))
          ([env] "integer"))
      "decimal"
      (fn ([env value]
-       (try 
-         (let [v (Double/valueOf value)]
-           (add-result [true v]))
-         (catch NumberFormatException e
-           (add-result [false value]))))
+       (add-result 
+         (try 
+	         (let [v (Double/valueOf value)]
+	           [true v])
+	         (catch NumberFormatException e
+	           (add-result [false value])))))
          ([env] "decimal"))
      "boolean"
      (fn ([env value] 
