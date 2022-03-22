@@ -570,9 +570,10 @@
          (do-throw! (and value (= use "prohibited")) (format "attribute %s is not allowed" key))
          (cond
            name
-           {key (if value
+           (let [v (if value
                    ((if type-name (env type-name) type-fn) env value)
-                   [true nil])}
+                   [true nil])]
+             (with-meta {key v} {:result (first v)}))
            ref
            (if-let [a (env ref)]
              (if (= (-> a meta :type) :attribute)

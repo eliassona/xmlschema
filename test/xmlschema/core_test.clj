@@ -331,7 +331,7 @@
             :attribute)]
     (is (= ["code" "string"] (a env)))
     (is (= {:code [true "Pig"]} (a env {:code "Pig"})))
-   ; (is (= true (-> (a env {:code "Pig"}) meta :result)))
+    (is (= true (-> (a env {:code "Pig"}) meta :result)))
     (is (= {:code [true nil]} (a env {})))
     ))
 
@@ -370,7 +370,7 @@
                  [:attribute {:name "base" :type "string"}]
                 ]]])]
     (let [result (s [:a {:code "Pig", :base "hej"} [:b "elem"][:c "celem"]])]
-      (is (= true (-> result second meta :result)))
+      (is (= true (-> result meta :result)))
       (is (= [:a {:code [true "Pig"], :base [true "hej"]} [true [:b [true "elem"]][:c [true "celem"]]]]
              result)))
     ))
@@ -404,6 +404,7 @@
 (deftest test-union
   (let [u (schema-eval [:union {:memberTypes "xs:positiveInteger string"}] :union)]
     (is (= [true 1] (u env "1")))
+    (is (= true (-> (u env "1") meta :result)))
     (is (= [true "-1"] (u env "-1")))
     ))
     
@@ -412,7 +413,9 @@
                       [:import {:schemaLocation "typed_elements.xml"}]
                       [:element {:name "a" :type "lib:club"}]] :schema)]
     (is (= [:a [true 1]] (s [:a "1"])))
+    (is (= true (-> (s [:a "1"]) meta :result)))
     (is (= [:a [false 0]] (s [:a "0"])))
+    (is (= false (-> (s [:a "0"]) meta :result)))
     (is (= [:a [false 10000]] (s [:a "10000"])))
     (is (= [:a [false 9999]] (s [:a "9999"])))
     (is (= [:a [true 99]] (s [:a "99"])))
@@ -459,7 +462,9 @@
                          [:simpleType
                           [:list {:itemType "positiveInteger"}]]]] :schema)]
     (is (= [:intvalues [true [true 1] [true 2] [true 3]]] (e [:intvalues "1 2 3"])))
+    (is (= true (-> (e [:intvalues "1 2 3"]) meta :result)))
     (is (= [:intvalues [true [true 1] [true 2] [false "3.0"]]] (e [:intvalues "1 2 3.0"])))
+    (is (= true (-> (e [:intvalues "1 2 3.0"]) meta :result)))
     (is (= [:intvalues [true [true 1] [false -2] [false "3.0"]]] (e [:intvalues "1 -2 3.0"])))
   ))
 
@@ -472,6 +477,8 @@
         e (schema-eval [:element {:ref "intvalues"}] :element)]
     (is (= [:intvalues [true "1 2 3"]] 
            (e ref-env [:invalues "1 2 3"])))
+    (is (= true 
+           (-> (e ref-env [:invalues "1 2 3"]) meta :result)))
     (is (= [:intvalues "string"] (e ref-env)))
     
     ))
@@ -488,6 +495,7 @@
     (is (= :group (-> g meta :type)))
     (is (= [:a] (g env)))
     (is (= [true [:a [true "hej"]]] (g env [[:a "hej"]])))
+    (is (= true (-> (g env [[:a "hej"]]) meta :result)))
   ))
 
 (deftest test-attributeGroup
@@ -500,6 +508,7 @@
               [:attributeGroup {:ref "personattr"}]]
              [:element {:name "olle" :type "person"}]])]
     (is (= [:olle {:attr1 [true "a1"], :attr2 [false "a2"]} []] (s [:olle {:attr1 "a1" :attr2 "a2"}])))
+    (is (= false (-> (s [:olle {:attr1 "a1" :attr2 "a2"}]) meta :result)))
     ))
         
 (deftest test-big-one
@@ -509,6 +518,7 @@
           [:element {:name "a" :type "lib:AccountIdentification4Choice_HR2"}]
           ])]
    (is (= [:a [false [:IBAN [false "hej"]]]] (s [:a [:IBAN "hej"]])))
+   (is (= false (-> (s [:a [:IBAN "hej"]]) meta :result)))
    ))
 
 
