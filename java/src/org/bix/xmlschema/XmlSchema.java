@@ -1,9 +1,11 @@
 package org.bix.xmlschema;
 
+import static clojure.java.api.Clojure.read;
+import static clojure.java.api.Clojure.var;
+
 import java.io.File;
 import java.util.List;
 
-import clojure.java.api.Clojure;
 import clojure.lang.IFn;
 
 /**
@@ -12,24 +14,44 @@ import clojure.lang.IFn;
  *
  */
 public class XmlSchema {
+	/**
+	 * The result of a xml schema validation
+	 * @author anderseliasson
+	 *
+	 */
 	public static final class Result {
 		private final List<Object> result;
 
-		private Result(List<Object> r) {
+		private Result(final List<Object> r) {
 			this.result = r;
 		}
+		/**
+		 * Was the validation ok?
+		 * @return
+		 */
 		public boolean isValid() {
 			return (boolean) isValid.invoke(result);
 		}
+		/**
+		 * The data and status of the validation.
+		 * @return
+		 */
 		public List<Object> getResult() {
 			return result;
 		}
+		/**
+		 * Return the data of the result as an xml string.
+		 * @return
+		 */
+		public String asXml() {
+			return (String)asXml.invoke(result);
+		}
+		
 	}
 	
 	private static final String CLOJURE_CORE = "clojure.core";
 	private static final String XMLSCHEMA_CORE = "xmlschema.core";
 	private final static IFn require;
-	private final static IFn schemaEval;
 	private final static IFn clSlurp;
 	private final static IFn hiccupOf;
 	private final static IFn layoutOf;
@@ -38,19 +60,20 @@ public class XmlSchema {
 	private final static IFn schemaToClj;
 	private final static IFn schemaCompile;
 	private final static IFn isValid;
+	private final static IFn asXml;
 	
 	static {
-		require = Clojure.var(CLOJURE_CORE, "require");
-		require.invoke(Clojure.read(XMLSCHEMA_CORE));
-		keyword = Clojure.var(CLOJURE_CORE, "keyword");
-		parse = Clojure.var(XMLSCHEMA_CORE, "parse");
-		clSlurp = Clojure.var(CLOJURE_CORE, "slurp");
-		schemaEval = Clojure.var(XMLSCHEMA_CORE, "schema-eval");
-		schemaToClj = Clojure.var(XMLSCHEMA_CORE, "schema->clj");
-		schemaCompile = Clojure.var(XMLSCHEMA_CORE, "schema-compile");
-		isValid = Clojure.var(XMLSCHEMA_CORE, "is-valid?");
-		hiccupOf = Clojure.var(XMLSCHEMA_CORE, "hiccup-of");
-		layoutOf = Clojure.var(XMLSCHEMA_CORE, "layout-of");
+		require = var(CLOJURE_CORE, "require");
+		require.invoke(read(XMLSCHEMA_CORE));
+		keyword = var(CLOJURE_CORE, "keyword");
+		parse = var(XMLSCHEMA_CORE, "parse");
+		clSlurp = var(CLOJURE_CORE, "slurp");
+		schemaToClj = var(XMLSCHEMA_CORE, "schema->clj");
+		schemaCompile = var(XMLSCHEMA_CORE, "schema-compile");
+		isValid = var(XMLSCHEMA_CORE, "is-valid?");
+		hiccupOf = var(XMLSCHEMA_CORE, "hiccup-of");
+		layoutOf = var(XMLSCHEMA_CORE, "layout-of");
+		asXml = var(XMLSCHEMA_CORE, "as-xml");
 	}
 	
 	/**
@@ -78,16 +101,16 @@ public class XmlSchema {
 		return fromXmlString(slurp(filename));
 	}
 	
-	public static List<Object> parse(String xml) {
+	public static List<Object> parse(final String xml) {
 		return (List<Object>) parse.invoke(xml);
 	}
 	
-	public static Object schemaToClj(String xml) {
+	public static Object schemaToClj(final String xml) {
 		return schemaToClj.invoke(xml);
 	}
 	
 	
-	public static Object kwOf(String str) {
+	public static Object kwOf(final String str) {
 		return keyword.invoke(str);
 	}
 	public static final String slurp(final Object filenameOrString) {
@@ -102,9 +125,9 @@ public class XmlSchema {
 	/**
 	 * Validate the xml data with this schema
 	 * @param xml the xml data
-	 * @return a list containing the result of the validation
+	 * @return a result object
 	 */
-	public Result validateFromXmlString(String xml) {
+	public Result validateFromXmlString(final String xml) {
 		return new Result((List<Object>) schema.invoke(hiccupOf.invoke(xml)));
 	}
 	
@@ -112,27 +135,27 @@ public class XmlSchema {
 	/**
 	 * Validate the xml data with this schema
 	 * @param xmlLines the xml data as lines
-	 * @return a list containing the result of the validation
+	 * @return a result object
 	 */
-	public Result validateFromXmlLines(String... xmlLines) {
+	public Result validateFromXmlLines(final String... xmlLines) {
 		return validateFromXmlString(strOf(xmlLines));
 	}
 	
 	/**
 	 * Validate the xml data with this schema
 	 * @param filename the file of xml data
-	 * @return a list containing the result of the validation
+	 * @return a result object
 	 */
-	public Result validateFromXmlFile(String filename) {
+	public Result validateFromXmlFile(final String filename) {
 		return validateFromXmlString(slurp(filename));
 	}
 	
 	/**
 	 * Validate the xml data with this schema
 	 * @param file the file of xml data
-	 * @return a list containing the result of the validation
+	 * @return a result object
 	 */
-	public Result validate(File file) {
+	public Result validate(final File file) {
 		return validateFromXmlString(slurp(file));
 	}
 	
@@ -149,20 +172,12 @@ public class XmlSchema {
 		return schema.invoke().toString();
 	}
 	
-	private static String strOf(String[] lines) {
-		StringBuilder buf = new StringBuilder();
-		for (String l: lines) {
+	private static String strOf(final String[] lines) {
+		final StringBuilder buf = new StringBuilder();
+		for (final String l: lines) {
 			buf.append(l);
 			buf.append("\n");
 		}
 		return buf.toString();
-	}
-
-	
-	public static void main(final String[] args) {
-		final XmlSchema s = XmlSchema.fromXmlFile("/Users/anderseliasson/src/xmlschema/resources/typed_elements.xml");
-		System.out.println(s.toString());
-		System.out.println(s.validateFromXmlString("<employee>hej</employee>"));
-		System.out.println(s.layout());
 	}
 }

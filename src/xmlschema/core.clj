@@ -199,10 +199,12 @@
       value)))
 
 (defn massage-return-value [name type-fn value]
-  (with-meta 
-    (if (= (-> type-fn meta :type) :complexType)
-      `[~name ~@value] 
-       [name value]) {:result (-> value meta :result)}))
+  (let [type (-> type-fn meta :type)]
+    (with-meta 
+      (if (= type :complexType)
+        `[~name ~@value] 
+        [name value]) 
+      {:result (-> value meta :result), :type type})))
    
 (defn element-fn [type-fn name ref type-name default fixed]
   (do-throw! (and ref (or name type-name)) "ref and name type cannot be used at the same time")
@@ -903,4 +905,38 @@
     (schema-fn new-env elem-map elements env-key-set arg-map)))
 
 (defn is-valid? [result] (-> result meta :result))
+
+(defn map-of [m]
+  (apply merge (map (fn [e] {(key e) (-> e val second)}) m)))
+
+(defn xml-map-of [m]
+  (reduce (fn [acc e] (format "%s %s=\"%s\"" acc (-> e key name) (val e))) "" m))
+
+(defn as-xml [hiccup]
+  (dbg hiccup)
+  (if (empty? hiccup) 
+    ""
+    (let [has-map? (-> hiccup second map?)
+          n (->  hiccup first name)]
+      (format "<%s%s>%s</%s>" 
+              n 
+              (if has-map? (xml-map-of (second hiccup)) "")
+              (if has-map?
+                (if (coll? (nth hiccup 2))
+                  (apply str (map as-xml (rest (rest hiccup))))
+                  (nth hiccup 2))
+                (if (coll? (second hiccup))
+                  (apply str (map as-xml (rest hiccup)))
+                  (second hiccup)))
+              n))))
+          
+      
+
+(defn as-hiccup [result]
+  (if (= (-> result meta :type) :simpleType)
+    [(first result)(-> result second second)]
+    (if (map? (second result))
+      (cons (first result) (cons (map-of (second result)) (map as-hiccup (-> result (nth 2) rest))))
+      (cons (first result) (map as-hiccup (-> result second rest))))))
+  
   

@@ -34,6 +34,7 @@ public class XmlSchemaTest {
 //		assertEquals(asList(asList(kwOf("elem1"), "positiveInteger"),
 //				            asList(kwOf("elem2"), "string")), 
 //				schema.layout());//with a better syntax [[:elem1 "positiveInteger"][:elem2 "string"]]
+		
 	}
 	
 	@Test
