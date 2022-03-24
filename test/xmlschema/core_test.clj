@@ -531,6 +531,7 @@
    ))
 
 
+
 (deftest test-sequence-when-referring-to-new-type
   (let [s (schema-compile
          [:schema {:xmlns:hej "adsf"}
@@ -547,6 +548,7 @@
     (is (= [:a [false [:IBAN [false "hej"]]]] (s [:a [:IBAN "hej"]])))
     (is (= [:a [true [:IBAN [true "A"]]]] (s [:a [:IBAN "A"]])))
     (is (= [:a [true [:IBAN [true "B"]]]] (s [:a [:IBAN "B"]])))
+    #_(is (= [:a [:IBAN "B"]] (as-hiccup [:a [true [:IBAN [true "B"]]]])))
     ))
 
 

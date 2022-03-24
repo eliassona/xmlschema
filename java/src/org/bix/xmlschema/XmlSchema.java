@@ -21,16 +21,18 @@ public class XmlSchema {
 	 */
 	public static final class Result {
 		private final List<Object> result;
+		private final boolean isValidResult;
 
 		private Result(final List<Object> r) {
-			this.result = r;
+			this.result = (List<Object>) makeJavaFriendly.invoke(r);
+			this.isValidResult = (boolean)isValid.invoke(r);
 		}
 		/**
 		 * Was the validation ok?
 		 * @return
 		 */
 		public boolean isValid() {
-			return (boolean) isValid.invoke(result);
+			return isValidResult;
 		}
 		/**
 		 * The data and status of the validation.
@@ -38,13 +40,6 @@ public class XmlSchema {
 		 */
 		public List<Object> getResult() {
 			return result;
-		}
-		/**
-		 * Return the data of the result as an xml string.
-		 * @return
-		 */
-		public String asXml() {
-			return (String)asXml.invoke(result);
 		}
 		
 	}
@@ -61,6 +56,7 @@ public class XmlSchema {
 	private final static IFn schemaCompile;
 	private final static IFn isValid;
 	private final static IFn asXml;
+	private final static IFn makeJavaFriendly;
 	
 	static {
 		require = var(CLOJURE_CORE, "require");
@@ -74,6 +70,8 @@ public class XmlSchema {
 		hiccupOf = var(XMLSCHEMA_CORE, "hiccup-of");
 		layoutOf = var(XMLSCHEMA_CORE, "layout-of");
 		asXml = var(XMLSCHEMA_CORE, "as-xml");
+		makeJavaFriendly = var(XMLSCHEMA_CORE, "make-java-friendly");
+		
 	}
 	
 	/**

@@ -292,7 +292,7 @@
      (apply merge (map #(-> % meta :env) imports))))
    
 (defn elem-map-of [elements]
-  (apply merge (map (fn [e] {(-> e meta :name) e}) elements)))
+  (reduce (fn [acc e] (assoc acc (-> e meta :name) e)) {} elements))
    
 (defn schema [& elements]
   `(let [[arg-map# & root-objects#] (normalize-args [~@elements])
@@ -883,7 +883,7 @@
     (apply merge (map import-fn imports))))
 
 (defn make-new-env [named-elements]
-  (apply merge (map (fn [e] {(-> e second :name)  (schema-eval e (name-only e))}) named-elements)))
+  (reduce (fn [acc e] (assoc acc (-> e second :name) (schema-eval e (name-only e)))) {} named-elements))
 
 (defn schema-compile
   "Does the same as schema-eval but compiles each element inside a schema separately to avoid one big function"
@@ -912,7 +912,7 @@
 (defn xml-map-of [m]
   (reduce (fn [acc e] (format "%s %s=\"%s\"" acc (-> e key name) (val e))) "" m))
 
-(defn as-xml [hiccup]
+(defn as-xml [hiccup] ;TODO does not work
   (dbg hiccup)
   (if (empty? hiccup) 
     ""
@@ -931,7 +931,7 @@
               n))))
           
 (defn java-friendly-map-of [m]
-  (apply merge (map (fn [e] {(-> e key name) (-> e val)}) m)))
+  (reduce (fn [acc e] (assoc acc (-> e key name) (-> e val))) {} m))
 
 (defn make-java-friendly [hiccup]
   (if (coll? hiccup) 
