@@ -575,3 +575,7 @@
   (is (= [[:a 1][[:b 2]]] (normalize-coll-data [[:a 1][:b 2]] [:a [:b :c]])))
   (is (= [[:a 1][[:b 2]][:c 3][:d 4]] (normalize-coll-data [[:a 1][:b 2][:c 3][:d 4]] [:a [:b] :d])))
 )  
+
+(deftest test-java-friendliness
+  (is (= ["a" {"b" 1} "hej" ["x" ["y" 2]]] (make-java-friendly [:a {:b 1} "hej" [:x [:y 2]]]))))
+  

@@ -930,7 +930,17 @@
                   (second hiccup)))
               n))))
           
-      
+(defn java-friendly-map-of [m]
+  (apply merge (map (fn [e] {(-> e key name) (-> e val)}) m)))
+
+(defn make-java-friendly [hiccup]
+  (if (coll? hiccup) 
+    (let [s (second hiccup)
+          n (-> hiccup first name)]
+        (if (map? s) 
+           (cons n (cons (java-friendly-map-of s) (map make-java-friendly (-> hiccup rest rest))))
+           (cons n (map make-java-friendly (rest hiccup)))))
+    hiccup))
 
 (defn as-hiccup [result]
   (if (= (-> result meta :type) :simpleType)
