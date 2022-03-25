@@ -832,7 +832,15 @@
    [:simpleType {:name "anyURI"} [:restriction {:base "string"}]] ;TODO
    [:simpleType {:name "base64Binary"} [:restriction {:base "string"}]] ;TODO
    [:simpleType {:name "hexBinary"} [:restriction {:base "string"}]] ;TODO
-   [:simpleType {:name "date"} [:restriction {:base "string"}]] ;TODO
+   [:simpleType {:name "date"} [:restriction {:base "string"}]];TODO
+   [:simpleType {:name "dateTime"} [:restriction {:base "string"}]];TODO
+   [:simpleType {:name "duration"} [:restriction {:base "string"}]];TODO
+   [:simpleType {:name "gDay"} [:restriction {:base "string"}]];TODO
+   [:simpleType {:name "gMonth"} [:restriction {:base "string"}]];TODO
+   [:simpleType {:name "gMonthDay"} [:restriction {:base "string"}]];TODO
+   [:simpleType {:name "gYear"} [:restriction {:base "string"}]];TODO
+   [:simpleType {:name "gYearMonth"} [:restriction {:base "string"}]];TODO
+   [:simpleType {:name "time"} [:restriction {:base "string"}]];TODO
    [:simpleType {:name "decimal"} [:restriction {:base ""}]] 
    [:simpleType {:name "byte"} 
     [:restriction {:base "integer"} 
