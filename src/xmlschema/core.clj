@@ -310,12 +310,19 @@
 (defn add-result [v]
   (with-meta v {:result (first v)}))
 
+(defmacro def-hardcoded-type [value-code layout-code]
+  `(fn 
+     ([~'env ~'value] (add-result ~value-code))
+     ([~'env] ~layout-code)))
+     
+
 (defn simpleType-fn [name type-fn]
   (add-meta
    (condp = name 
      "string"
-     (fn ([env value] (add-result [true value]))
-        ([env] "string"))
+     (def-hardcoded-type [true value] "string")
+     #_(fn ([env value] (add-result [true value]))
+         ([env] "string"))
      "integer"
      (fn ([env value]
        (add-result 
@@ -367,12 +374,13 @@
    
    
 (defn xml-schema-list-fn [itemType]
-  (add-meta 
-       (fn ([env value]
-         (let [e (env itemType)] ;TODO type-name
-           (cons true (map #(e env %) (.split value " ")))))
-         ([env] itemType))
-       :list nil))
+  (let [itemType (type-name-of itemType)]
+    (add-meta 
+         (fn ([env value]
+           (let [e (env itemType)] 
+             (cons true (map #(e env %) (.split value " ")))))
+           ([env] itemType))
+         :list nil)))
    
 (defn xml-schema-list [& args]
   `(let [[arg-map# & elements#] (normalize-args [~@args])
@@ -536,27 +544,28 @@
     ))
 
 (defn complexType-fn [name sub-elem attrs]
-  (add-meta 
-   (fn
-     ([env value]
-       (cond (= (-> sub-elem meta :type) :simpleContent)
-             (sub-elem env value)
-             (map? (first value))
-             (let [e (rest value)
-               a (first value)
-               attr-data (attr-data-of env a attrs)
-               se (if (empty? e) [] (sub-elem env e))]
-               (with-meta 
-                 [attr-data se] 
-                 {:result (and (-> attr-data meta :result) (if (empty? se) true (-> se meta :result)))}))
-             :else
-             (let [se (sub-elem env value)]
-               (with-meta [se] {:result (-> se meta :result)}))))
-     ([env]
-       (if sub-elem
-         (sub-elem env)
-         [])))
-   :complexType name))
+  (let [type (-> sub-elem meta :type)]
+    (add-meta 
+     (fn
+       ([env value]
+         (cond (= type :simpleContent)
+               (sub-elem env value)
+               (map? (first value))
+               (let [e (rest value)
+                 a (first value)
+                 attr-data (attr-data-of env a attrs)
+                 se (if (empty? e) [] (sub-elem env e))]
+                 (with-meta 
+                   [attr-data se] 
+                   {:result (and (-> attr-data meta :result) (if (empty? se) true (-> se meta :result)))}))
+               :else
+               (let [se (sub-elem env value)]
+                 (with-meta [se] {:result (-> se meta :result)}))))
+       ([env]
+         (if sub-elem
+           (sub-elem env)
+           [])))
+     :complexType name)))
    
 (defn complexType [& args]
   `(let [[arg-map# & elements#] (normalize-args [~@args])]

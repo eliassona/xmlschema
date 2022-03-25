@@ -454,7 +454,7 @@
   (let [e (schema-eval [:schema {:xmlns:hej "adsf"}
                         [:element {:name "intvalues"}
                          [:simpleType
-                          [:list {:itemType "positiveInteger"}]]]] :schema)]
+                          [:list {:itemType "xs:positiveInteger"}]]]] :schema)]
     (is (= [:intvalues [true [true 1] [true 2] [true 3]]] (e [:intvalues "1 2 3"])))
     (is (= true (is-valid? (e [:intvalues "1 2 3"]))))
     ;(is (= [:intvalues [true [true 1] [true 2] [false "3.0"]]] (e [:intvalues "1 2 3.0"])))
