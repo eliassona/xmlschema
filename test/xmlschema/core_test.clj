@@ -503,6 +503,7 @@
              [:element {:name "olle" :type "person"}]])]
     (is (= [:olle {:attr1 [true "a1"], :attr2 [false "a2"]} []] (s [:olle {:attr1 "a1" :attr2 "a2"}])))
     (is (= false (is-valid? (s [:olle {:attr1 "a1" :attr2 "a2"}]))))
+    (is (= [:olle {:attr1 "a1" :attr2 "a2"}] (as-hiccup (s [:olle {:attr1 "a1" :attr2 "a2"}]))))
     ))
         
 (deftest test-big-one
@@ -533,7 +534,7 @@
     (is (= [:a [false [:IBAN [false "hej"]]]] (s [:a [:IBAN "hej"]])))
     (is (= [:a [true [:IBAN [true "A"]]]] (s [:a [:IBAN "A"]])))
     (is (= [:a [true [:IBAN [true "B"]]]] (s [:a [:IBAN "B"]])))
-    #_(is (= [:a [:IBAN "B"]] (as-hiccup [:a [true [:IBAN [true "B"]]]])))
+    (is (= [:a [:IBAN "hej"]] (as-hiccup (s [:a [:IBAN "hej"]]))))
     ))
 
 
