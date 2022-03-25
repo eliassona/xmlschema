@@ -314,41 +314,31 @@
   `(fn 
      ([~'env ~'value] (add-result ~value-code))
      ([~'env] ~layout-code)))
-     
 
 (defn simpleType-fn [name type-fn]
   (add-meta
    (condp = name 
      "string"
      (def-hardcoded-type [true value] "string")
-     #_(fn ([env value] (add-result [true value]))
-         ([env] "string"))
      "integer"
-     (fn ([env value]
-       (add-result 
-         (try 
-	         (let [v (Long/valueOf value)]
-	           [true v])
-	         (catch NumberFormatException e
-	           [false value]))))
-         ([env] "integer"))
+     (def-hardcoded-type 
+       (try 
+        (let [v (Long/valueOf value)]
+          [true v])
+        (catch NumberFormatException e
+          [false value])) "integer")
      "decimal"
-     (fn ([env value]
-       (add-result 
-         (try 
-	         (let [v (Double/valueOf value)]
-	           [true v])
-	         (catch NumberFormatException e
-	           (add-result [false value])))))
-         ([env] "decimal"))
+     (def-hardcoded-type 
+       (try 
+         (let [v (Double/valueOf value)]
+           [true v])
+         (catch NumberFormatException e
+           [false value])) "decimal")
      "boolean"
-     (fn ([env value] 
-           (let [v (read-string value)]
-             (add-result (if (boolean? v) [true v] [false value]))))
-        ([env] "boolean"))
-     (fn 
-       ([env value] (add-result (type-fn env value)))
-       ([env] (if name name (type-fn env))))) 
+     (def-hardcoded-type 
+       (let [v (read-string value)]
+         (if (boolean? v) [true v] [false value])) "boolean")
+     (def-hardcoded-type (type-fn env value) (if name name (type-fn env)))) 
    :simpleType name))
    
 (defn simpleType [& args]
