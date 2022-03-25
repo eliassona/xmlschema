@@ -276,16 +276,7 @@
 
 
 (deftest schema-layout
-  (is (= {:elements #{[:a "string"] [:b "string"]}
-          :env 
-          #{"date" "hexBinary" "decimal" 
-            "base64Binary" "anyURI" 
-            "string" "boolean" "negativeInteger" 
-            "short" "unsignedByte" 
-            "a" "integer" "b" 
-            "nonNegativeInteger" 
-            "nonPositiveInteger" "unsignedShort" 
-            "byte" "positiveInteger"}} 
+  (is (= {:elements #{[:b "string"] [:a "string"]}, :env #{"boolean" "string" "hexBinary" "negativeInteger" "dateTime" "short" "gMonth" "unsignedByte" "a" "time" "gYearMonth" "integer" "duration" "gDay" "b" "nonNegativeInteger" "anyURI" "nonPositiveInteger" "date" "gYear" "base64Binary" "unsignedShort" "gMonthDay" "byte" "positiveInteger" "decimal"}} 
          ((schema-compile [:schema {:xmlns:lib "myfile"}
                            [:element {:name "a" :type "string"}]
                            [:element {:name "b" :type "string"}]]))))
@@ -392,13 +383,7 @@
 (deftest test-include
   (let [s (schema-compile [:schema {:xmlns:lib "myfile"} [:include {:schemaLocation "typed_elements.xml"}]
                           [:element {:type "string", :name "a"}]])]
-    (is (= {:env #{"boolean" "string" "hexBinary" "student" "member" "club" "club1"
-                    "negativeInteger" "short" "unsignedByte" 
-                    "employee" "a" "integer" "nonNegativeInteger" 
-                    "anyURI" "nonPositiveInteger" "date" 
-                    "base64Binary" "unsignedShort" "byte" 
-                    "positiveInteger" "decimal"}, 
-            :elements #{[:member "string"] [:student "string"] [:employee "string"] [:a "string"]}} 
+    (is (= {:elements #{[:student "string"] [:member "string"] [:a "string"] [:employee "string"]}, :env #{"boolean" "member" "string" "hexBinary" "negativeInteger" "dateTime" "short" "gMonth" "unsignedByte" "employee" "student" "club1" "a" "time" "gYearMonth" "club" "integer" "duration" "gDay" "nonNegativeInteger" "anyURI" "nonPositiveInteger" "date" "gYear" "base64Binary" "unsignedShort" "gMonthDay" "byte" "positiveInteger" "decimal"}} 
             (s)))
     (is (= [:student [true "hej"]] (s [:student "hej"])))
   ))

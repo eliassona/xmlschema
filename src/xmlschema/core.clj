@@ -824,53 +824,38 @@
 (defn parse-predef [predef]
   (ast->clj (parser (pr-str predef) :start :simpleType)))
 
+(defmacro def-type [name base & conditions]
+  `[:simpleType {:name ~name} [:restriction {:base ~base} ~@conditions]])
 
-(def predefs
-  [[:simpleType {:name "string"} [:restriction {:base ""}]]
-   [:simpleType {:name "integer"} [:restriction {:base ""}]]
-   [:simpleType {:name "boolean"} [:restriction {:base ""}]]
-   [:simpleType {:name "anyURI"} [:restriction {:base "string"}]] ;TODO
-   [:simpleType {:name "base64Binary"} [:restriction {:base "string"}]] ;TODO
-   [:simpleType {:name "hexBinary"} [:restriction {:base "string"}]] ;TODO
-   [:simpleType {:name "date"} [:restriction {:base "string"}]];TODO
-   [:simpleType {:name "dateTime"} [:restriction {:base "string"}]];TODO
-   [:simpleType {:name "duration"} [:restriction {:base "string"}]];TODO
-   [:simpleType {:name "gDay"} [:restriction {:base "string"}]];TODO
-   [:simpleType {:name "gMonth"} [:restriction {:base "string"}]];TODO
-   [:simpleType {:name "gMonthDay"} [:restriction {:base "string"}]];TODO
-   [:simpleType {:name "gYear"} [:restriction {:base "string"}]];TODO
-   [:simpleType {:name "gYearMonth"} [:restriction {:base "string"}]];TODO
-   [:simpleType {:name "time"} [:restriction {:base "string"}]];TODO
-   [:simpleType {:name "decimal"} [:restriction {:base ""}]] 
-   [:simpleType {:name "byte"} 
-    [:restriction {:base "integer"} 
-	    [:minInclusive {:value "-128"}] 
-	    [:maxInclusive {:value "127"}]]]
-   [:simpleType {:name "short"} 
-    [:restriction {:base "integer"} 
-	    [:minInclusive {:value "-32768"}] 
-	    [:maxInclusive {:value "32767"}]]] 
-   [:simpleType {:name "unsignedByte"} 
-	   [:restriction {:base "integer"} 
-		   [:minInclusive {:value "0"}] 
-		   [:maxInclusive {:value "255"}]]] 
-   [:simpleType {:name "unsignedShort"} 
-	   [:restriction {:base "integer"} 
-		   [:minInclusive {:value "0"}] 
-		   [:maxInclusive {:value "65535"}]]] 
-   [:simpleType {:name "nonPositiveInteger"} 
-	   [:restriction {:base "integer"} 
-		   [:maxInclusive {:value "0"}]]] 
-   [:simpleType {:name "nonNegativeInteger"} 
-	   [:restriction {:base "integer"} 
-		   [:minInclusive {:value "0"}]]] 
-   [:simpleType {:name "positiveInteger"} 
-	   [:restriction {:base "integer"} 
-		   [:minExclusive {:value "0"}]]] 
-   [:simpleType {:name "negativeInteger"} 
-	   [:restriction {:base "integer"} 
-		   [:maxExclusive {:value "0"}]]]
-   ])
+(defmacro def-types [& types]
+  `(def predefs ~(vec (map (fn [[name base & conditions]] `(def-type ~name ~base ~@conditions)) types)))
+)
+
+(def-types 
+  ["string" ""]
+  ["integer" ""]
+  ["boolean" ""]
+  ["anyURI" "string"]
+  ["base64Binary" "string"]
+  ["hexBinary" "string"]
+  ["date" "string"]
+  ["dateTime" "string"]
+  ["duration" "string"]
+  ["gDay" "string"]
+  ["gMonth" "string"]
+  ["gMonthDay" "string"]
+  ["gYear" "string"]
+  ["gYearMonth" "string"]
+  ["time" "string"]
+  ["decimal" ""]
+  ["byte" "integer" [:minInclusive {:value "-128"}][:maxInclusive {:value "127"}]]
+  ["short" "integer" [:minInclusive {:value "-32768"}][:maxInclusive {:value "32767"}]]
+  ["unsignedByte" "integer" [:minInclusive {:value "0"}][:maxInclusive {:value "255"}]]
+  ["unsignedShort" "integer" [:minInclusive {:value "0"}][:maxInclusive {:value "65535"}]]
+  ["nonPositiveInteger" "integer" [:maxInclusive {:value "0"}]]
+  ["nonNegativeInteger" "integer" [:minInclusive {:value "0"}]]
+  ["positiveInteger" "integer" [:minInclusive {:value "0"}]]
+  ["negativeInteger" "integer" [:maxInclusive {:value "0"}]])
 
 (def env
   (apply merge 
