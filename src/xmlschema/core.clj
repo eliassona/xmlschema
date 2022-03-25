@@ -80,20 +80,21 @@
 (defn simpleType-restriction-fn [base conds logic-expr arg-map]
   (do-throw! (= base nil) "base attribute must be set")
   (do-throw! (not (same-elements? (map (fn [c] (-> c meta :type)) conds))) "not the same type")
-  (fn ([env value]
-       (if-let [[base-result base-value] ((env (type-name-of base)) env value)]
-         (let [statements (statements-of env base-value conds)]
-           [(and base-result
-                 (condp = logic-expr
-                   :empty true
-                   :or (or-fn statements)
-                   :and (and-fn statements)
-                   )) 
-            (if (= logic-expr :and)
-              (-> statements last second)
-              base-value)]) 
-         (arg-exception! "Unknown base")))
-     ([env] ((env (arg-map :base)) env))))
+  (let [base-type-name (type-name-of base)]
+    (fn ([env value]
+         (if-let [[base-result base-value] ((env base-type-name) env value)]
+           (let [statements (statements-of env base-value conds)]
+             [(and base-result
+                   (condp = logic-expr
+                     :empty true
+                     :or (or-fn statements)
+                     :and (and-fn statements)
+                     )) 
+              (if (= logic-expr :and)
+                (-> statements last second)
+                base-value)]) 
+           (arg-exception! "Unknown base")))
+       ([env] ((env (arg-map :base)) env)))))
    
 (defn simpleType-restriction [arg-map & conditions]
   `(let [conds# [~@conditions]]
@@ -209,27 +210,28 @@
 (defn element-fn [type-fn name ref type-name default fixed]
   (do-throw! (and ref (or name type-name)) "ref and name type cannot be used at the same time")
   (do-throw! (and default fixed) "default and fixed cannot be used at the same time")
-  (add-meta
-    (fn ([env [tmp & value :as all]]
-     (cond 
-       ref
-       (let [r (env ref)]
-         (r env all))
-       type-name   
-       (if-let [t (env (type-name-of type-name))]
-         (massage-return-value name t (t env (prepare-value t value default fixed)))
-         (arg-exception! (format "Unknown type: %s" type-name)))
-       :else
-       (massage-return-value name type-fn (type-fn env (prepare-value type-fn value default fixed)))))
-    ([env]
-      (cond 
-        ref
-        ((env ref) env)
-        type-name
-        (elements-of env name (env type-name))
-        :else
-        (elements-of env name type-fn))))
-   :element name))
+  (let [type-name (if type-name (type-name-of type-name) nil)]
+    (add-meta
+      (fn ([env [tmp & value :as all]]
+       (cond 
+         ref
+         (let [r (env ref)]
+           (r env all))
+         type-name   
+         (if-let [t (env type-name)]
+           (massage-return-value name t (t env (prepare-value t value default fixed)))
+           (arg-exception! (format "Unknown type: %s" type-name)))
+         :else
+         (massage-return-value name type-fn (type-fn env (prepare-value type-fn value default fixed)))))
+      ([env]
+        (cond 
+          ref
+          ((env ref) env)
+          type-name
+          (elements-of env name (env type-name))
+          :else
+          (elements-of env name type-fn))))
+     :element name)))
     
 (defn element [& args] 
   `(let [[arg-map# type-fn#] (normalize-args [~@args])]
@@ -367,7 +369,7 @@
 (defn xml-schema-list-fn [itemType]
   (add-meta 
        (fn ([env value]
-         (let [e (env itemType)]
+         (let [e (env itemType)] ;TODO type-name
            (cons true (map #(e env %) (.split value " ")))))
          ([env] itemType))
        :list nil))
