@@ -300,7 +300,7 @@
   `(let [[arg-map# & root-objects#] (normalize-args [~@elements])
          elements# (filter (fn [e#] (= (:type (meta e#)) :element)) root-objects#)
          elem-map# (elem-map-of elements#)
-         env# (merge ~`env (apply merge (map (fn [e#] {(name-of e#) e#}) (only-named-objects root-objects#))))
+         env# (merge ~`env (reduce (fn [acc# e#] (assoc acc# (name-of e#) e#)) {} (only-named-objects root-objects#)))
          import-env# (import-env-of root-objects#)]
        (schema-fn (apply merge env# import-env#) 
                   elem-map# 
@@ -692,8 +692,7 @@
        schema-env# (-> schema# meta :env)
        local-env# (partial local-import-env-of schema-env#)
        xmlns# (str (-> schema# meta :xmlns))
-       schema-env# (apply merge (map (partial qName-of local-env# xmlns#) schema-env#))
-       l# (count xmlns#)]
+       schema-env# (apply merge (map (partial qName-of local-env# xmlns#) schema-env#))]
    (with-meta
      (fn [env#]
          (let [s# (:env (schema#))]
@@ -780,7 +779,7 @@
 (defn filter-includes [elements]
   (filter (fn [[e]] (not= e :include)) elements)) 
 
-(defn expand-includes ([elements] ;TODO do recursion with loop recur
+(defn expand-includes ([elements] 
   (let [includes (flatten (map ast->clj (filter (fn [i] (= (first i) :include))  elements)))]
     (if (empty? includes)
       []
@@ -901,29 +900,8 @@
 (defn is-valid? [result] (-> result meta :result))
 
 (defn map-of [m]
-  (apply merge (map (fn [e] {(key e) (-> e val second)}) m)))
+  (reduce (fn [acc e] (assoc acc (key e) (-> e val second))) {} m))
 
-(defn xml-map-of [m]
-  (reduce (fn [acc e] (format "%s %s=\"%s\"" acc (-> e key name) (val e))) "" m))
-
-(defn as-xml [hiccup] ;TODO does not work
-  (dbg hiccup)
-  (if (empty? hiccup) 
-    ""
-    (let [has-map? (-> hiccup second map?)
-          n (->  hiccup first name)]
-      (format "<%s%s>%s</%s>" 
-              n 
-              (if has-map? (xml-map-of (second hiccup)) "")
-              (if has-map?
-                (if (coll? (nth hiccup 2))
-                  (apply str (map as-xml (rest (rest hiccup))))
-                  (nth hiccup 2))
-                (if (coll? (second hiccup))
-                  (apply str (map as-xml (rest hiccup)))
-                  (second hiccup)))
-              n))))
-          
 (defn java-friendly-map-of [m]
   (reduce (fn [acc e] (assoc acc (-> e key name) (-> e val))) {} m))
 

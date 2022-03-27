@@ -516,8 +516,6 @@
    (is (= false (is-valid? (s [:a [:IBAN "hej"]]))))
    ))
 
-
-
 (deftest test-sequence-when-referring-to-new-type
   (let [s (schema-compile
          [:schema {:xmlns:hej "adsf"}
@@ -532,7 +530,9 @@
             ]]
           [:element {:name "a" :type "AccountIdentification4Choice_HR2"}]])]
     (is (= [:a [false [:IBAN [false "hej"]]]] (s [:a [:IBAN "hej"]])))
+    (is (not (is-valid? (s [:a [:IBAN "hej"]]))))
     (is (= [:a [true [:IBAN [true "A"]]]] (s [:a [:IBAN "A"]])))
+    (is (is-valid? (s [:a [:IBAN "A"]])))
     (is (= [:a [true [:IBAN [true "B"]]]] (s [:a [:IBAN "B"]])))
     (is (= [:a [:IBAN "hej"]] (as-hiccup (s [:a [:IBAN "hej"]]))))
     ))
