@@ -271,11 +271,11 @@
 (defn name-spaces-of [xmlns imports]
   imports)
    
-(defn invalid-names! [names]
+(defn invalid-names [names]
   (some #(>= (.indexOf % ":") 0) names))
    
 (defn schema-fn [env elem-map elements env-key-set arg-map]
-  (do-throw! (invalid-names! (map name (keys elem-map))) "can't define an element in another namespace")
+  (do-throw! (invalid-names (map name (keys elem-map))) "can't define an element in another namespace")
   (with-meta 
    (fn 
      ([xml-or-hiccup]
