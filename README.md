@@ -1,10 +1,40 @@
 # xmlschema
 
-A Clojure library designed to ... well, that part is up to you.
+XML schema validator
 
 ## Usage
 
-FIXME
+
+### Java
+```java
+import org.bix.xmlschema.XmlSchema;
+
+```
+```clojure
+(use 'xmlschema.core)
+(let [schema (schema-compile 
+  [:schema {:xmlns:lib "myfile"}
+   [:element {:name "a"}
+    [:complexType
+     [:sequence
+      [:element {:name "b" :type "string"}]
+      [:element {:name "c" :type "string"}]]
+     [:attribute {:name "code"}
+      [:simpleType
+        [:restriction {:base "string"}
+          [:enumeration {:value "Pig"}]
+          [:enumeration {:value "Horse"}]]]]
+     [:attribute {:name "base" :type "string"}]
+    ]]])]
+    (let [result (schema [:a {:code "Pig", :base "hej"} [:b "elem"][:c "celem"]])]
+      (assert (is-valid? result))
+      (assert (= [:a {:code [true "Pig"], :base [true "hej"]} [true [:b [true "elem"]][:c [true "celem"]]]] result)))
+    (let [result (schema [:a {:code "Dog", :base "hej"} [:b "elem"][:c "celem"]])]
+      (assert (not (is-valid? result)))
+      (assert (= [:a {:code [false "Dog"], :base [true "hej"]} [true [:b [true "elem"]][:c [true "celem"]]]] result))))
+
+```
+
 
 ## License
 
