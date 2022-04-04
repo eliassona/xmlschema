@@ -8,8 +8,24 @@ XML schema validator
 ### Java
 ```java
 import org.bix.xmlschema.XmlSchema;
+final XmlSchema schema = XmlSchema.fromXmlLines(
+  "<schema xmlns:lib=\"myfile\">",
+  " <element name=\"elem1\" type=\"positiveInteger\"/>",
+  " <element name=\"elem2\">",
+  "  <simpleType>",
+  "   <restriction base=\"string\">",
+  "    <enumeration value=\"BMW\"/>",
+  "    <enumeration value=\"Volvo\"/>",
+  "   </restriction>",
+  "  </simpleType>",
+  " </element>",
+  "</schema>");
+//TODO examples...
 
 ```
+
+### Clojure
+
 ```clojure
 (use 'xmlschema.core)
 (let [schema (schema-compile 
