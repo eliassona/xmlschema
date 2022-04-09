@@ -565,5 +565,10 @@
 )  
 
 (deftest test-java-friendliness
-  (is (= ["a" {"b" 1} "hej" ["x" ["y" 2]]] (make-java-friendly [:a {:b 1} "hej" [:x [:y 2]]]))))
+  (is (= ["a" {"b" 1} "hej" ["x" ["y" 2]]] (make-java-friendly [:a {:b 1} "hej" [:x [:y 2]]])))
+  (is (= ["a" 1] (make-java-friendly [:a 1])))
+  (is (= [] (make-java-friendly [])))
+  )
+
   
+

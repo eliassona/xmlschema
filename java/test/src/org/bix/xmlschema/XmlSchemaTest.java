@@ -4,6 +4,7 @@ import static java.util.Arrays.asList;
 import static org.bix.xmlschema.XmlSchema.kwOf;
 import static org.junit.Assert.assertEquals;
 
+import java.util.HashSet;
 import java.util.List;
 
 import org.junit.Test;
@@ -23,17 +24,18 @@ public class XmlSchemaTest {
 		  "  </simpleType>",
 		  " </element>",
 		  "</schema>");
-		assertEquals(asList(kwOf("elem1"), asList(true, 10L)), //with a better syntax [:elem1 [true 10]]
+		assertEquals(asList("elem1", 10L), //with a better syntax ["elem1" 10]
 					 schema.validateFromXmlString("<elem1>10</elem1>").getResult());
-		assertEquals(asList(kwOf("elem1"), asList(false, -1L)),//with a better syntax [:elem1 [false -1]] 
+		assertEquals(asList("elem1", -1L),//with a better syntax ["elem1" -1] 
 				 	 schema.validateFromXmlString("<elem1>-1</elem1>").getResult());
-		assertEquals(asList(kwOf("elem2"), asList(true, "BMW")),//with a better syntax [:elem2 [true "BMW"]] 
+		assertEquals(asList("elem2", "BMW"),//with a better syntax ["elem2" "BMW"] 
 			 	 schema.validateFromXmlString("<elem2>BMW</elem2>").getResult());
-		assertEquals(asList(kwOf("elem2"), asList(false, "Saab")),//with a better syntax [:elem2 [false "Saab"]] 
+		assertEquals(asList("elem2", "Saab"),//with a better syntax ["elem2" "Saab"] 
 			 	 schema.validateFromXmlString("<elem2>Saab</elem2>").getResult());
-//		assertEquals(asList(asList(kwOf("elem1"), "positiveInteger"),
-//				            asList(kwOf("elem2"), "string")), 
-//				schema.layout());//with a better syntax [[:elem1 "positiveInteger"][:elem2 "string"]]
+		assertEquals(new HashSet<>(
+				            asList(asList("elem1", "positiveInteger"),
+				            asList("elem2", "string"))), 
+				schema.layout());//with a better syntax [["elem1" "positiveInteger"]["elem2" "string"]]
 		
 	}
 	
@@ -44,5 +46,4 @@ public class XmlSchemaTest {
         
         
 	}
-	
 }

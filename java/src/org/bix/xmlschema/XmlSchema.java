@@ -5,6 +5,8 @@ import static clojure.java.api.Clojure.var;
 
 import java.io.File;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import clojure.lang.IFn;
 
@@ -24,7 +26,8 @@ public class XmlSchema {
 		private final boolean isValidResult;
 
 		private Result(final List<Object> r) {
-			this.result = (List<Object>) makeJavaFriendly.invoke(r);
+			Object h = asHiccup.invoke(r);
+			this.result = (List<Object>) makeJavaFriendly.invoke(asHiccup.invoke(r));
 			this.isValidResult = (boolean)isValid.invoke(r);
 		}
 		/**
@@ -55,7 +58,7 @@ public class XmlSchema {
 	private final static IFn schemaToClj;
 	private final static IFn schemaCompile;
 	private final static IFn isValid;
-	private final static IFn asXml;
+	private final static IFn asHiccup;
 	private final static IFn makeJavaFriendly;
 	
 	static {
@@ -69,7 +72,7 @@ public class XmlSchema {
 		isValid = var(XMLSCHEMA_CORE, "is-valid?");
 		hiccupOf = var(XMLSCHEMA_CORE, "hiccup-of");
 		layoutOf = var(XMLSCHEMA_CORE, "layout-of");
-		asXml = var(XMLSCHEMA_CORE, "as-xml");
+		asHiccup = var(XMLSCHEMA_CORE, "as-hiccup");
 		makeJavaFriendly = var(XMLSCHEMA_CORE, "make-java-friendly");
 		
 	}
@@ -161,8 +164,9 @@ public class XmlSchema {
 	 * 
 	 * @return the layout of the schema as a list
 	 */
-	public List<Object> layout() {
-		return (List<Object>) layoutOf.invoke(schema);
+	public Set<Object> layout() {
+		return ((Set<Object>) layoutOf.invoke(schema)).stream()
+				.map(e -> makeJavaFriendly.invoke(e)).collect(Collectors.toSet());
 	}
 	
 	@Override

@@ -814,7 +814,7 @@
 
    
 (defn layout-of [schema]
-  (-> (schema) :elements vec))
+  (-> (schema) :elements))
 
 (defn parse [xml]
   (-> xml .trim hiccup-of pr-str (parser :start :schema)))
@@ -906,7 +906,7 @@
   (reduce (fn [acc e] (assoc acc (-> e key name) (-> e val))) {} m))
 
 (defn make-java-friendly [hiccup]
-  (if (coll? hiccup) 
+  (if (and (coll? hiccup) (not (empty? hiccup))) 
     (let [s (second hiccup)
           n (-> hiccup first name)]
         (if (map? s) 
@@ -922,3 +922,5 @@
       (cons (first result) (map as-hiccup (-> result second rest))))))
   
   
+
+
