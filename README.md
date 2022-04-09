@@ -27,7 +27,7 @@ assertXmlSchema(schema, "<elem2>Saab</elem2>", asList("elem2", "Saab"), false);
 assertEquals(new HashSet<>(
 	asList(asList("elem1", "positiveInteger"),
 	asList("elem2", "string"))), 
-	schema.layout());//with a better syntax [["elem1" "positiveInteger"]["elem2" "string"]]
+	schema.layout());
 
 private void assertXmlSchema(final XmlSchema schema, final String inputXml, final List<Object> expectedResult, final boolean expectedValidity) {
 	final Result r = schema.validateFromXmlString(inputXml);
